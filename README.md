@@ -3,11 +3,11 @@
 This project is intended for use performing pre-ingest processing of image files using machine learning techniques.
 
 # Installation
-For local development, this project is using pipenv, so that will need to be installed:
+For local development, this project is using pipenv:
 
 https://pipenv.pypa.io/en/latest/install/#installing-pipenv
 
-And then the dependencies will need to be installed:
+Dependencies are installed using:
 ```
 pipenv install
 ```
@@ -28,7 +28,7 @@ To keep dependencies synched for remote server use, when dependencies in the pro
 pipenv requirements
 ```
 
-And those tools will need to be used to install dependencies in the remote environment
+pip and virtualenv will need to be used to install dependencies in the remote environment
 ```
 pip3 install -r requirements.txt
 ```
