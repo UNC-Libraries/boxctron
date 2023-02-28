@@ -42,7 +42,7 @@ To run the normalize.py command on a remote server, you will first need to activ
 ```
 scl enable rh-python38 bash
 cd /path/to/ml-repo-preingest-processing
-source ml-repo-preingest-processing/bin/activate
+source ml-repo-preingest-procressing/bin/activate
 
 python3 normalize.py -h
 ```
