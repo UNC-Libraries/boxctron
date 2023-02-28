@@ -103,6 +103,28 @@ class TestImageNormalizer:
     assert result.height == 409
     assert result.mode == 'RGB'
 
+  def test_process_multi_runs(self, tmp_path):
+    config = self.init_config(tmp_path)
+    src_path = config.src_base_path / 'images/blue.jpg'
+    src_path.parent.mkdir()
+    src_img = Image.new('RGB', (500, 500), 'blue')
+    src_img.save(src_path)
+    subject = ImageNormalizer(config)
+    
+    subject.process(src_path)
+    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    assert result.width == 500
+    # Run process on image again with different dimensions, it should not change sizes since its already been generated
+    config.max_dimension = 256
+    subject.process(src_path)
+    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    assert result.width == 500
+    # Run again with force flag, it should change this time
+    config.force = True
+    subject.process(src_path)
+    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    assert result.width == 256
+
   def init_config(self, tmp_path):
     config = Config()
     config.src_base_path = tmp_path / 'src/base'

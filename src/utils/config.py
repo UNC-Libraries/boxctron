@@ -8,6 +8,7 @@ class Config:
     self.max_dimension = None
     self.output_base_path = Path('.')
     self.src_base_path = Path('.')
+    self.force = False
     if path != None:
       load_config(path)
 
@@ -18,3 +19,4 @@ class Config:
       self.max_dimension = data['max_dimension']
       self.output_base_path = Path(data['output_base_path'])
       self.src_base_path = Path(data['src_base_path'])
+      self.force = Path(data['force'])
