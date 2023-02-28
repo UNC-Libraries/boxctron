@@ -7,7 +7,7 @@ class Config:
   def __init__(self, path=None):
     self.max_dimension = None
     self.output_base_path = Path('.')
-    self.src_base_path = Path('.')
+    self.src_base_path = None
     self.force = False
     if path != None:
       load_config(path)

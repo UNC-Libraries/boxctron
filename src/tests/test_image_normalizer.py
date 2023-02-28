@@ -61,6 +61,14 @@ class TestImageNormalizer:
     with pytest.raises(ValueError):
       subject.build_output_path(src_path)
 
+  def test_build_output_path_no_base(self):
+    config = Config()
+    config.output_base_path = Path('/path/to/output/base/norm/')
+    subject = ImageNormalizer(config)
+    src_path = Path('/path/to/src/base/sub/path/image.jpg')
+    result = subject.build_output_path(src_path)
+    assert result == Path('/path/to/output/base/norm/image.jpg')
+
   def test_process_unchanged(self, tmp_path):
     config = self.init_config(tmp_path)
     src_path = config.src_base_path / 'images/blue.jpg'
