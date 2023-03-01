@@ -6,6 +6,8 @@ import logging
 # Currently normalizes all files to JPGs
 class ImageNormalizer:
   def __init__(self, config):
+    # Disable DecompressionBombError since many of our images are huge
+    Image.MAX_IMAGE_PIXELS = None
     self.config = config
 
   # Normalize an image to the expected configuration, saving the normalized version to an configured output path
