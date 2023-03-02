@@ -5,7 +5,9 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser(description='Normalize an individual image or images from a directory.')
 parser.add_argument('src_path', type=Path,
-                    help='Path of image or directory to normalize')
+                    help='Path of image or directory to normalize, or file listing paths if the -l parameter is provided')
+parser.add_argument('-l', '--file-list', action="store_true",
+                    help='If provided, then the src_path will be treated as a text file containing a list of newline separated paths to normalize.'),
 parser.add_argument('-o', '--output-path', type=Path, default=Path('./output'),
                     help='Base path to output normalized images. Defaults to "./output"'),
 parser.add_argument('-s', '--base-src-path', type=Path,
@@ -35,7 +37,10 @@ config.force = args.force
 
 normalizer = ImageNormalizer(config)
 
-if args.src_path.is_dir():
+if args.file_list:
+  with open(args.src_path) as f:
+    paths = list(Path(line) for line in f.read().splitlines())
+elif args.src_path.is_dir():
   paths = list(p for p in Path(args.src_path).glob("**/*") if p.suffix in extensions)
 else:
   paths = [args.src_path]
