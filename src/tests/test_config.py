@@ -8,6 +8,7 @@ class TestConfig:
     config = Config()
 
     assert config.max_dimension == None
+    assert config.min_dimension == None
     assert config.src_base_path == None
     assert config.output_base_path == Path('.')
     assert config.force == False
@@ -18,6 +19,7 @@ class TestConfig:
     config_path = tmp_path / 'config.json'
     config_info = {
       'max_dimension' : 512,
+      'min_dimension' : 224,
       'src_base_path' : str(src_base_path),
       'output_base_path' : str(output_base_path),
       'force' : True
@@ -28,6 +30,7 @@ class TestConfig:
     config = Config(config_path)
 
     assert config.max_dimension == 512
+    assert config.min_dimension == 224
     assert config.src_base_path == src_base_path
     assert config.output_base_path == output_base_path
     assert config.force == True

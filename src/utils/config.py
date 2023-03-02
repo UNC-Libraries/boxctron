@@ -7,6 +7,7 @@ class Config:
   # max_dimension - max size of longest side for images, in pixels. The longest side will be reduced to this value, and the other side scaled accordingly
   def __init__(self, path=None):
     self.max_dimension = None
+    self.min_dimension = None
     self.output_base_path = Path('.')
     self.src_base_path = None
     self.force = False
@@ -18,6 +19,7 @@ class Config:
     with open(path) as json_data:
       data = json.load(json_data)
       self.max_dimension = data.get('max_dimension', None)
+      self.min_dimension = data.get('min_dimension', None)
       self.output_base_path = Path(data['output_base_path']) if 'output_base_path' in data else None
       self.src_base_path = Path(data['src_base_path']) if 'src_base_path' in data else None
       self.force = bool(data.get('force', False))

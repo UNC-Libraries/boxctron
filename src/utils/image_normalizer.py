@@ -21,7 +21,7 @@ class ImageNormalizer:
     with Image.open(path) as img:
       if img.mode != "RGB":
         img = img.convert("RGB")
-      img = ImageNormalizer.resize_to_max_dimension(img, self.config.max_dimension)
+      img = self.resize(img)
       # construct path to write to, then save the file
       output_path.parent.mkdir(exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
@@ -36,16 +36,25 @@ class ImageNormalizer:
     # change the extension to jpg
     return dest.with_suffix('.jpg')
 
-  # Resizes the provided image based on the longest dimension, if it exceeds the provided max_dimension.
+  # Resizes the provided image based on:
+  #   1. the longest dimension, if it exceeds the provided max_dimension.
+  #   2. the shortest dimension, if it would be less than min_dimension after resizing based on longest dimension
   # Otherwise, returns the original image.
-  def resize_to_max_dimension(img, max_dimension):
+  def resize(self, img):
     width, height = img.width, img.height
-    if max(width, height) <= max_dimension:
+    max_dimension, min_dimension = self.config.max_dimension, self.config.min_dimension
+    if max(width, height) <= max_dimension or min(width, height) <= min_dimension:
       return img
     if width >= height:
       width = max_dimension
       height = int(height * (width / img.width))
+      if height < min_dimension:
+        height = min_dimension
+        width = int(img.width * (min_dimension / img.height))
     else:
       height = max_dimension
       width = int(width * (height / img.height))
+      if width < min_dimension:
+        width = min_dimension
+        height = int(img.height * (min_dimension / img.width))
     return img.resize((width, height))
