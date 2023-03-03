@@ -23,7 +23,7 @@ class ImageNormalizer:
         img = img.convert("RGB")
       img = self.resize(img)
       # construct path to write to, then save the file
-      output_path.parent.mkdir(exist_ok=True)
+      output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
 
   # Constructs an output path based on the input path and configured base paths.
