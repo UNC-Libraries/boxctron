@@ -42,7 +42,7 @@ normalizer = ImageNormalizer(config)
 
 if args.file_list:
   with open(args.src_path) as f:
-    paths = list(Path(line) for line in f.read().splitlines())
+    paths = list(Path(line) for line in f.read().splitlines() if line.strip() != "")
 elif args.src_path.is_dir():
   paths = list(p for p in Path(args.src_path).glob("**/*") if p.suffix in extensions)
 else:
