@@ -1,0 +1,153 @@
+[
+  {
+    "image": "http://localhost:8081/ncc/P0004_0483_0001_verso.jpg",
+    "id": 1,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 100.00000000000003,
+        "height": 76.92307692307693,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1205
+      },
+      {
+        "x": 0,
+        "y": 77.25752508361204,
+        "width": 100,
+        "height": 22.74247491638796,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1333,
+        "original_height": 1205
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 2,
+    "created_at": "2023-03-07T21:36:42.566075Z",
+    "updated_at": "2023-03-07T21:36:42.566122Z",
+    "lead_time": 25.844
+  },
+  {
+    "image": "http://localhost:8081/ncc/P0004_0483_17486.jpg",
+    "id": 2,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 83.60128617363341,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1254
+      },
+      {
+        "x": 0,
+        "y": 84.2443729903537,
+        "width": 99.99999999999996,
+        "height": 15.755627009646291,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1333,
+        "original_height": 1254
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 3,
+    "created_at": "2023-03-07T21:37:56.402245Z",
+    "updated_at": "2023-03-07T21:38:16.558772Z",
+    "lead_time": 59.888
+  },
+  {
+    "image": "http://localhost:8081/ncc/Cm912_1945u1_sheet1.jpg",
+    "id": 69,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 100.00000000000001,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 964
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 70,
+    "created_at": "2023-03-07T22:06:49.733066Z",
+    "updated_at": "2023-03-07T22:06:49.733098Z",
+    "lead_time": 8.475
+  },
+  {
+    "image": "http://localhost:8081/ncc/G3902-F3-1981_U5_front.jpg",
+    "id": 87,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 99.99999999999996,
+        "height": 100,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1031
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 88,
+    "created_at": "2023-03-07T22:10:49.064903Z",
+    "updated_at": "2023-03-07T22:10:49.064931Z",
+    "lead_time": 9.2
+  },
+  {
+    "image": "http://localhost:8081/rbc/11029-z_pa0001_0017.jpg",
+    "id": 199,
+    "label": [
+      {
+        "x": 14.327485380116956,
+        "y": 0.1594896331738437,
+        "width": 85.67251461988305,
+        "height": 99.84051036682615,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1222
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "width": 13.742690058479525,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1333,
+        "original_height": 1222
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 200,
+    "created_at": "2023-03-07T22:24:56.830664Z",
+    "updated_at": "2023-03-07T22:24:56.830693Z",
+    "lead_time": 17.372
+  }
+]
