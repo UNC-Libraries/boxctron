@@ -8,18 +8,20 @@ from src.utils.json_utils import from_json
 
 # Base dataset class for color bar data
 class ColorBarDataset(torch.utils.data.Dataset):
-  def __init__(self, image_paths, annotations_path, base_image_path = Path('/')):
+  def __init__(self, config, split = 'train'):
     super().__init__()
-    self.image_paths = image_paths
-    self.annotations_path = annotations_path
-    self.base_image_path = base_image_path
+    self.config = config
     self.labels = []
+    self.split = split
+    # Load the list of files
+    with open(self.config.image_list_path) as f:
+      self.image_paths = [Path(p).resolve() for p in f.read().splitlines()]
     # Load the annotations from label studio
-    annotations = from_json(self.annotations_path)
+    annotations = from_json(self.config.annotations_path)
     # build a map of image file paths to label info
     path_to_labels = {}
     for anno in annotations:
-      img_path = (self.base_image_path / anno['image'].split('/', 3)[3]).resolve()
+      img_path = (self.config.base_image_path / anno['image'].split('/', 3)[3]).resolve()
       path_to_labels[str(img_path)] = anno['label']
     # Load labels from the annotation mapping
     self.load_labels(path_to_labels)
@@ -30,7 +32,6 @@ class ColorBarDataset(torch.utils.data.Dataset):
 
   def __getitem__(self, index):
     image_data = load_for_resnet(self.image_paths[index])
-    print(f'LAbel {self.image_paths[index]} {self.labels[index]}')
     return image_data, self.labels[index]
     
   def __len__(self):
