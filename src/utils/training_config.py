@@ -23,3 +23,4 @@ class TrainingConfig:
       self.batch_size = data.get('batch_size', 8)
       # Number of workers to use when training
       self.num_workers = data.get('num_workers', 4)
+      self.max_dimension = data.get('max_dimension', 1333)

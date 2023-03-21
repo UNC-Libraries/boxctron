@@ -31,7 +31,7 @@ class ColorBarDataset(torch.utils.data.Dataset):
     raise Exception("Not implemented for parent class")
 
   def __getitem__(self, index):
-    image_data = load_for_resnet(self.image_paths[index])
+    image_data = load_for_resnet(self.image_paths[index], self.config.max_dimension)
     return image_data, self.labels[index]
     
   def __len__(self):
