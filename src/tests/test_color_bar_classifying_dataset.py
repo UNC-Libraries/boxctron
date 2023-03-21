@@ -1,6 +1,6 @@
 from pathlib import Path
 import random
-from src.datasets.color_bar_classifying_dataset import ColorBarClassifyingDataset
+from src.datasets import ColorBarClassifyingDataset
 from src.utils.training_config import TrainingConfig
 from src.utils.json_utils import to_json
 
@@ -12,7 +12,7 @@ class TestColorBarClassifyingDataset:
       'image_list_path' : 'fixtures/mini_file_list.txt',
       'annotations_path' : 'fixtures/mini_annotations.json',
       'base_image_path' : str(Path("fixtures/normalized_images").resolve()),
-      'dataset_class' : 'color_bar_classifying_dataset'
+      'dataset_class' : 'src.datasets.ColorBarClassifyingDataset'
     }, config_path)
     config = TrainingConfig(config_path)
 

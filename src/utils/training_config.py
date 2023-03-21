@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-import sys
+import importlib
 from src.datasets.color_bar_classifying_dataset import ColorBarClassifyingDataset
 
 class TrainingConfig:
@@ -16,8 +16,10 @@ class TrainingConfig:
       # dataset class to use to load the training data
       self.dataset_class = data.get('dataset_class', ColorBarClassifyingDataset)
       if isinstance(self.dataset_class, str):
-        self.dataset_class = getattr(sys.modules['src.datasets'], self.dataset_class)
+        ds_module, ds_class = self.dataset_class.rsplit(".", 1)
+        ds_module = importlib.import_module(ds_module)
+        self.dataset_class = getattr(ds_module, ds_class)
       # Size of batches to use in training
       self.batch_size = data.get('batch_size', 8)
       # Number of workers to use when training
-      self.number_works = data.get('number_works', 4)
+      self.num_workers = data.get('num_workers', 4)
