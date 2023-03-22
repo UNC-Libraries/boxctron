@@ -8,14 +8,12 @@ from src.utils.json_utils import from_json
 
 # Base dataset class for color bar data
 class ColorBarDataset(torch.utils.data.Dataset):
-  def __init__(self, config, split = 'train'):
+  def __init__(self, config, image_paths, split = 'train'):
     super().__init__()
     self.config = config
     self.labels = []
     self.split = split
-    # Load the list of files
-    with open(self.config.image_list_path) as f:
-      self.image_paths = [Path(p).resolve() for p in f.read().splitlines()]
+    self.image_paths = image_paths
     # Load the annotations from label studio
     annotations = from_json(self.config.annotations_path)
     # build a map of image file paths to label info

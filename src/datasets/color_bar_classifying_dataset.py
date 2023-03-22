@@ -3,8 +3,8 @@ from pathlib import Path
 
 # Dataset with single class for labeling images as having a color bar or not
 class ColorBarClassifyingDataset(ColorBarDataset):
-  def __init__(self, config, split = 'train'):
-    super().__init__(config, split)
+  def __init__(self, config, image_paths, split = 'train'):
+    super().__init__(config, image_paths, split)
 
   # Loads annotation data into self.labels in the same order they paths are listed in image_paths
   def load_labels(self, path_to_labels):
