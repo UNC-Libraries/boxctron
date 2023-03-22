@@ -19,10 +19,17 @@ class TrainingConfig:
         ds_module, ds_class = self.dataset_class.rsplit(".", 1)
         ds_module = importlib.import_module(ds_module)
         self.dataset_class = getattr(ds_module, ds_class)
+      # Data module/optimizer settings
       # Size of batches to use in training
       self.batch_size = data.get('batch_size', 8)
       # Number of workers to use when training
       self.num_workers = data.get('num_workers', 4)
+      # Number of epoches to train over
+      self.max_epochs = data.get('max_epochs', 3)
+      # learning rate, how quickly the model will decide it is right during quickly. Higher the number, faster it goes.
+      self.lr = data.get('lr', 3e-4)
+      # Directory where training checkpoints will be saved
+      self.save_dir = data.get('save_dir', './artifacts/ckpts/train')
       # Max dimension size which images will be normalized to
       self.max_dimension = data.get('max_dimension', 1333)
       # Percentage of the dataset which will be used for evaluating the model during development/training
