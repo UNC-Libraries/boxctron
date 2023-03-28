@@ -131,3 +131,6 @@ dmypy.json
 output/
 .DS_Store
 logs/*.log
+.metaflow
+lightning_logs
+artifacts
