@@ -3,6 +3,7 @@ import torchvision.models as models
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import optim
 
 # System for training a model to classify images as either containing a color bar or not.
 # It uses a resnet model as its foundation for transfer learning, then trains on top of that
@@ -14,8 +15,9 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.config = config
 
     # load model
-    self.foundation_model = self.foundation_model()
-    self.model = self.get_model()
+    fdn_num_filters, self.foundation_model = self.get_foundation_model()
+    print(f"***Fdn filters {fdn_num_filters}")
+    self.model = self.get_model(fdn_num_filters)
 
     # We will overwrite this once we run `test()`
     self.test_results = {}
@@ -25,15 +27,15 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     foundation = models.resnet50(pretrained=True)
     num_filters = foundation.fc.in_features
     layers = list(foundation.children())[:-1]
-    return nn.Sequential(*layers)
+    return num_filters, nn.Sequential(*layers)
 
   # Model maps from the final dimension in resnet (2048 dimensions) down to a single dimension,
   # which is the class of having a color bar or not
-  def get_model(self):
+  def get_model(self, starting_size):
     model = nn.Sequential(
-      nn.Linear(2048, 64),
-      nn.ReLU(),
-      nn.Linear(64, 1)
+      nn.Linear(starting_size, 1)#,
+      # nn.ReLU(),
+      # nn.Linear(64, 1)
     )
     return model
 
@@ -45,9 +47,15 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   # and calculate the loss/accuracy of the model within that batch.
   def _common_step(self, batch, _):
     images, labels = batch
+    print(f"***images shape {images.shape} {labels.shape}")
     
     # forward pass using the model
-    logits = self.model(self.foundation_model(images))
+    self.foundation_model.eval()
+    # fdn_output = self.foundation_model(images)
+    with torch.no_grad():
+      fdn_output = self.foundation_model(images).flatten(1)
+    print(f"***Fdn shape {fdn_output.shape}")
+    logits = self.model(fdn_output)
 
     # https://pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy_with_logits.html
     loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), labels.float())
@@ -73,11 +81,14 @@ class ColorBarClassifyingSystem(pl.LightningModule):
 
   # Calculate the average loss and accuracy for batches within the dev dataset at the end of a training epoch,
   # and log the results
-  def validation_epoch_end(self, outputs):
-    avg_loss = torch.mean(torch.stack([o[0] for o in outputs]))
-    avg_acc = torch.mean(torch.stack([o[1] for o in outputs]))
+  def on_validation_epoch_end(self):
+    avg_loss = torch.stack(self.validation_step_outputs[0]).mean()
+    avg_acc = torch.stack(self.validation_step_outputs[1]).mean()
+    # avg_loss = torch.mean(torch.stack([o[0] for o in outputs]))
+    # avg_acc = torch.mean(torch.stack([o[1] for o in outputs]))
     self.log_dict({'dev_loss': avg_loss, 'dev_acc': avg_acc},
       on_step=False, on_epoch=True, prog_bar=True, logger=True)
+    self.validation_step_outputs.clear()
 
   # 
   def test_step(self, test_batch, batch_idx):

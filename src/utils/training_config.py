@@ -12,7 +12,7 @@ class TrainingConfig:
       # Path to json file containing all the training annotations
       self.annotations_path = Path(data['annotations_path'])
       # Base path where image paths should be evaluated against
-      self.base_image_path = Path(data.get('base_image_path', '/'))
+      self.base_image_path = Path(data.get('base_image_path', '/')).resolve()
       # dataset class to use to load the training data
       self.dataset_class = data.get('dataset_class', ColorBarClassifyingDataset)
       if isinstance(self.dataset_class, str):
