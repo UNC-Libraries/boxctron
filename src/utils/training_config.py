@@ -33,9 +33,9 @@ class TrainingConfig:
       # Max dimension size which images will be normalized to
       self.max_dimension = data.get('max_dimension', 1333)
       # Percentage of the dataset which will be used for evaluating the model during development/training
-      self.dev_percent = data.get('dev_percent', 0.2)
+      self.val_percent = data.get('val_percent', 0.2)
       # Percentage of the dataset which will be used for evaluating the model after training completes
       self.test_percent = data.get('test_percent', 0)
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
-    self.train_percent = 1 - self.dev_percent - self.test_percent
+    self.train_percent = 1 - self.val_percent - self.test_percent
 

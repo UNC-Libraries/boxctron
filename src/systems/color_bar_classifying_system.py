@@ -13,6 +13,10 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     super().__init__()
     self.save_hyperparameters()
     self.config = config
+    self.validation_step_loss = []
+    self.validation_step_acc = []
+    self.test_step_loss = []
+    self.test_step_acc = []
 
     # load model
     fdn_num_filters, self.foundation_model = self.get_foundation_model()
@@ -75,35 +79,52 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       on_step=True, on_epoch=False, prog_bar=True, logger=True)
     return loss
 
-  def validation_step(self, dev_batch, batch_idx):
-    loss, acc = self._common_step(dev_batch, batch_idx)
+  def validation_step(self, val_batch, batch_idx):
+    loss, acc = self._common_step(val_batch, batch_idx)
+    self.validation_step_loss.append(loss)
+    self.validation_step_acc.append(acc)
     return loss, acc
 
-  # Calculate the average loss and accuracy for batches within the dev dataset at the end of a training epoch,
+  # Calculate the average loss and accuracy for batches within the validation dataset at the end of a training epoch,
   # and log the results
   def on_validation_epoch_end(self):
-    avg_loss = torch.stack(self.validation_step_outputs[0]).mean()
-    avg_acc = torch.stack(self.validation_step_outputs[1]).mean()
-    # avg_loss = torch.mean(torch.stack([o[0] for o in outputs]))
-    # avg_acc = torch.mean(torch.stack([o[1] for o in outputs]))
-    self.log_dict({'dev_loss': avg_loss, 'dev_acc': avg_acc},
+    avg_loss = torch.stack(self.validation_step_loss).mean()
+    avg_acc = torch.stack(self.validation_step_acc).mean()
+    self.log_dict({'val_loss': avg_loss, 'val_acc': avg_acc},
       on_step=False, on_epoch=True, prog_bar=True, logger=True)
-    self.validation_step_outputs.clear()
+    self.validation_step_loss.clear()
+    self.validation_step_acc.clear()
 
   # 
   def test_step(self, test_batch, batch_idx):
     loss, acc = self._common_step(test_batch, batch_idx)
+    self.test_step_loss.append(loss)
+    self.test_step_acc.append(acc)
     return loss, acc
 
-  # Calculate average loss/accuracy for the test dataset after training completes, and store the results
-  def test_epoch_end(self, outputs):
-    avg_loss = torch.mean(torch.stack([o[0] for o in outputs]))
-    avg_acc = torch.mean(torch.stack([o[1] for o in outputs]))
-    # We don't log here because we might use multiple test dataloaders
-    # and this causes an issue in logging
-    results = {'loss': avg_loss.item(), 'acc': avg_acc.item()}
-    # HACK: https://github.com/PyTorchLightning/pytorch-lightning/issues/1088
+  def on_test_epoch_end(self):
+    avg_loss = torch.mean(torch.stack([o for o in self.test_step_loss]))
+    avg_acc = torch.mean(torch.stack([o for o in self.test_step_acc]))
+
+    results = {'test_loss': avg_loss.item(), 'test_acc': avg_acc.item()}
+    self.log_dict(results,
+      on_step=False, on_epoch=True, prog_bar=True, logger=True)
+
     self.test_results = results
+    self.test_step_loss.clear()
+    self.test_step_acc.clear()
+
+
+
+  # Calculate average loss/accuracy for the test dataset after training completes, and store the results
+  # def test_epoch_end(self, outputs):
+  #   avg_loss = torch.mean(torch.stack([o[0] for o in outputs]))
+  #   avg_acc = torch.mean(torch.stack([o[1] for o in outputs]))
+  #   # We don't log here because we might use multiple test dataloaders
+  #   # and this causes an issue in logging
+  #   results = {'loss': avg_loss.item(), 'acc': avg_acc.item()}
+  #   # HACK: https://github.com/PyTorchLightning/pytorch-lightning/issues/1088
+  #   self.test_results = results
 
   def predict_step(self, batch, _):
     logits = self.model(self.foundation_model(batch[0]))

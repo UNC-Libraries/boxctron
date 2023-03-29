@@ -44,9 +44,11 @@ class TrainColorBarClassifier(FlowSpec):
     # a callback to save best model weights
     checkpoint_callback = ModelCheckpoint(
       dirpath = config.save_dir,
-      monitor = 'dev_loss',
-      mode = 'min',    # look for lowest `dev_loss`
+      monitor = 'val_loss',
+      mode = 'min',    # look for lowest `val_loss`
+      save_last = True,
       save_top_k = 1,  # save top 1 checkpoints
+      every_n_epochs=1,
       verbose = True,
     )
 
@@ -87,7 +89,7 @@ class TrainColorBarClassifier(FlowSpec):
   @step
   def end(self):
     """End node!"""
-    print('done! great work!')
+    print('Training completed')
 
 
 if __name__ == "__main__":

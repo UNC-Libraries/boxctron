@@ -11,14 +11,14 @@ class ColorBarDataModule(pl.LightningDataModule):
       image_paths = [Path(p).resolve() for p in f.read().splitlines()]
     num_images = len(image_paths)
     indices = torch.randperm(num_images).tolist()
-    dev_size = int(num_images * config.dev_percent)
+    val_size = int(num_images * config.val_percent)
     test_size = int(num_images * config.test_percent)
-    test_end = dev_size + test_size
-    dev_paths = list(Subset(image_paths, indices[0:dev_size]))
-    test_paths = list(Subset(image_paths, indices[dev_size:test_end]))
+    test_end = val_size + test_size
+    val_paths = list(Subset(image_paths, indices[0:val_size]))
+    test_paths = list(Subset(image_paths, indices[val_size:test_end]))
     train_paths = list(Subset(image_paths, indices[test_end:]))
 
-    self.dev_dataset = config.dataset_class(config, dev_paths, split='dev')
+    self.val_dataset = config.dataset_class(config, val_paths, split='val')
     self.test_dataset = config.dataset_class(config, test_paths, split='test')
     self.train_dataset = config.dataset_class(config, train_paths, split='train')
 
@@ -29,8 +29,8 @@ class ColorBarDataModule(pl.LightningDataModule):
     return DataLoader(self.train_dataset, batch_size = self.batch_size,
       shuffle = True, num_workers = self.num_workers)
 
-  def dev_dataloader(self):
-    return DataLoader(self.dev_dataset, batch_size = self.batch_size,
+  def val_dataloader(self):
+    return DataLoader(self.val_dataset, batch_size = self.batch_size,
       num_workers = self.num_workers)
 
   def test_dataloader(self):

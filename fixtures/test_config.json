@@ -6,6 +6,6 @@
   "max_dimension" : 1333,
   "batch_size" : 16,
   "test_percent": 0.2,
-  "dev_percent": 0.2,
+  "val_percent": 0.2,
   "save_dir" : "./artifacts/ckpts/train"
 }
