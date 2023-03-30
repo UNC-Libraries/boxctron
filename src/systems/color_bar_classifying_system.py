@@ -20,7 +20,6 @@ class ColorBarClassifyingSystem(pl.LightningModule):
 
     # load model
     fdn_num_filters, self.foundation_model = self.get_foundation_model()
-    print(f"***Fdn filters {fdn_num_filters}")
     self.model = self.get_model(fdn_num_filters)
 
     # We will overwrite this once we run `test()`
@@ -37,9 +36,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   # which is the class of having a color bar or not
   def get_model(self, starting_size):
     model = nn.Sequential(
-      nn.Linear(starting_size, 1)#,
-      # nn.ReLU(),
-      # nn.Linear(64, 1)
+      nn.Linear(starting_size, 1)
     )
     return model
 
@@ -51,14 +48,12 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   # and calculate the loss/accuracy of the model within that batch.
   def _common_step(self, batch, _):
     images, labels = batch
-    print(f"***images shape {images.shape} {labels.shape}")
     
     # forward pass using the model
     self.foundation_model.eval()
     # fdn_output = self.foundation_model(images)
     with torch.no_grad():
       fdn_output = self.foundation_model(images).flatten(1)
-    print(f"***Fdn shape {fdn_output.shape}")
     logits = self.model(fdn_output)
 
     # https://pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy_with_logits.html
@@ -95,13 +90,14 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.validation_step_loss.clear()
     self.validation_step_acc.clear()
 
-  # 
+  # Evaluation step after all epochs of training have completed
   def test_step(self, test_batch, batch_idx):
     loss, acc = self._common_step(test_batch, batch_idx)
     self.test_step_loss.append(loss)
     self.test_step_acc.append(acc)
     return loss, acc
 
+  # Produce final report from evaluating the model against the test dataset after training has completed
   def on_test_epoch_end(self):
     avg_loss = torch.mean(torch.stack([o for o in self.test_step_loss]))
     avg_acc = torch.mean(torch.stack([o for o in self.test_step_acc]))
@@ -113,18 +109,6 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.test_results = results
     self.test_step_loss.clear()
     self.test_step_acc.clear()
-
-
-
-  # Calculate average loss/accuracy for the test dataset after training completes, and store the results
-  # def test_epoch_end(self, outputs):
-  #   avg_loss = torch.mean(torch.stack([o[0] for o in outputs]))
-  #   avg_acc = torch.mean(torch.stack([o[1] for o in outputs]))
-  #   # We don't log here because we might use multiple test dataloaders
-  #   # and this causes an issue in logging
-  #   results = {'loss': avg_loss.item(), 'acc': avg_acc.item()}
-  #   # HACK: https://github.com/PyTorchLightning/pytorch-lightning/issues/1088
-  #   self.test_results = results
 
   def predict_step(self, batch, _):
     logits = self.model(self.foundation_model(batch[0]))
