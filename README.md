@@ -49,11 +49,11 @@ python3 normalize.py -h
 
 # Updating Dependencies
 When updating or adding dependencies, use pipenv:
-https://pipenv.pypa.io/en/latest/install/#installing-packages-for-your-project
+https://pipenv.pypa.io/en/latest/commands/#install
 
 To keep dependencies synched for remote server use, when dependencies in the project change we will need to update the requirements.txt file using:
 ```
-pipenv requirements
+pipenv requirements > requirements.txt
 ```
 
 pip and virtualenv will need to be used to install dependencies in the remote environment
