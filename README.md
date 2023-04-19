@@ -1,64 +1,52 @@
 # Repository Preingest Processing
 
-This project is intended for use performing pre-ingest processing of image files using machine learning techniques.
+This project is intended for use performing pre-ingest processing of image files using machine learning techniques. Python 3.8-3.10 is required to run.
 
-# Installation
+# Local/Library server environment
+Since the library servers use virtual environments, we use virtualenv with pip in this environment.
 
-## Local development
-For local development, this project is using pipenv:
-
-https://pipenv.pypa.io/en/latest/install/#installing-pipenv
-
-Dependencies are installed using:
-```
-pipenv install
-```
-
-Commands will need to be prefixed in order to use the local environment. For example, to display which image formats are supported by pillow:
-```
-pipenv run python3 -m PIL
-```
-
-## Remote development
-On remote servers, pip and virtualenv are used. For first time installation:
-
+For library server environments, we need to enable python 3:
 ```
 scl enable rh-python38 bash
+```
+To checkout the project, create a virtual environment and install dependencies:
+```
 cd /path/to/
-# Or git pull to update
 git clone git@github.com:UNC-Libraries/ml-repo-preingest-processing.git
 cd ml-repo-preingest-procressing
-python3 -m venv ml-repo-preingest-procressing --system-site-packages
+python3 -m virtualenv venv
 
 # active the virtual env and install dependencies
-cd ml-repo-preingest-procressing
-source bin/activate
-cd ..
-pip3 install -r requirements.txt
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
 ```
-A similar workflow is used for updating the code and/or updating dependencies.
+To deactivate the environment:
+```
+deactivate
+```
+Dependencies are primarily being managed by conda in the longleaf environment, so check there for how to sync dependencies back from that environment. But pip3 can also be used to updated dependencies.
 
-To run the normalize.py command on a remote server, you will first need to activate the virtualenv and run the command:
-```
-scl enable rh-python38 bash
-cd /path/to/ml-repo-preingest-processing
-source ml-repo-preingest-procressing/bin/activate
 
-python3 normalize.py -h
-```
+# Longleaf environment
+We are using conda for managing the environment on ITS computing resources. The environment is captured in environment.yml, and creates an "envs" directory within the project directory.
 
-# Updating Dependencies
-When updating or adding dependencies, use pipenv:
-https://pipenv.pypa.io/en/latest/commands/#install
+To recreate the environment:
 
-To keep dependencies synched for remote server use, when dependencies in the project change we will need to update the requirements.txt file using:
 ```
-pipenv requirements > requirements.txt
-```
+conda remove --name ./envs --all
 
-pip and virtualenv will need to be used to install dependencies in the remote environment
+module add anaconda/2023.03
+conda create --prefix ./envs -c pytorch -c nvidia -c conda-forge python=3.10 pillow=9.4 pytorch=2.0 torchvision=0.15 pytorch-lightning=2.0 metaflow=2.8 pytest=7.3 pytorch-cuda=11.8
 ```
-pip3 install -r requirements.txt
+To activate the environment, run tests, and deactivate it:
+```
+conda activate ./envs
+python -m pytest src/tests/
+conda deactivate
+```
+To sync the dependencies from conda to pip requirements (note, there will often be a few dependencies that are platform specific and need to be cleaned out, like mkl-*):
+```
+pip list --format=freeze > requirements.txt
 ```
 
 # Normalizing files
@@ -66,18 +54,18 @@ The `normalize.py` script can be used to normalize images. Currently this involv
 
 It accepts a single file or a directory containing images. If a directory is provided, then all children directories will also be crawled for images. See the help text for usage details:
 
-Locally:
-```
-pipenv run python3 normalize.py -h
-```
-
-Remotely:
 ```
 python3 normalize.py -h
 ```
 
-# Running tests
-To run the tests in your local environment:
+# Model training
+
 ```
-pipenv run pytest src/tests/
+train_color_bar_classifier.py
+```
+
+# Running tests
+To run the tests in your local environment (or python3 depending on the environment):
+```
+python -m pytest src/tests/
 ```
