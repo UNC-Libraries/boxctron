@@ -50,11 +50,11 @@ class TrainColorBarClassifier(FlowSpec):
       save_top_k = 1,  # save top 1 checkpoints
       every_n_epochs=1,
       verbose = True,
-      enable_progress_bar = config.enable_progress_bar,
     )
 
     trainer = Trainer(
       max_epochs = config.max_epochs,
+      enable_progress_bar = config.enable_progress_bar,
       callbacks = [checkpoint_callback])
 
     # Store variables for passing to the next step
