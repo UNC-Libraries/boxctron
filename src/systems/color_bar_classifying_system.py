@@ -160,7 +160,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   def produce_confusion_matrix(self, step_outputs, step_labels):
     outputs = torch.cat([o for o in step_outputs])
     labels = torch.cat([l for l in step_labels])
-    bcm = BinaryConfusionMatrix()
+    bcm = BinaryConfusionMatrix().to(self.device)
     return bcm(outputs, labels).detach().cpu().numpy().astype(int)
 
   def plot_confusion_matrix(self, phase, confusion_data):
