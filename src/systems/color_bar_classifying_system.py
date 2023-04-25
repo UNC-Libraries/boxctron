@@ -99,11 +99,12 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   # and log the results
   def on_validation_epoch_end(self):
     loss_values = torch.stack(self.validation_step_loss)
-    avg_loss = loss_values.mean()
+    avg_loss = torch.stack(self.validation_step_loss).mean()
     avg_acc = torch.stack(self.validation_step_acc).mean()
     
     confusion_data = self.produce_confusion_matrix(self.validation_step_outputs, self.validation_step_labels)
-    c_percentages = confusion_data / loss_values.size()
+    num_samples = confusion_data.flatten().sum()
+    c_percentages = confusion_data / num_samples
     self.log_dict({
       'val_loss': avg_loss,
       'val_acc': avg_acc,
@@ -129,12 +130,12 @@ class ColorBarClassifyingSystem(pl.LightningModule):
 
   # Produce final report from evaluating the model against the test dataset after training has completed
   def on_test_epoch_end(self):
-    loss_values = torch.stack(self.test_step_loss)
-    avg_loss = loss_values.mean()
+    avg_loss = torch.stack(self.test_step_loss).mean()
     avg_acc = torch.stack(self.test_step_acc).mean()
 
     confusion_data = self.produce_confusion_matrix(self.test_step_outputs, self.test_step_labels)
-    c_percentages = confusion_data / loss_values.size()
+    num_samples = confusion_data.flatten().sum()
+    c_percentages = confusion_data / num_samples
     results = {
       'test_loss': avg_loss.item(),
       'test_acc': avg_acc.item(),
@@ -176,3 +177,4 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     im = torchvision.transforms.ToTensor()(im)
     tb = self.logger.experiment
     tb.add_image(phase + "_confusion_matrix", im, global_step=self.current_epoch)
+    plt.close()
