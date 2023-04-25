@@ -36,7 +36,7 @@ To recreate the environment:
 conda remove --name ./envs --all
 
 module add anaconda/2023.03
-conda create --prefix ./envs -c pytorch -c nvidia -c conda-forge python=3.10 pillow=9.4 pytorch=2.0 torchvision=0.15 pytorch-lightning=2.0 metaflow=2.8 pytest=7.3 pytorch-cuda=11.8
+conda create --prefix ./envs -c pytorch -c nvidia -c conda-forge python=3.10 pillow=9.4 pytorch=2.0 torchvision=0.15 pytorch-lightning=2.0 metaflow=2.8 pytest=7.3 pytorch-cuda=11.8 tensorboard=2.12
 ```
 To activate the environment, run tests, and deactivate it:
 ```
@@ -44,7 +44,7 @@ conda activate ./envs
 python -m pytest src/tests/
 conda deactivate
 ```
-To sync the dependencies from conda to pip requirements (note, there will often be a few dependencies that are platform specific and need to be cleaned out, like mkl-*):
+To sync the dependencies from conda t?o pip requirements (note, there will often be a few dependencies that are platform specific and need to be cleaned out, like mkl-*):
 ```
 pip list --format=freeze > requirements.txt
 ```
@@ -61,7 +61,13 @@ python3 normalize.py -h
 # Model training
 
 ```
-train_color_bar_classifier.py
+python train_color_bar_classifier.py run
+```
+
+## Viewing training metrics
+Training details are logged using tensorboard. They can be viewed by running:
+```
+tensorboard --logdir logs/lightning_logs/version_1
 ```
 
 # Running tests

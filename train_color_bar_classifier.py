@@ -54,6 +54,8 @@ class TrainColorBarClassifier(FlowSpec):
 
     trainer = Trainer(
       max_epochs = config.max_epochs,
+      enable_progress_bar = config.enable_progress_bar,
+      logger = TensorBoardLogger(save_dir=config.log_dir),
       callbacks = [checkpoint_callback])
 
     # Store variables for passing to the next step
@@ -80,7 +82,7 @@ class TrainColorBarClassifier(FlowSpec):
     # print results to command line
     pprint(results)
 
-    log_file = LOG_DIR / 'results.json'
+    log_file = self.config.log_dir / 'results.json'
     os.makedirs(str(log_file.parent), exist_ok = True)
     to_json(results, log_file)  # save to disk
 

@@ -36,6 +36,10 @@ class TrainingConfig:
       self.val_percent = data.get('val_percent', 0.2)
       # Percentage of the dataset which will be used for evaluating the model after training completes
       self.test_percent = data.get('test_percent', 0)
+      # Whether or not to show the progress bar during training
+      self.enable_progress_bar = data.get('enable_progress_bar', False)
+      # Directory where progress and results will be saved to
+      self.log_dir = Path(data.get('log_dir', './logs/')).resolve()
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
 
