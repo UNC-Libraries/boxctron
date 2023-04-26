@@ -167,8 +167,11 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   def plot_confusion_matrix(self, phase, confusion_data):
     # confusion matrix
     df_cm = pd.DataFrame(confusion_data, range(2), range(2))
+    plt.title('Validation Confusion Matrix', fontsize = 16)
     sn.set(font_scale=1.4) # for label size
     sn.heatmap(df_cm, annot=True, annot_kws={"size": 16}) # font size
+    plt.xlabel('Predicted', fontsize = 15)
+    plt.ylabel('True Label', fontsize = 15)
     buf = io.BytesIO()
 
     plt.savefig(buf, format='jpeg', bbox_inches='tight')
