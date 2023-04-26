@@ -114,10 +114,10 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.log_dict({
       'val_loss': avg_loss,
       'val_acc': avg_acc,
-      'val_true_pos': c_percentages[0, 0],
+      'val_true_pos': c_percentages[1, 1],
       'val_false_pos': c_percentages[0, 1],
-      'val_true_neg': c_percentages[1, 0],
-      'val_false_neg': c_percentages[1, 1],
+      'val_true_neg': c_percentages[0, 0],
+      'val_false_neg': c_percentages[1, 0],
       }, on_step=False, on_epoch=True, prog_bar=True, logger=True)
     self.plot_confusion_matrix('val', confusion_data)
     self.plot_precision_recall_curve('val', self.validation_step_raw_predictions, self.validation_step_labels)
@@ -148,10 +148,10 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     results = {
       'test_loss': avg_loss.item(),
       'test_acc': avg_acc.item(),
-      'test_true_pos': c_percentages[0, 0],
+      'test_true_pos': c_percentages[1, 1],
       'test_false_pos': c_percentages[0, 1],
-      'test_true_neg': c_percentages[1, 0],
-      'test_false_neg': c_percentages[1, 1],
+      'test_true_neg': c_percentages[0, 0],
+      'test_false_neg': c_percentages[1, 0],
       }
     self.log_dict(results,
       on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -197,8 +197,8 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     labels = torch.cat([l for l in step_labels])
     prec, recall, thresholds = precision_recall_curve(labels.cpu().numpy(), raw_predictions.cpu().numpy())
     plt.title(f'P/R Thresholds {phase} {self.current_epoch}')
-    plt.plot(thresholds, prec[:-1], 'g--', label='Precision')
-    plt.plot(thresholds, recall[:-1], 'b--', label='Recall')
+    plt.plot(thresholds, prec[:-1], 'b', label='Precision')
+    plt.plot(thresholds, recall[:-1], 'y', label='Recall')
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
     plt.grid(which='both', axis='both', color='gray', linestyle='-', linewidth=1)
     plt.xlabel('Threshold')
