@@ -84,7 +84,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       num_total = labels.size(0)
       accuracy = num_correct / float(num_total)
 
-    return loss, accuracy, raw_predictions, predicted_classes, labels
+    return loss, accuracy, raw_predictions.cpu(), predicted_classes, labels
 
   def training_step(self, train_batch, batch_idx):
     loss, acc, _raw_predictions, _predicted_classes, _labels = self._common_step(train_batch, batch_idx)
