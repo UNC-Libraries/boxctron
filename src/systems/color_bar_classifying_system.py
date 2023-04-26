@@ -8,6 +8,7 @@ from torch import optim
 from torchmetrics.classification import BinaryConfusionMatrix
 import seaborn as sn
 import matplotlib.pyplot as plt
+from sklearn.metrics import precision_recall_curve
 import pandas as pd
 import io
 from PIL import Image
@@ -22,11 +23,13 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.config = config
     self.validation_step_loss = []
     self.validation_step_acc = []
-    self.validation_step_outputs = []
+    self.validation_step_raw_predictions = []
+    self.validation_step_predicted_classes = []
     self.validation_step_labels = []
     self.test_step_loss = []
     self.test_step_acc = []
-    self.test_step_outputs = []
+    self.test_step_raw_predictions = []
+    self.test_step_predicted_classes = []
     self.test_step_labels = []
 
     # load model
@@ -70,28 +73,31 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     # https://pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy_with_logits.html
     loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), labels.float())
 
-    outputs = None
+    predicted_classes = None
+    raw_predictions = None
     with torch.no_grad():
       # Compute accuracy using the logits and labels
-      preds = torch.round(torch.sigmoid(logits))
-      outputs = preds.squeeze(1)
-      num_correct = torch.sum(outputs == labels)
+      raw_predictions = torch.sigmoid(logits)
+      preds = torch.round(raw_predictions)
+      predicted_classes = preds.squeeze(1)
+      num_correct = torch.sum(predicted_classes == labels)
       num_total = labels.size(0)
       accuracy = num_correct / float(num_total)
 
-    return loss, accuracy, outputs, labels
+    return loss, accuracy, raw_predictions, predicted_classes, labels
 
   def training_step(self, train_batch, batch_idx):
-    loss, acc, _outputs, _labels = self._common_step(train_batch, batch_idx)
+    loss, acc, _raw_predictions, _predicted_classes, _labels = self._common_step(train_batch, batch_idx)
     self.log_dict({'train_loss': loss, 'train_acc': acc},
       on_step=True, on_epoch=False, prog_bar=True, logger=True)
     return loss
 
   def validation_step(self, val_batch, batch_idx):
-    loss, acc, outputs, labels = self._common_step(val_batch, batch_idx)
+    loss, acc, raw_predictions, predicted_classes, labels = self._common_step(val_batch, batch_idx)
     self.validation_step_loss.append(loss)
     self.validation_step_acc.append(acc)
-    self.validation_step_outputs.append(outputs)
+    self.validation_step_raw_predictions.append(raw_predictions)
+    self.validation_step_predicted_classes.append(predicted_classes)
     self.validation_step_labels.append(labels)
     return loss, acc
 
@@ -102,7 +108,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     avg_loss = torch.stack(self.validation_step_loss).mean()
     avg_acc = torch.stack(self.validation_step_acc).mean()
     
-    confusion_data = self.produce_confusion_matrix(self.validation_step_outputs, self.validation_step_labels)
+    confusion_data = self.produce_confusion_matrix(self.validation_step_predicted_classes, self.validation_step_labels)
     num_samples = confusion_data.flatten().sum()
     c_percentages = confusion_data / num_samples
     self.log_dict({
@@ -114,17 +120,20 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       'val_false_neg': c_percentages[1, 1],
       }, on_step=False, on_epoch=True, prog_bar=True, logger=True)
     self.plot_confusion_matrix('val', confusion_data)
+    self.plot_precision_recall_curve('val', self.validation_step_raw_predictions, self.validation_step_labels)
     self.validation_step_loss.clear()
     self.validation_step_acc.clear()
-    self.validation_step_outputs.clear()
+    self.validation_step_raw_predictions.clear()
+    self.validation_step_predicted_classes.clear()
     self.validation_step_labels.clear()
 
   # Evaluation step after all epochs of training have completed
   def test_step(self, test_batch, batch_idx):
-    loss, acc, outputs, labels = self._common_step(test_batch, batch_idx)
+    loss, acc, raw_predictions, predicted_classes, labels = self._common_step(test_batch, batch_idx)
     self.test_step_loss.append(loss)
     self.test_step_acc.append(acc)
-    self.test_step_outputs.append(outputs)
+    self.test_step_raw_predictions.append(raw_predictions)
+    self.test_step_predicted_classes.append(predicted_classes)
     self.test_step_labels.append(labels)
     return loss, acc
 
@@ -133,7 +142,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     avg_loss = torch.stack(self.test_step_loss).mean()
     avg_acc = torch.stack(self.test_step_acc).mean()
 
-    confusion_data = self.produce_confusion_matrix(self.test_step_outputs, self.test_step_labels)
+    confusion_data = self.produce_confusion_matrix(self.test_step_predicted_classes, self.test_step_labels)
     num_samples = confusion_data.flatten().sum()
     c_percentages = confusion_data / num_samples
     results = {
@@ -147,10 +156,12 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.log_dict(results,
       on_step=False, on_epoch=True, prog_bar=True, logger=True)
     self.plot_confusion_matrix('test', confusion_data)
+    self.plot_precision_recall_curve('test', self.test_step_raw_predictions, self.test_step_labels)
     self.test_results = results
     self.test_step_loss.clear()
     self.test_step_acc.clear()
-    self.test_step_outputs.clear()
+    self.test_step_raw_predictions.clear()
+    self.test_step_predicted_classes.clear()
     self.test_step_labels.clear()
 
   def predict_step(self, batch, _):
@@ -178,6 +189,23 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     buf.seek(0)
     im = Image.open(buf)
     im = torchvision.transforms.ToTensor()(im)
-    tb = self.logger.experiment
-    tb.add_image(phase + "_confusion_matrix", im, global_step=self.current_epoch)
+    self.logger.experiment.add_image(phase + "_confusion_matrix", im, global_step=self.current_epoch)
+    plt.close()
+
+  def plot_precision_recall_curve(self, phase, step_raw_predictions, step_labels):
+    raw_predictions = torch.cat([o for o in step_raw_predictions])
+    labels = torch.cat([l for l in step_labels])
+    prec, recall, thresholds = precision_recall_curve(labels, raw_predictions)
+    plt.title(f("P/R Thresholds {phase} {self.current_epoch}"))
+    plt.plot(thresholds, prec[:-1], "g--", label="Precision")
+    plt.plot(thresholds, recall[:-1], "b--", label="Recall")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.grid(which="both", axis="both", color='gray', linestyle='-', linewidth=1)
+    plt.xlabel("Threshold")
+    plt.ylabel("Precision/Recall")
+    buf = io.BytesIO()
+    plt.savefig(buf, format='jpeg', bbox_inches='tight')
+    im = Image.open(buf)
+    im = torchvision.transforms.ToTensor()(im)
+    self.logger.experiment.add_image(phase + "_prec_recall", im, global_step=self.current_epoch)
     plt.close()
