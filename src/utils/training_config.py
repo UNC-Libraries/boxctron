@@ -40,6 +40,8 @@ class TrainingConfig:
       self.enable_progress_bar = data.get('enable_progress_bar', False)
       # Directory where progress and results will be saved to
       self.log_dir = Path(data.get('log_dir', './logs/')).resolve()
+      # Width of the hidden layer used in between the foundation model and the file result
+      self.model_width = data.get('model_width', 256)
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
 
