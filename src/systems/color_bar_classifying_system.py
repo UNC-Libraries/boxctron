@@ -84,7 +84,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       num_total = labels.size(0)
       accuracy = num_correct / float(num_total)
 
-    return loss, accuracy, raw_predictions.cpu(), predicted_classes, labels
+    return loss, accuracy, raw_predictions, predicted_classes, labels
 
   def training_step(self, train_batch, batch_idx):
     loss, acc, _raw_predictions, _predicted_classes, _labels = self._common_step(train_batch, batch_idx)
@@ -195,7 +195,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   def plot_precision_recall_curve(self, phase, step_raw_predictions, step_labels):
     raw_predictions = torch.cat([o for o in step_raw_predictions])
     labels = torch.cat([l for l in step_labels])
-    prec, recall, thresholds = precision_recall_curve(labels, raw_predictions)
+    prec, recall, thresholds = precision_recall_curve(labels.cpu().numpy(), raw_predictions.cpu().numpy())
     plt.title(f("P/R Thresholds {phase} {self.current_epoch}"))
     plt.plot(thresholds, prec[:-1], "g--", label="Precision")
     plt.plot(thresholds, recall[:-1], "b--", label="Recall")
