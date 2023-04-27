@@ -95,20 +95,6 @@
   {
     "image": "http://localhost:8081/ncc/G3902-F3-1981_U5_front.jpg",
     "id": 87,
-    "label": [
-      {
-        "x": 0,
-        "y": 0,
-        "width": 99.99999999999996,
-        "height": 100,
-        "rotation": 0,
-        "rectanglelabels": [
-          "subject"
-        ],
-        "original_width": 1333,
-        "original_height": 1031
-      }
-    ],
     "annotator": 1,
     "annotation_id": 88,
     "created_at": "2023-03-07T22:10:49.064903Z",

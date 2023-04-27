@@ -20,7 +20,8 @@ class ColorBarDataset(torch.utils.data.Dataset):
     path_to_labels = {}
     for anno in annotations:
       img_path = (self.config.base_image_path / anno['image'].split('/', 3)[3]).resolve()
-      path_to_labels[str(img_path)] = anno['label']
+      entry_labels = anno['label'] if 'label' in anno else []
+      path_to_labels[str(img_path)] = entry_labels
     # Load labels from the annotation mapping
     self.load_labels(path_to_labels)
 
