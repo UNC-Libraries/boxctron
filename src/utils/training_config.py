@@ -44,6 +44,8 @@ class TrainingConfig:
       self.model_width = data.get('model_width', 256)
       # How often metrics will get logged during training
       self.log_every_n_steps = data.get('log_every_n_steps', 10)
+      # Only predictions with confidence higher than this threshold will be counted as matching the class
+      self.predict_rounding_threshold = data.get('predict_rounding_threshold', 0.7)
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
 
