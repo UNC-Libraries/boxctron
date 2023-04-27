@@ -45,6 +45,7 @@ class TrainColorBarClassifier:
 
     self.trainer = Trainer(
       max_epochs = self.config.max_epochs,
+      log_every_n_steps = self.config.log_every_n_steps,
       enable_progress_bar = self.config.enable_progress_bar,
       logger = TensorBoardLogger(save_dir=self.config.log_dir),
       callbacks = [checkpoint_callback])

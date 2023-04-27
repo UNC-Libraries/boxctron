@@ -42,6 +42,8 @@ class TrainingConfig:
       self.log_dir = Path(data.get('log_dir', './logs/')).resolve()
       # Width of the hidden layer used in between the foundation model and the file result
       self.model_width = data.get('model_width', 256)
+      # How often metrics will get logged during training
+      self.log_every_n_steps = data.get('log_every_n_steps', 10)
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
 
