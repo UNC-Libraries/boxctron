@@ -5,6 +5,7 @@ import random
 import numpy as np
 from pathlib import Path
 from pprint import pprint
+from datetime import datetime
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -14,8 +15,6 @@ from src.utils.training_config import TrainingConfig
 from src.datasets import ColorBarDataModule
 from src.systems import ColorBarClassifyingSystem
 from src.utils.json_utils import to_json
-
-LOG_DIR = Path('logs').resolve()
 
 class TrainColorBarClassifier:
   def init_system(self, config_path):
@@ -30,7 +29,7 @@ class TrainColorBarClassifier:
 
     # a PyTorch Lightning system wraps around model logic
     self.system = ColorBarClassifyingSystem(self.config)
-    print(f"Initializing system, saving to {self.config.save_dir}")
+    self.log(f'Initializing system, saving to {self.config.save_dir}')
 
     # a callback to save best model weights
     checkpoint_callback = ModelCheckpoint(
@@ -51,9 +50,11 @@ class TrainColorBarClassifier:
       callbacks = [checkpoint_callback])
 
   def train_model(self):
+    self.log('Training model')
     self.trainer.fit(self.system, self.dm)
 
   def offline_test(self):
+    self.log('Testing model')
     # Load the best checkpoint and compute results using `self.trainer.test`
     self.trainer.test(self.system, self.dm, ckpt_path = 'best')
 
@@ -66,7 +67,11 @@ class TrainColorBarClassifier:
     log_file = self.config.log_dir / 'results.json'
     os.makedirs(str(log_file.parent), exist_ok = True)
     to_json(results, log_file)  # save to disk
-    print('Training completed')
+    self.log('Training completed')
+
+  def log(self, message):
+    print(f'{datetime.now().isoformat()} {message}')
+
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Train color bar classifier.')
