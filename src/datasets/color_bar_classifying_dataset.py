@@ -8,6 +8,7 @@ class ColorBarClassifyingDataset(ColorBarDataset):
 
   # Loads annotation data into self.labels in the same order they paths are listed in image_paths
   def load_labels(self, path_to_labels):
+    count_by_label = [0, 0]
     for index, image_path in enumerate(self.image_paths):
       image_labels = path_to_labels[str(image_path)]
       has_cb = 0
@@ -16,3 +17,5 @@ class ColorBarClassifyingDataset(ColorBarDataset):
           has_cb = 1
           break
       self.labels.append(has_cb)
+      count_by_label[has_cb] = count_by_label[has_cb] + 1
+    print(f'Dataset {self.split} contains counts for labels: {count_by_label}')
