@@ -52,7 +52,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     model = nn.Sequential(
       nn.Linear(starting_size, self.config.model_width),
       nn.ReLU(inplace=True),
-      nn.Linear(self.config.model_width, 2),
+      nn.Linear(self.config.model_width, 1),
     ).to(self.device)
     return model
 
