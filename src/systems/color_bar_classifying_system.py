@@ -101,12 +101,11 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.validation_step_raw_predictions.append(raw_predictions)
     self.validation_step_predicted_classes.append(predicted_classes)
     self.validation_step_labels.append(labels)
-    return loss, acc
+    return loss
 
   # Calculate the average loss and accuracy for batches within the validation dataset at the end of a training epoch,
   # and log the results
   def on_validation_epoch_end(self):
-    loss_values = torch.stack(self.validation_step_loss)
     avg_loss = torch.stack(self.validation_step_loss).mean()
     avg_acc = torch.stack(self.validation_step_acc).mean()
     
@@ -120,7 +119,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       'val_false_pos': c_percentages[0, 1],
       'val_true_neg': c_percentages[0, 0],
       'val_false_neg': c_percentages[1, 0],
-      }, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+      }, on_step=False, on_epoch=True, prog_bar=self.config.enable_progress_bar, logger=True)
     self.plot_confusion_matrix('val', confusion_data)
     self.plot_precision_recall_curve('val', self.validation_step_raw_predictions, self.validation_step_labels)
     self.validation_step_loss.clear()
@@ -137,7 +136,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.test_step_raw_predictions.append(raw_predictions)
     self.test_step_predicted_classes.append(predicted_classes)
     self.test_step_labels.append(labels)
-    return loss, acc
+    return loss
 
   # Produce final report from evaluating the model against the test dataset after training has completed
   def on_test_epoch_end(self):
@@ -156,7 +155,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       'test_false_neg': c_percentages[1, 0],
       }
     self.log_dict(results,
-      on_step=False, on_epoch=True, prog_bar=True, logger=True)
+      on_step=False, on_epoch=True, prog_bar=self.config.enable_progress_bar, logger=True)
     self.plot_confusion_matrix('test', confusion_data)
     self.plot_precision_recall_curve('test', self.test_step_raw_predictions, self.test_step_labels)
     self.test_results = results
