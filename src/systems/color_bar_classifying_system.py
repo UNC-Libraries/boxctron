@@ -41,7 +41,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
 
   # Build foundation model for transfer learning, starting from resnet and removing final layer so we can build on top of it
   def get_foundation_model(self):
-    foundation = models.resnet50(pretrained=True)
+    foundation = models.resnet50(pretrained=True, weights='DEFAULT')
     num_filters = foundation.fc.in_features
     layers = list(foundation.children())[:-1]
     return num_filters, nn.Sequential(*layers)
