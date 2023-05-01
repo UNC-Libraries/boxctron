@@ -28,6 +28,8 @@ class TrainingConfig:
       self.max_epochs = data.get('max_epochs', 3)
       # learning rate, how quickly the model will decide it is right during quickly. Higher the number, faster it goes.
       self.lr = data.get('lr', 3e-4)
+      # Weight decay for l2 regularization
+      self.weight_decay = data.get('weight_decay', 1e-5)
       # Directory where training checkpoints will be saved
       self.save_dir = data.get('save_dir', './artifacts/ckpts/train')
       # Max dimension size which images will be normalized to
