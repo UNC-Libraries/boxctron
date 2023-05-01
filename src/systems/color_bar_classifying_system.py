@@ -89,8 +89,11 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     return loss, accuracy, raw_predictions, predicted_classes, labels
 
   def training_step(self, train_batch, batch_idx):
-    loss, acc, _raw_predictions, _predicted_classes, _labels = self._common_step(train_batch, batch_idx)
-    self.log_dict({'train_loss': loss, 'train_acc': acc},
+    loss, acc, _raw_predictions, predicted_classes, labels = self._common_step(train_batch, batch_idx)
+    confusion_vector = predicted_classes / labels
+    false_pos_rate = (torch.sum(confusion_vector == float('inf')).item()) / labels.size(dim=0)
+    train_fp_loss = self.loss_with_false_positives(loss, false_pos_rate)
+    self.log_dict({'train_loss': loss, 'train_fp_loss': train_fp_loss, 'train_acc': acc},
       on_step=True, on_epoch=False, prog_bar=True, logger=True)
     return loss
 
@@ -114,7 +117,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     c_percentages = confusion_data / num_samples
     self.log_dict({
       'val_loss': avg_loss,
-      'val_fp_loss': self.loss_with_false_positives(avg_loss, c_percentages),
+      'val_fp_loss': self.loss_with_false_positives(avg_loss, c_percentages[0, 1]),
       'val_acc': avg_acc,
       'val_true_pos': c_percentages[1, 1],
       'val_false_pos': c_percentages[0, 1],
@@ -130,8 +133,8 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.validation_step_labels.clear()
 
   # Special loss value for validation which punishes outcomes for having higher rates of false positives
-  def loss_with_false_positives(self, loss, c_percentages, weight = 0.5):
-    return loss + (c_percentages[0, 1] * weight)
+  def loss_with_false_positives(self, loss, false_pos_rate, weight = 0.2):
+    return (loss + (false_pos_rate * weight)).detach().cpu().numpy().item()
 
   # Evaluation step after all epochs of training have completed
   def test_step(self, test_batch, batch_idx):
@@ -153,7 +156,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     c_percentages = confusion_data / num_samples
     results = {
       'test_loss': avg_loss.item(),
-      'test_fp_loss': self.loss_with_false_positives(avg_loss, c_percentages),
+      'test_fp_loss': self.loss_with_false_positives(avg_loss, c_percentages[0, 1]),
       'test_acc': avg_acc.item(),
       'test_true_pos': c_percentages[1, 1],
       'test_false_pos': c_percentages[0, 1],
