@@ -114,6 +114,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     c_percentages = confusion_data / num_samples
     self.log_dict({
       'val_loss': avg_loss,
+      'val_fp_loss': self.loss_with_false_positives(avg_loss, c_percentages),
       'val_acc': avg_acc,
       'val_true_pos': c_percentages[1, 1],
       'val_false_pos': c_percentages[0, 1],
@@ -127,6 +128,10 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.validation_step_raw_predictions.clear()
     self.validation_step_predicted_classes.clear()
     self.validation_step_labels.clear()
+
+  # Special loss value for validation which punishes outcomes for having higher rates of false positives
+  def loss_with_false_positives(self, loss, c_percentages, weight = 0.5):
+    return loss + (c_percentages[0, 1] * weight)
 
   # Evaluation step after all epochs of training have completed
   def test_step(self, test_batch, batch_idx):
@@ -148,6 +153,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     c_percentages = confusion_data / num_samples
     results = {
       'test_loss': avg_loss.item(),
+      'test_fp_loss': self.loss_with_false_positives(avg_loss, c_percentages),
       'test_acc': avg_acc.item(),
       'test_true_pos': c_percentages[1, 1],
       'test_false_pos': c_percentages[0, 1],
