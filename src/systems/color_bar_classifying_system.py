@@ -57,7 +57,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     return model
 
   def configure_optimizers(self):
-    optimizer = optim.Adam(self.parameters(), lr=self.config.lr)
+    optimizer = optim.Adam(self.parameters(), lr=self.config.lr, weight_decay=1e-5)
     return optimizer
 
   # Common step used to process a batch of data (images and labels) through the model,
