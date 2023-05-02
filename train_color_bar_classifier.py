@@ -53,6 +53,12 @@ class TrainColorBarClassifier:
     self.log('Training model')
     self.trainer.fit(self.system, self.dm)
 
+  def validation_evaluation(self):
+    self.log('Validation Evaluation')
+    self.trainer.validate(self.system, self.dm, ckpt_path = 'best')
+    incorrect_results = self.system.record_val_incorrect_predictions(self.dm.val_dataset)
+    self.log('Validation Incorrect Results\n{incorrect_results.to_csv(index=False)}')
+
   def offline_test(self):
     self.log('Testing model')
     # Load the best checkpoint and compute results using `self.trainer.test`
@@ -63,6 +69,9 @@ class TrainColorBarClassifier:
 
     # print results to command line
     pprint(results)
+
+    incorrect_results = self.system.record_test_incorrect_predictions(self.dm.test_dataset)
+    self.log('Test Incorrect Results\n{incorrect_results.to_csv(index=False)}')
 
     log_file = self.config.log_dir / 'results.json'
     os.makedirs(str(log_file.parent), exist_ok = True)
@@ -83,4 +92,5 @@ if __name__ == "__main__":
   train_classifier = TrainColorBarClassifier()
   train_classifier.init_system(args.config)
   train_classifier.train_model()
+  train_classifier.validation_evaluation()
   train_classifier.offline_test()

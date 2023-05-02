@@ -98,6 +98,13 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     return loss
 
   def validation_step(self, val_batch, batch_idx):
+    # Clear running stats at the beginning of each epoch
+    if batch_idx == 0:
+      self.validation_step_loss.clear()
+      self.validation_step_acc.clear()
+      self.validation_step_raw_predictions.clear()
+      self.validation_step_predicted_classes.clear()
+      self.validation_step_labels.clear()
     loss, acc, raw_predictions, predicted_classes, labels = self._common_step(val_batch, batch_idx)
     self.validation_step_loss.append(loss)
     self.validation_step_acc.append(acc)
@@ -126,11 +133,6 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       }, on_step=False, on_epoch=True, prog_bar=self.config.enable_progress_bar, logger=True)
     self.plot_confusion_matrix('val', confusion_data)
     self.plot_precision_recall_curve('val', self.validation_step_raw_predictions, self.validation_step_labels)
-    self.validation_step_loss.clear()
-    self.validation_step_acc.clear()
-    self.validation_step_raw_predictions.clear()
-    self.validation_step_predicted_classes.clear()
-    self.validation_step_labels.clear()
 
   # Special loss value for validation which punishes outcomes for having higher rates of false positives
   def loss_with_false_positives(self, loss, false_pos_rate, weight = 0.2):
@@ -168,11 +170,6 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.plot_confusion_matrix('test', confusion_data)
     self.plot_precision_recall_curve('test', self.test_step_raw_predictions, self.test_step_labels)
     self.test_results = results
-    self.test_step_loss.clear()
-    self.test_step_acc.clear()
-    self.test_step_raw_predictions.clear()
-    self.test_step_predicted_classes.clear()
-    self.test_step_labels.clear()
 
   def predict_step(self, batch, _):
     logits = self.model(self.foundation_model(batch[0]))
@@ -219,3 +216,38 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     im = torchvision.transforms.ToTensor()(im)
     self.logger.experiment.add_image(phase + '_prec_recall', im, global_step=self.current_epoch)
     plt.close()
+
+  def record_val_incorrect_predictions(self, dataset):
+    return self.record_incorrect_predictions(dataset, self.validation_step_raw_predictions, self.validation_step_predicted_classes, self.validation_step_labels)
+
+  def record_test_incorrect_predictions(self, dataset):
+    return self.record_incorrect_predictions(dataset, self.test_step_raw_predictions, self.test_step_predicted_classes, self.test_step_labels)
+
+  def record_incorrect_predictions(self, dataset, step_raw_preds, step_preds, step_labels):
+    raw_preds = torch.cat([o for o in step_raw_preds]).flatten()
+    predictions = torch.cat([o for o in step_preds])
+    labels = torch.cat([l for l in step_labels])
+
+    errors = (predictions - labels != 0)
+    error_indices = torch.where(errors == True)
+    print(f'Indice: {error_indices}')
+    error_paths = [str(dataset.image_paths[i]) for i in error_indices]
+    print(f'Errors: {errors}')
+    print(f'Paths: {error_paths}')
+    print(f'Labels:\n{labels}\n{dataset.labels}')
+    # batch_errors = batch[errors]
+    
+    error_true_labels = labels[errors]
+    error_pred_labels = predictions[errors]
+    error_raw_preds = raw_preds[errors]
+    gap_true_vs_pred = torch.abs(error_true_labels.float() - error_raw_preds)
+    results = {
+      'true_labels': error_true_labels.detach().cpu().numpy(),
+      'pred_labels': error_pred_labels.detach().cpu().numpy(),
+      'raw_preds': error_raw_preds.detach().cpu().numpy(),
+      'gap_true_vs_pred': gap_true_vs_pred.detach().cpu().numpy(),
+      'image_paths': error_paths
+    }
+    print(f'results: {results}')
+    results_df = pd.DataFrame(data=results)
+    return results_df.sort_values(by=['gap_true_vs_pred'])
