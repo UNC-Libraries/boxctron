@@ -230,6 +230,9 @@ class ColorBarClassifyingSystem(pl.LightningModule):
 
     errors = (predictions - labels != 0)
     error_indices = torch.where(errors == True)
+    # in some domains error_indices is a tuple, others its a tensor
+    if torch.is_tensor(error_indices):
+      error_indices = error_indices.detach().cpu().numpy()
     print(f'Indice: {error_indices}')
     error_paths = [str(dataset.image_paths[i]) for i in error_indices]
     print(f'Errors: {errors}')
