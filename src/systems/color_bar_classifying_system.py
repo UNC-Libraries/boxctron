@@ -230,12 +230,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
 
     errors = (predictions - labels != 0)
     error_indices = torch.where(errors == True)[0].detach().cpu().numpy()
-    print(f'Indice: {error_indices}')
     error_paths = [str(dataset.image_paths[i]) for i in error_indices]
-    print(f'Errors: {errors}')
-    print(f'Paths: {error_paths}')
-    print(f'Labels:\n{labels}\n{dataset.labels}')
-    # batch_errors = batch[errors]
     
     error_true_labels = labels[errors]
     error_pred_labels = predictions[errors]
@@ -248,6 +243,5 @@ class ColorBarClassifyingSystem(pl.LightningModule):
       'gap_true_vs_pred': gap_true_vs_pred.detach().cpu().numpy(),
       'image_paths': error_paths
     }
-    print(f'results: {results}')
     results_df = pd.DataFrame(data=results)
     return results_df.sort_values(by=['gap_true_vs_pred'])

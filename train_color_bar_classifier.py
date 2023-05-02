@@ -57,7 +57,7 @@ class TrainColorBarClassifier:
     self.log('Validation Evaluation')
     self.trainer.validate(self.system, self.dm, ckpt_path = 'best')
     incorrect_results = self.system.record_val_incorrect_predictions(self.dm.val_dataset)
-    self.log('Validation Incorrect Results\n{incorrect_results.to_csv(index=False)}')
+    self.log(f'Validation Incorrect Results\n{incorrect_results.to_csv(index=False)}')
 
   def offline_test(self):
     self.log('Testing model')
@@ -71,7 +71,7 @@ class TrainColorBarClassifier:
     pprint(results)
 
     incorrect_results = self.system.record_test_incorrect_predictions(self.dm.test_dataset)
-    self.log('Test Incorrect Results\n{incorrect_results.to_csv(index=False)}')
+    self.log(f'Test Incorrect Results\n{incorrect_results.to_csv(index=False)}')
 
     log_file = self.config.log_dir / 'results.json'
     os.makedirs(str(log_file.parent), exist_ok = True)
