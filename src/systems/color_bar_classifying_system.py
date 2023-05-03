@@ -80,8 +80,8 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     with torch.no_grad():
       # Compute accuracy using the logits and labels
       raw_predictions = torch.sigmoid(logits)
-      preds = torch.round(raw_predictions)
-      predicted_classes = preds.squeeze(1)
+      predicted_classes = torch.where(raw_predictions > self.config.predict_rounding_threshold, 1, 0)
+      predicted_classes = predicted_classes.squeeze(1)
       num_correct = torch.sum(predicted_classes == labels)
       num_total = labels.size(0)
       accuracy = num_correct / float(num_total)
