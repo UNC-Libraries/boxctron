@@ -10,8 +10,12 @@ parser.add_argument('-l', '--file-list', action="store_true",
                     help='If provided, then the src_path will be treated as a text file containing a list of newline separated paths to augment.'),
 parser.add_argument('-o', '--output-path', type=Path, default=Path('./output'),
                     help='Base path to output augmented images. Defaults to "./output"'),
-parser.add_argument('-s', '--base-src-path', type=Path,
+parser.add_argument('-s', '--base-image-path', type=Path,
                     help='Base path which source image paths will be evaluated relative to. If provided, intermediate directories between the base and the file will be recreated in the output directory. Recommended when processing nested subdirectories of images.')
+parser.add_argument('-a', '--annotation-path', type=Path,
+                    help='Path to the annotation file associated with the file being augmented.')
+parser.add_argument('-A', '--annotation-output-path', type=Path,
+                    help='Path to write the updated annotation file to.')
 parser.add_argument('-e', '--extensions', default='jpg',
                     help='List of comma separated file extensions to filter by when operating on a directory. Default: jpg'),
 
@@ -25,9 +29,12 @@ print(f'For types: {extensions}')
 
 config = AugmentConfig()
 config.output_base_path = args.output_path
-config.src_base_path = args.base_src_path
+config.base_image_path = args.base_image_path
+config.annotations_path = args.annotations_path
+config.annotations_output_path = args.annotations_output_path
 
 augmentor = ImageAugmentor(config)
+augmentor.persist_annotations
 
 if args.file_list:
   with open(args.src_path) as f:
@@ -37,9 +44,12 @@ elif args.src_path.is_dir():
 else:
   paths = [args.src_path]
 
-
 total = len(paths)
 for idx, path in enumerate(paths):
   print(f"Processing {idx + 1} of {total}: {path}")
   if not args.dry_run:
     augmentor.process(path)
+
+print(f"Updating annotations file to {config.annotations_output_path}")
+augmentor.persist_annotations()
+

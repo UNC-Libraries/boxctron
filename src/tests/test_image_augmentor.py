@@ -2,6 +2,7 @@ import pytest
 from PIL import Image
 import numpy as np
 import random
+from src.utils.json_utils import from_json
 from src.utils.image_augmentor import ImageAugmentor
 from src.utils.augment_config import AugmentConfig
 from pathlib import Path
@@ -9,9 +10,11 @@ from pathlib import Path
 @pytest.fixture
 def config(tmp_path):
   conf = AugmentConfig()
-  conf.src_base_path = Path('.') / 'fixtures/normalized_images/'
+  conf.base_image_path = Path('.') / 'fixtures/normalized_images/'
   conf.output_base_path = tmp_path / 'output'
   conf.output_base_path.mkdir()
+  conf.annotations_path = Path('.') / 'fixtures/mini_annotations.json'
+  conf.annotations_output_path = tmp_path / 'aug_annotations.json'
   return conf
 
 class TestImageAugmentor:
@@ -119,23 +122,55 @@ class TestImageAugmentor:
       # augmented should be same as original
       assert np.array_equal(orig_data, aug_data)
 
-  def test_process_with_src_base_path(self, config, tmp_path):
+  def test_process(self, config, tmp_path):
     # Seed guarantees correct selection
     random.seed(39)
     subject = ImageAugmentor(config)
     output_path = subject.process(Path('fixtures/normalized_images/ncc/P0004_0483_17486.jpg'))
+    subject.persist_annotations()
     with Image.open(output_path) as aug_img:
       assert (1333, 1076) == aug_img.size
       assert output_path.stem == 'P0004_0483_17486_rfv_s100'
       assert output_path.parent == tmp_path / 'output/ncc'
+    aug_annos = from_json(config.annotations_output_path)
+    assert len(aug_annos) == 6
+    assert aug_annos[5]['image'] == str(output_path)
+    assert aug_annos[5]['annotation_id'] == 3
+    assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
 
-  def test_process_without_src_base_path(self, config, tmp_path):
+  def test_process_with_rotation_and_saturation(self, config, tmp_path):
     # Seed guarantees correct selection
     random.seed(42)
-    config.src_base_path = None
     subject = ImageAugmentor(config)
     output_path = subject.process(Path('fixtures/normalized_images/ncc/P0004_0483_17486.jpg'))
+    subject.persist_annotations()
     with Image.open(output_path) as aug_img:
       assert (1076, 1333) == aug_img.size
       assert output_path.stem == 'P0004_0483_17486_r90_s75'
-      assert output_path.parent == tmp_path / 'output'
+      assert output_path.parent == tmp_path / 'output/ncc'
+    aug_annos = from_json(config.annotations_output_path)
+    assert len(aug_annos) == 6
+    assert aug_annos[5]['image'] == str(output_path)
+    assert aug_annos[5]['annotation_id'] == 3
+    assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
+
+  def test_process_image_twice(self, config, tmp_path):
+    # Seed guarantees correct selection
+    random.seed(42)
+    subject = ImageAugmentor(config)
+    target_path = Path('fixtures/normalized_images/ncc/P0004_0483_17486.jpg')
+    output_path = subject.process(target_path)
+    subject.persist_annotations()
+
+    output_path2 = subject.process(target_path)
+    subject.persist_annotations()
+    with Image.open(output_path) as aug_img:
+      assert output_path2.stem == 'P0004_0483_17486_r90fh_s100'
+      assert output_path2.parent == tmp_path / 'output/ncc'
+    aug_annos = from_json(config.annotations_output_path)
+    assert len(aug_annos) == 7
+    assert aug_annos[5]['image'] == str(output_path)
+    assert aug_annos[5]['annotation_id'] == 3
+    assert aug_annos[6]['image'] == str(output_path2)
+    assert aug_annos[6]['annotation_id'] == 3
+    assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 2

@@ -2,12 +2,15 @@ from PIL import Image, ImageEnhance
 from pathlib import Path
 import random
 import logging
+from src.utils.json_utils import from_json, to_json
+import copy
 
 # Utility for normalizing images based on a configuration.
 # Currently normalizes all files to JPGs
 class ImageAugmentor:
   def __init__(self, config):
     self.config = config
+    self.load_annotations()
 
   # Augment an image to the expected configuration, saving the new versions to an configured output path
   def process(self, path):
@@ -16,27 +19,44 @@ class ImageAugmentor:
       img, satur_type = self.aug_saturation(img)
 
       output_path = self.build_output_path(path, [rotate_type, satur_type])
-      print(f'Output path {output_path}')
       # construct path to write to, then save the file
       output_path.parent.mkdir(exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
+
+      self.add_aug_annotation(path, output_path)
       return output_path
 
+  def add_aug_annotation(self, orig_path, output_path):
+    orig_anno = self.path_to_anno[str(orig_path.resolve())]
+    aug_anno = copy.deepcopy(orig_anno)
+    aug_anno['image'] = str(output_path)
+    self.annotations.append(aug_anno)
+
+  # Load the original annotations from file, and build a lookup map for filepaths
+  def load_annotations(self):
+    self.annotations = from_json(self.config.annotations_path)
+    self.path_to_anno = {}
+    for anno in self.annotations:
+      # Skip over images already in 
+      if anno['image'].startswith('http://localhost'):
+        img_path = (self.config.base_image_path / anno['image'].split('/', 3)[3]).resolve()
+      else:
+        img_path = anno['image']
+      self.path_to_anno[str(img_path)] = anno
+
+  # Write annotations out to their output path
+  def persist_annotations(self):
+    to_json(self.annotations, self.config.annotations_output_path)
+
   def build_output_path(self, path, aug_types):
-    print(f'Base: {self.config.src_base_path}')
-    if self.config.src_base_path == None:
-      rel_path = path.name
-    else:
-      rel_path = str(path.relative_to(self.config.src_base_path))
+    rel_path = str(path.relative_to(self.config.base_image_path))
     filename = path.stem
     dest = self.config.output_base_path / rel_path
-    print(f'Dest: {dest}')
     # add augmentations to filename
     return dest.with_stem(f'{filename}_{"_".join(aug_types)}')
 
   def aug_rotation(self, img):
     index = random.randrange(0, 5)
-    print(f'Indexr {index}')
     match index:
       case 0:
         return img.rotate(90, expand=1), 'r90'
@@ -51,7 +71,6 @@ class ImageAugmentor:
 
   def aug_saturation(self, img):
     index = random.randrange(0, 10)
-    print(f'Indexs {index}')
     if index == 0:
       converter = ImageEnhance.Color(img)
       return converter.enhance(0.75), 's75'
