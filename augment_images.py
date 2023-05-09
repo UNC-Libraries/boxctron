@@ -17,7 +17,9 @@ parser.add_argument('-a', '--annotation-path', type=Path,
 parser.add_argument('-A', '--annotation-output-path', type=Path,
                     help='Path to write the updated annotation file to.')
 parser.add_argument('-e', '--extensions', default='jpg',
-                    help='List of comma separated file extensions to filter by when operating on a directory. Default: jpg'),
+                    help='List of comma separated file extensions to filter by when operating on a directory. Default: jpg')
+parser.add_argument('-c', '--config', type=Path,
+                    help='If provided, config will be loaded from this file instead of commandline options')
 
 
 args = parser.parse_args()
@@ -27,11 +29,14 @@ print(f'Augmenting images at path: {args.src_path}')
 print(f'Outputting to: {args.output_path}')
 print(f'For types: {extensions}')
 
-config = AugmentConfig()
-config.output_base_path = args.output_path
-config.base_image_path = args.base_image_path
-config.annotations_path = args.annotations_path
-config.annotations_output_path = args.annotations_output_path
+if args.config:
+  config = AugmentConfig(path=args.config)
+else:
+  config = AugmentConfig()
+  config.output_base_path = args.output_path
+  config.base_image_path = args.base_image_path
+  config.annotations_path = args.annotations_path
+  config.annotations_output_path = args.annotations_output_path
 
 augmentor = ImageAugmentor(config)
 augmentor.persist_annotations
