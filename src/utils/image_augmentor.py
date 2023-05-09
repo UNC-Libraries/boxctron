@@ -20,7 +20,7 @@ class ImageAugmentor:
 
       output_path = self.build_output_path(path, [rotate_type, satur_type])
       # construct path to write to, then save the file
-      output_path.parent.mkdir(exist_ok=True)
+      output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
 
       self.add_aug_annotation(path, output_path)

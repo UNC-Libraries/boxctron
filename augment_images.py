@@ -1,5 +1,5 @@
 from src.utils.image_augmentor import ImageAugmentor
-from src.utils import AugmentConfig
+from src.utils.augment_config import AugmentConfig
 import argparse
 from pathlib import Path
 
@@ -52,8 +52,7 @@ else:
 total = len(paths)
 for idx, path in enumerate(paths):
   print(f"Processing {idx + 1} of {total}: {path}")
-  if not args.dry_run:
-    augmentor.process(path)
+  augmentor.process(path)
 
 print(f"Updating annotations file to {config.annotations_output_path}")
 augmentor.persist_annotations()
