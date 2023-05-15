@@ -4,6 +4,7 @@ import random
 import logging
 from src.utils.json_utils import from_json, to_json
 import copy
+import shutil
 
 # Utility for normalizing images based on a configuration.
 # Currently normalizes all files to JPGs
@@ -11,6 +12,7 @@ class ImageAugmentor:
   def __init__(self, config):
     self.config = config
     self.load_annotations()
+    self.init_file_list()
 
   # Augment an image to the expected configuration, saving the new versions to an configured output path
   def process(self, path):
@@ -19,11 +21,15 @@ class ImageAugmentor:
       img, satur_type = self.aug_saturation(img)
 
       output_path = self.build_output_path(path, [rotate_type, satur_type])
+      # skip saving file and adding annotation if one exists with the same name
+      if str(output_path.resolve()) in self.path_to_anno:
+        return output_path
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
 
       self.add_aug_annotation(path, output_path)
+      self.add_to_file_list(output_path)
       return output_path
 
   def add_aug_annotation(self, orig_path, output_path):
@@ -31,6 +37,14 @@ class ImageAugmentor:
     aug_anno = copy.deepcopy(orig_anno)
     aug_anno['image'] = str(output_path)
     self.annotations.append(aug_anno)
+
+  def init_file_list(self):
+    if self.config.file_list_path.exists():
+      shutil.copy(self.config.file_list_path, self.config.file_list_output_path)
+
+  def add_to_file_list(self, output_path):
+    with open(self.config.file_list_output_path, 'a') as file_list:
+      file_list.write(f'\n{output_path}')
 
   # Load the original annotations from file, and build a lookup map for filepaths
   def load_annotations(self):

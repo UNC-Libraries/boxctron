@@ -15,6 +15,8 @@ def config(tmp_path):
   conf.output_base_path.mkdir()
   conf.annotations_path = Path('.') / 'fixtures/mini_annotations.json'
   conf.annotations_output_path = tmp_path / 'aug_annotations.json'
+  conf.file_list_path = Path('.') / 'fixtures/mini_file_list.txt'
+  conf.file_list_output_path = tmp_path / 'aug_file_list.txt'
   return conf
 
 class TestImageAugmentor:
@@ -137,6 +139,11 @@ class TestImageAugmentor:
     assert aug_annos[5]['image'] == str(output_path)
     assert aug_annos[5]['annotation_id'] == 3
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
+    # Verify that augmented image was added to the file list output
+    with open(config.file_list_output_path) as f:
+      lines = f.read().splitlines()
+      assert str(output_path) in lines
+      assert len(lines) == 6
 
   def test_process_with_rotation_and_saturation(self, config, tmp_path):
     # Seed guarantees correct selection

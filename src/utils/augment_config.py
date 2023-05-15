@@ -9,6 +9,8 @@ class AugmentConfig:
     self.base_image_path = Path('/')
     self.annotations_path = None
     self.annotations_output_path = None
+    self.file_list_path = None
+    self.file_list_output_path = None
     if path != None:
       self.load_config(path)
 
@@ -20,3 +22,5 @@ class AugmentConfig:
       self.base_image_path = Path(data.get('base_image_path', '/')).resolve()
       self.annotations_path = Path(data['annotations_path']) if 'annotations_path' in data else None
       self.annotations_output_path = Path(data['annotations_output_path']) if 'annotations_output_path' in data else None
+      self.file_list_path = Path(data['file_list_path']) if 'file_list_path' in data else None
+      self.file_list_output_path = Path(data['file_list_output_path']) if 'file_list_output_path' in data else None
