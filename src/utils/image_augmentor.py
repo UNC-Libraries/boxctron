@@ -39,7 +39,7 @@ class ImageAugmentor:
     self.annotations.append(aug_anno)
 
   def init_file_list(self):
-    if self.config.file_list_path.exists():
+    if self.config.file_list_path.exists() and self.config.file_list_path != self.config.file_list_output_path:
       shutil.copy(self.config.file_list_path, self.config.file_list_output_path)
 
   def add_to_file_list(self, output_path):
