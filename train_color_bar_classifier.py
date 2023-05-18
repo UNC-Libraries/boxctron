@@ -34,7 +34,7 @@ class TrainColorBarClassifier:
     # a callback to save best model weights
     checkpoint_callback = ModelCheckpoint(
       dirpath = self.config.save_dir,
-      monitor = 'val_loss',
+      monitor = 'val_fp_loss',
       mode = 'min',    # look for lowest `val_fp_loss`
       save_last = True,
       save_top_k = 1,  # save top 1 checkpoints

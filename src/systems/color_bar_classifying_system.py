@@ -135,7 +135,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.plot_precision_recall_curve('val', self.validation_step_raw_predictions, self.validation_step_labels)
 
   # Special loss value for validation which punishes outcomes for having higher rates of false positives
-  def loss_with_false_positives(self, loss, false_pos_rate, weight = 0.2):
+  def loss_with_false_positives(self, loss, false_pos_rate, weight = 0.3):
     return (loss + (false_pos_rate * weight)).detach().cpu().numpy().item()
 
   # Evaluation step after all epochs of training have completed
