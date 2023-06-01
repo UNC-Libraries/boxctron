@@ -71,17 +71,16 @@ class ImageAugmentor:
 
   def aug_rotation(self, img):
     index = random.randrange(0, 5)
-    match index:
-      case 0:
-        return img.rotate(90, expand=1), 'r90'
-      case 1:
-        return img.transpose(Image.FLIP_TOP_BOTTOM), 'rfv'
-      case 2:
-        return img.rotate(90, expand=1).transpose(Image.FLIP_LEFT_RIGHT), 'r90fh'
-      case 3:
-        return img.transpose(Image.FLIP_LEFT_RIGHT), 'rfh'
-      case 4:
-        return img.rotate(random.randrange(1, 10)), 'rsmall'
+    if index == 0:
+      return img.rotate(90, expand=1), 'r90'
+    elif index == 1:
+      return img.transpose(Image.FLIP_TOP_BOTTOM), 'rfv'
+    elif index == 2:
+      return img.rotate(90, expand=1).transpose(Image.FLIP_LEFT_RIGHT), 'r90fh'
+    elif index == 3:
+      return img.transpose(Image.FLIP_LEFT_RIGHT), 'rfh'
+    else:
+      return img.rotate(random.randrange(1, 10)), 'rsmall'
 
   def aug_saturation(self, img):
     index = random.randrange(0, 10)
