@@ -12,8 +12,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from src.utils.training_config import TrainingConfig
-from src.datasets import ColorBarDataModule
-from src.systems import ColorBarClassifyingSystem
+from src.datasets.color_bar_data_module import ColorBarDataModule
+from src.systems.color_bar_classifying_system import ColorBarClassifyingSystem
 from src.utils.json_utils import to_json
 
 class TrainColorBarClassifier:
