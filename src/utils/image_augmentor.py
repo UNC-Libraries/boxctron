@@ -67,7 +67,7 @@ class ImageAugmentor:
     filename = path.stem
     dest = self.config.output_base_path / rel_path
     # add augmentations to filename
-    return dest.with_stem(f'{filename}_{"_".join(aug_types)}')
+    return dest.with_name(f'{filename}_{"_".join(aug_types)}{path.suffix}')
 
   def aug_rotation(self, img):
     index = random.randrange(0, 5)
