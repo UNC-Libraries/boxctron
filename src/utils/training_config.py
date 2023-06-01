@@ -28,6 +28,8 @@ class TrainingConfig:
       self.max_epochs = data.get('max_epochs', 3)
       # learning rate, how quickly the model will decide it is right during quickly. Higher the number, faster it goes.
       self.lr = data.get('lr', 3e-4)
+      # Weight decay for l2 regularization
+      self.weight_decay = data.get('weight_decay', 1e-5)
       # Directory where training checkpoints will be saved
       self.save_dir = data.get('save_dir', './artifacts/ckpts/train')
       # Max dimension size which images will be normalized to
@@ -40,6 +42,12 @@ class TrainingConfig:
       self.enable_progress_bar = data.get('enable_progress_bar', False)
       # Directory where progress and results will be saved to
       self.log_dir = Path(data.get('log_dir', './logs/')).resolve()
+      # Width of the hidden layer used in between the foundation model and the file result
+      self.model_width = data.get('model_width', 256)
+      # How often metrics will get logged during training
+      self.log_every_n_steps = data.get('log_every_n_steps', 10)
+      # Only predictions with confidence higher than this threshold will be counted as matching the class
+      self.predict_rounding_threshold = data.get('predict_rounding_threshold', 0.7)
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
 

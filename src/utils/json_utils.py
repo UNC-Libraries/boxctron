@@ -7,4 +7,4 @@ def from_json(filepath):
 
 def to_json(x, filepath):
   with open(filepath, 'w') as fp:
-    json.dump(x, fp)
+    json.dump(x, fp, indent=2)

@@ -1,78 +1,66 @@
 import os
+import argparse
 import torch
 import random
 import numpy as np
 from pathlib import Path
 from pprint import pprint
-
-from metaflow import FlowSpec, step, Parameter
+from datetime import datetime
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from src.utils.training_config import TrainingConfig
-from src.datasets import ColorBarDataModule
-from src.systems import ColorBarClassifyingSystem
+from src.datasets.color_bar_data_module import ColorBarDataModule
+from src.systems.color_bar_classifying_system import ColorBarClassifyingSystem
 from src.utils.json_utils import to_json
 
-LOG_DIR = Path('logs').resolve()
-
-class TrainColorBarClassifier(FlowSpec):
-  config_path = Parameter('config', 
-    help = 'path to config file', default = Path('fixtures/test_config.json'))
-
-  @step
-  def start(self):
-    self.next(self.init_system)
-
-  @step
-  def init_system(self):
+class TrainColorBarClassifier:
+  def init_system(self, config_path):
     r"""Instantiates a data module, pytorch lightning module, 
     and lightning trainer instance.
     """
     # configuration files contain all hyperparameters
-    config = TrainingConfig(self.config_path)
+    self.config = TrainingConfig(config_path)
 
     # a data module wraps around training, dev, and test datasets
-    dm = ColorBarDataModule(config)
+    self.dm = ColorBarDataModule(self.config)
 
     # a PyTorch Lightning system wraps around model logic
-    system = ColorBarClassifyingSystem(config)
-    print(f"Initializing system, saving to {config.save_dir}")
+    self.system = ColorBarClassifyingSystem(self.config)
+    self.log(f'Initializing system, saving to {self.config.save_dir}')
 
     # a callback to save best model weights
     checkpoint_callback = ModelCheckpoint(
-      dirpath = config.save_dir,
-      monitor = 'val_loss',
-      mode = 'min',    # look for lowest `val_loss`
+      dirpath = self.config.save_dir,
+      monitor = 'val_fp_loss',
+      mode = 'min',    # look for lowest `val_fp_loss`
       save_last = True,
       save_top_k = 1,  # save top 1 checkpoints
       every_n_epochs=1,
       verbose = True,
     )
 
-    trainer = Trainer(
-      max_epochs = config.max_epochs,
-      enable_progress_bar = config.enable_progress_bar,
-      logger = TensorBoardLogger(save_dir=config.log_dir),
+    self.trainer = Trainer(
+      max_epochs = self.config.max_epochs,
+      log_every_n_steps = self.config.log_every_n_steps,
+      enable_progress_bar = self.config.enable_progress_bar,
+      logger = TensorBoardLogger(save_dir=self.config.log_dir),
       callbacks = [checkpoint_callback])
 
-    # Store variables for passing to the next step
-    self.dm = dm
-    self.system = system
-    self.trainer = trainer
-    self.config = config
-
-    self.next(self.train_model)
-
-  @step
   def train_model(self):
+    self.log('Training model')
     self.trainer.fit(self.system, self.dm)
-    self.next(self.offline_test)
 
-  @step
+  def validation_evaluation(self):
+    self.log('Validation Evaluation')
+    self.trainer.validate(self.system, self.dm, ckpt_path = 'best')
+    incorrect_results = self.system.record_val_incorrect_predictions(self.dm.val_dataset)
+    self.log(f'Validation Incorrect Results\n{incorrect_results.to_csv(index=False)}')
+
   def offline_test(self):
+    self.log('Testing model')
     # Load the best checkpoint and compute results using `self.trainer.test`
     self.trainer.test(self.system, self.dm, ckpt_path = 'best')
 
@@ -82,34 +70,27 @@ class TrainColorBarClassifier(FlowSpec):
     # print results to command line
     pprint(results)
 
+    incorrect_results = self.system.record_test_incorrect_predictions(self.dm.test_dataset)
+    self.log(f'Test Incorrect Results\n{incorrect_results.to_csv(index=False)}')
+
     log_file = self.config.log_dir / 'results.json'
     os.makedirs(str(log_file.parent), exist_ok = True)
     to_json(results, log_file)  # save to disk
+    self.log('Training completed')
 
-    self.next(self.end)
-
-  @step
-  def end(self):
-    """End node!"""
-    print('Training completed')
+  def log(self, message):
+    print(f'{datetime.now().isoformat()} {message}')
 
 
 if __name__ == "__main__":
-  """
-  To validate this flow, run `python train_color_bar_classifier.py`. To list
-  this flow, run `python train_color_bar_classifier.py show`. To execute
-  this flow, run `python train_color_bar_classifier.py run`.
+  parser = argparse.ArgumentParser(description='Train color bar classifier.')
+  parser.add_argument('-c', '--config', dest='config', type=str,
+                    default='fixtures/test_config.json',
+                    help='Path to training config')
+  args = parser.parse_args()
 
-  You may get PyLint errors from `numpy.random`. If so,
-  try adding the flag:
-
-    `python train_color_bar_classifier.py --no-pylint run`
-
-  If you face a bug and the flow fails, you can continue
-  the flow at the point of failure:
-
-    `python train_color_bar_classifier.py resume`
-  
-  You can specify a run id as well.
-  """
-  flow = TrainColorBarClassifier()
+  train_classifier = TrainColorBarClassifier()
+  train_classifier.init_system(args.config)
+  train_classifier.train_model()
+  train_classifier.validation_evaluation()
+  train_classifier.offline_test()

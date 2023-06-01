@@ -2,10 +2,11 @@
   "image_list_path" : "fixtures/mini_file_list.txt",
   "annotations_path" : "fixtures/mini_annotations.json",
   "base_image_path" : "fixtures/normalized_images",
-  "dataset_class" : "src.datasets.ColorBarClassifyingDataset",
+  "dataset_class" : "src.datasets.color_bar_classifying_dataset.ColorBarClassifyingDataset",
   "max_dimension" : 1333,
   "batch_size" : 16,
   "test_percent": 0.2,
   "val_percent": 0.2,
-  "save_dir" : "./artifacts/ckpts/train"
+  "save_dir" : "./artifacts/ckpts/train",
+  "log_every_n_steps" : 1
 }
