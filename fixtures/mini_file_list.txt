@@ -3,3 +3,10 @@ fixtures/normalized_images/ncc/P0004_0483_0001_verso.jpg
 fixtures/normalized_images/ncc/P0004_0483_17486.jpg
 fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg
 fixtures/normalized_images/rbc/11029-z_pa0001_0017.jpg
+fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg
+fixtures/normalized_images/gilmer/00276_op0204_0001.jpg
+fixtures/normalized_images/sfc/20009_pf0263_0004.jpg
+fixtures/normalized_images/sfc/20367_pf0406_01_0002.jpg
+fixtures/normalized_images/ncc/fcpl_005.jpg
+fixtures/normalized_images/rbc/11029-z_pa0001_0034.jpg
+fixtures/normalized_images/ncc/Cm912m_U58b9.jpg

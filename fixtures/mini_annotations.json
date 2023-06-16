@@ -135,5 +135,214 @@
     "created_at": "2023-03-07T22:24:56.830664Z",
     "updated_at": "2023-03-07T22:24:56.830693Z",
     "lead_time": 17.372
+  },
+  {
+    "image": "http://localhost:8081/gilmer/00276_op0226a_0001.jpg",
+    "id": 420,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 15.624999999999996,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1025,
+        "original_height": 1333
+      },
+      {
+        "x": 16.015625,
+        "y": 0,
+        "width": 83.98437499999999,
+        "height": 100,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1025,
+        "original_height": 1333
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 422,
+    "created_at": "2023-04-27T19:13:38.689462Z",
+    "updated_at": "2023-04-27T19:13:38.689494Z",
+    "lead_time": 17.922
+  },
+  {
+    "image": "http://localhost:8081/gilmer/00276_op0204_0001.jpg",
+    "id": 412,
+    "label": [
+      {
+        "x": 1.0703363914373087,
+        "y": 0,
+        "width": 98.92966360856269,
+        "height": 17.731629392971247,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1333,
+        "original_height": 1276
+      },
+      {
+        "x": 1.070336391437309,
+        "y": 17.412140575079878,
+        "width": 98.92966360856266,
+        "height": 82.58785942492013,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1276
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 414,
+    "created_at": "2023-04-27T19:11:46.224381Z",
+    "updated_at": "2023-04-27T19:11:46.224410Z",
+    "lead_time": 10.202
+  },
+  {
+    "image": "http://localhost:8081/sfc/20009_pf0263_0004.jpg",
+    "id": 195,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 100.00000000000001,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 862,
+        "original_height": 1333
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 196,
+    "created_at": "2023-03-07T22:24:23.087553Z",
+    "updated_at": "2023-03-07T22:24:23.087585Z",
+    "lead_time": 5.621
+  },
+  {
+    "image": "http://localhost:8081/sfc/20367_pf0406_01_0002.jpg",
+    "id": 196,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1067,
+        "original_height": 1333
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 197,
+    "created_at": "2023-03-07T22:24:28.179078Z",
+    "updated_at": "2023-03-07T22:24:28.179107Z",
+    "lead_time": 4.863
+  },
+  {
+    "image": "http://localhost:8081/ncc/fcpl_005.jpg",
+    "id": 110,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1053
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 111,
+    "created_at": "2023-03-07T22:14:30.762366Z",
+    "updated_at": "2023-03-07T22:14:30.762396Z",
+    "lead_time": 8.364
+  },
+  {
+    "image": "http://localhost:8081/rbc/11029-z_pa0001_0034.jpg",
+    "id": 371,
+    "label": [
+      {
+        "x": 0.9174311926605505,
+        "y": 0,
+        "width": 85.16819571865443,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 1210
+      },
+      {
+        "x": 86.39143730886848,
+        "y": 0,
+        "width": 13.608562691131414,
+        "height": 99.99999999999997,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1333,
+        "original_height": 1210
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 373,
+    "created_at": "2023-04-27T19:00:22.037471Z",
+    "updated_at": "2023-04-27T19:00:22.037494Z",
+    "lead_time": 23.532
+  },
+  {
+    "image": "http://localhost:8081/ncc/Cm912m_U58b9.jpg",
+    "id": 359,
+    "label": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 99.99999999999997,
+        "height": 20.91503267973854,
+        "rotation": 0,
+        "rectanglelabels": [
+          "color_bar"
+        ],
+        "original_width": 1333,
+        "original_height": 936
+      },
+      {
+        "x": 0,
+        "y": 20.915032679738562,
+        "width": 99.9999999999999,
+        "height": 79.08496732026141,
+        "rotation": 0,
+        "rectanglelabels": [
+          "subject"
+        ],
+        "original_width": 1333,
+        "original_height": 936
+      }
+    ],
+    "annotator": 1,
+    "annotation_id": 361,
+    "created_at": "2023-04-27T18:56:38.732144Z",
+    "updated_at": "2023-04-27T18:56:38.732196Z",
+    "lead_time": 22.219
   }
 ]

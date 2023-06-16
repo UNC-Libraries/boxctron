@@ -135,15 +135,15 @@ class TestImageAugmentor:
       assert output_path.stem == 'P0004_0483_17486_rfv_s100'
       assert output_path.parent == tmp_path / 'output/ncc'
     aug_annos = from_json(config.annotations_output_path)
-    assert len(aug_annos) == 6
-    assert aug_annos[5]['image'] == str(output_path)
-    assert aug_annos[5]['annotation_id'] == 3
+    assert len(aug_annos) == 13 # 12 original + 1 augmented
+    assert aug_annos[12]['image'] == str(output_path)
+    assert aug_annos[12]['annotation_id'] == 3
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
     # Verify that augmented image was added to the file list output
     with open(config.file_list_output_path) as f:
       lines = f.read().splitlines()
       assert str(output_path) in lines
-      assert len(lines) == 6
+      assert len(lines) == 13
 
   def test_process_with_rotation_and_saturation(self, config, tmp_path):
     # Seed guarantees correct selection
@@ -156,9 +156,9 @@ class TestImageAugmentor:
       assert output_path.stem == 'P0004_0483_17486_r90_s75'
       assert output_path.parent == tmp_path / 'output/ncc'
     aug_annos = from_json(config.annotations_output_path)
-    assert len(aug_annos) == 6
-    assert aug_annos[5]['image'] == str(output_path)
-    assert aug_annos[5]['annotation_id'] == 3
+    assert len(aug_annos) == 13 # 12 original + 1 augmented
+    assert aug_annos[12]['image'] == str(output_path)
+    assert aug_annos[12]['annotation_id'] == 3
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
 
   def test_process_image_twice(self, config, tmp_path):
@@ -175,9 +175,9 @@ class TestImageAugmentor:
       assert output_path2.stem == 'P0004_0483_17486_r90fh_s100'
       assert output_path2.parent == tmp_path / 'output/ncc'
     aug_annos = from_json(config.annotations_output_path)
-    assert len(aug_annos) == 7
-    assert aug_annos[5]['image'] == str(output_path)
-    assert aug_annos[5]['annotation_id'] == 3
-    assert aug_annos[6]['image'] == str(output_path2)
-    assert aug_annos[6]['annotation_id'] == 3
+    assert len(aug_annos) == 14 # 12 original + 2 augmented
+    assert aug_annos[12]['image'] == str(output_path)
+    assert aug_annos[12]['annotation_id'] == 3
+    assert aug_annos[13]['image'] == str(output_path2)
+    assert aug_annos[13]['annotation_id'] == 3
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 2

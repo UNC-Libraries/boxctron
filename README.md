@@ -61,7 +61,7 @@ python3 normalize.py -h
 # Model training
 
 ```
-python train_color_bar_classifier.py run
+python train_color_bar_classifier.py
 ```
 
 ## Viewing training metrics
