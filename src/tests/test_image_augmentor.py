@@ -137,7 +137,7 @@ class TestImageAugmentor:
     aug_annos = from_json(config.annotations_output_path)
     assert len(aug_annos) == 13 # 12 original + 1 augmented
     assert aug_annos[12]['image'] == str(output_path)
-    assert aug_annos[12]['annotation_id'] == 3
+    assert aug_annos[12]['annotation_id'] == 8
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
     # Verify that augmented image was added to the file list output
     with open(config.file_list_output_path) as f:
@@ -158,7 +158,7 @@ class TestImageAugmentor:
     aug_annos = from_json(config.annotations_output_path)
     assert len(aug_annos) == 13 # 12 original + 1 augmented
     assert aug_annos[12]['image'] == str(output_path)
-    assert aug_annos[12]['annotation_id'] == 3
+    assert aug_annos[12]['annotation_id'] == 8
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
 
   def test_process_image_twice(self, config, tmp_path):
@@ -177,7 +177,7 @@ class TestImageAugmentor:
     aug_annos = from_json(config.annotations_output_path)
     assert len(aug_annos) == 14 # 12 original + 2 augmented
     assert aug_annos[12]['image'] == str(output_path)
-    assert aug_annos[12]['annotation_id'] == 3
+    assert aug_annos[12]['annotation_id'] == 8
     assert aug_annos[13]['image'] == str(output_path2)
-    assert aug_annos[13]['annotation_id'] == 3
+    assert aug_annos[13]['annotation_id'] == 8
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 2
