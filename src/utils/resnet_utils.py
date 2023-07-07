@@ -11,3 +11,9 @@ def load_for_resnet(path, max_dimension):
       transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
   ])
   return preprocess(input_image)
+
+def resnet50_foundation_model(device):
+  foundation = models.resnet50(weights='DEFAULT').to(device)
+  num_filters = foundation.fc.in_features
+  layers = list(foundation.children())[:-1]
+  return num_filters, nn.Sequential(*layers)

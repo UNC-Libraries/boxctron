@@ -12,6 +12,7 @@ from sklearn.metrics import precision_recall_curve
 import pandas as pd
 import io
 from PIL import Image
+from src.utils.resnet_utils import resnet50_foundation_model
 
 # System for training a model to classify images as either containing a color bar or not.
 # It uses a resnet model as its foundation for transfer learning, then trains on top of that
@@ -33,7 +34,7 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.test_step_labels = []
 
     # load model
-    fdn_num_filters, self.foundation_model = self.get_foundation_model()
+    fdn_num_filters, self.foundation_model = resnet50_foundation_model(self.device)
     self.model = self.get_model(fdn_num_filters)
 
     # We will overwrite this once we run `test()`
