@@ -6,6 +6,8 @@ from pathlib import Path
 parser = argparse.ArgumentParser(description='Use a trained model to classify images in a directory. Normalized versions of the images will be produced if they are not already present')
 parser.add_argument('src_path', type=Path,
                     help='Path of image or directory to augment, or file listing paths if the -l parameter is provided')
+parser.add_argument('report_path', type=Path,
+                    help='Path where the CSV report of results should be written')
 parser.add_argument('-c', '--config', type=Path,
                     help='If provided, config will be loaded from this file instead of commandline options')
 parser.add_argument('-e', '--extensions', default='tif,tiff,jp2,jpg,jpf,jpx,png',
@@ -30,5 +32,5 @@ elif args.src_path.is_dir():
 else:
   paths = [args.src_path]
 
-service = ClassifierWorkflowService(config)
+service = ClassifierWorkflowService(config, Path(args.report_path))
 service.process(paths)

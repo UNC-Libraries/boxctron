@@ -18,7 +18,7 @@ class ClassifierConfig:
     with open(path) as json_data:
       data = json.load(json_data)
       # Only predictions with confidence higher than this threshold will be counted as matching the class
-      self.predict_rounding_threshold = data.get('predict_rounding_threshold', 0.7)
+      self.predict_rounding_threshold = float(data.get('predict_rounding_threshold', '0.7'))
       # Classifer model checkpoint
       self.model_path = Path(data['model_path']) if 'model_path' in data else None
       # Max dimension size which images will be normalized to
