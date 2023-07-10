@@ -26,7 +26,7 @@ class ImageNormalizer:
       # construct path to write to, then save the file
       output_path.parent.mkdir(exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
-    output_path
+    return output_path
 
   # Constructs an output path based on the input path and configured base paths.
   def build_output_path(self, path):

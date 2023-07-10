@@ -1,5 +1,7 @@
 from PIL import Image
 from torchvision import transforms
+import torchvision.models as models
+import torch.nn as nn
 
 # normalize color values based on requirements of resnet and convert to a tensor
 def load_for_resnet(path, max_dimension):
@@ -12,8 +14,12 @@ def load_for_resnet(path, max_dimension):
   ])
   return preprocess(input_image)
 
-def resnet50_foundation_model(device):
-  foundation = models.resnet50(weights='DEFAULT').to(device)
+def resnet_foundation_model(device, resnet_depth = 50):
+  foundation = None
+  if resnet_depth == 50:
+    foundation = models.resnet50(weights='DEFAULT').to(device)
+  elif resnet_depth == 18:
+    foundation = models.resnet18(weights='DEFAULT').to(device)
   num_filters = foundation.fc.in_features
   layers = list(foundation.children())[:-1]
   return num_filters, nn.Sequential(*layers)

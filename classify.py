@@ -1,4 +1,4 @@
-from src.utils.image_classifier import ImageClassifier
+from src.utils.classifier_workflow_service import ClassifierWorkflowService
 from src.utils.classifier_config import ClassifierConfig
 import argparse
 from pathlib import Path

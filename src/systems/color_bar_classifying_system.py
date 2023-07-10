@@ -1,6 +1,5 @@
 import pytorch_lightning as pl
 import torchvision
-import torchvision.models as models
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,7 +11,7 @@ from sklearn.metrics import precision_recall_curve
 import pandas as pd
 import io
 from PIL import Image
-from src.utils.resnet_utils import resnet50_foundation_model
+from src.utils.resnet_utils import resnet_foundation_model
 
 # System for training a model to classify images as either containing a color bar or not.
 # It uses a resnet model as its foundation for transfer learning, then trains on top of that
@@ -34,18 +33,11 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     self.test_step_labels = []
 
     # load model
-    fdn_num_filters, self.foundation_model = resnet50_foundation_model(self.device)
+    fdn_num_filters, self.foundation_model = resnet_foundation_model(self.device, getattr(self.config, 'resnet_depth', 50))
     self.model = self.get_model(fdn_num_filters)
 
     # We will overwrite this once we run `test()`
     self.test_results = {}
-
-  # Build foundation model for transfer learning, starting from resnet and removing final layer so we can build on top of it
-  def get_foundation_model(self):
-    foundation = models.resnet50(weights='DEFAULT').to(self.device)
-    num_filters = foundation.fc.in_features
-    layers = list(foundation.children())[:-1]
-    return num_filters, nn.Sequential(*layers)
 
   # Model maps from the final dimension in resnet (2048 dimensions) down to a single dimension,
   # which is the class of having a color bar or not
@@ -61,17 +53,20 @@ class ColorBarClassifyingSystem(pl.LightningModule):
     optimizer = optim.Adam(self.parameters(), lr=self.config.lr, weight_decay=self.config.weight_decay)
     return optimizer
 
-  # Common step used to process a batch of data (images and labels) through the model,
-  # and calculate the loss/accuracy of the model within that batch.
-  def _common_step(self, batch, _):
-    images, labels = batch
-    
+  # Forward pass of the provided images through the model
+  def forward(self, images):
     # forward pass using the model
     self.foundation_model.eval()
     # fdn_output = self.foundation_model(images)
     with torch.no_grad():
       fdn_output = self.foundation_model(images).flatten(1)
-    logits = self.model(fdn_output)
+    return self.model(fdn_output)
+
+  # Common step used to process a batch of data (images and labels) through the model,
+  # and calculate the loss/accuracy of the model within that batch.
+  def _common_step(self, batch, _):
+    images, labels = batch
+    logits = self.forward(images)
 
     # https://pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy_with_logits.html
     loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), labels.float())
