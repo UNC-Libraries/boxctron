@@ -14,6 +14,7 @@ To checkout the project, create a virtual environment and install dependencies:
 cd /path/to/
 git clone git@github.com:UNC-Libraries/ml-repo-preingest-processing.git
 cd ml-repo-preingest-procressing
+# `python3 -m venv venv` on library servers
 python3 -m virtualenv venv
 
 # active the virtual env and install dependencies
@@ -63,6 +64,18 @@ python3 normalize.py -h
 ```
 python train_color_bar_classifier.py
 ```
+
+# Applying classifier to images
+
+This script makes use of a pretrained model to normalize and then classify images. The normalized files are stored under the path configured via the `output_base_path` field, recreating the original file path there to avoid collisions.
+
+It produces a CSV document containing the original file path, the normalized file path, the predicted class (1 = color bar, 0 = no color bar), and the confidence that the image contained a color bar. Multiple runs with the same CSV report path will append to the existing file.
+
+Example command:
+```
+python classify.py -c /path/to/color_bars/ml-repo-its-config/configs/classify_locos_test.json /path/to/rbc/11500_popayan/11500_0006/ /path/to/color_bars/shared/reports/results.csv
+```
+
 
 ## Viewing training metrics
 Training details are logged using tensorboard. They can be viewed by running:
