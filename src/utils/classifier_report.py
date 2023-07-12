@@ -1,50 +1,24 @@
-# this command-line tool can take two arguments which must be preceded by their respective flags
-#   1) -f : (REQUIRED) The CSV file that has four columns: 
-#                      original_path, normalized_path, predicted_class, predicted_conf
-#   2) -s : (OPTIONAL) The path to the saved html path. If this argument is not specified, 
-#                      a 'reports' directory will be created where 'reports.html' will be saved.
-
-
 from airium import Airium
 from pathlib import Path
 from csv import DictReader
 import webbrowser
 import argparse
 import os
+import re
 
 
 class ReportGenerator:
-    def __init__(self):
-        self.parse_args()
-        self.parse_csv()
-        self.create_html_page()
-        self.launch_page()
-    
-    # parses command-line arguments and checks for proper file extensions
-    def parse_args(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--file_path', '-f', type=Path, required=True, help="Path to csv file that will be used to generate html page.")
-        parser.add_argument('--save_path', '-s', type=Path, required=False, help="If path is provided, the html page generated will be saved to that path.")
-        p = parser.parse_args()
-        
-        assert os.path.splitext(p.file_path)[-1].lower() == '.csv'
-        
-        if p.save_path:
-            assert os.path.splitext(p.save_path)[-1].lower() == '.html'
 
-        self.csv_path = p.file_path
-        
-        try:
-            self.save_path = p.save_path
-        except:
-            self.save_path = False
- 
     # parses csv and creates a list of dictionaries  
-    def parse_csv(self):
+    def parse_csv(self, csv_path):
         
-        with open(self.csv_path, 'r', encoding='utf-8-sig') as f:
+        with open(csv_path, 'r', encoding='utf-8-sig') as f:
             self.data = list(DictReader(f))
-    
+            
+    def normalize_urls(self, http_url):
+        for item in self.data:
+            item["normalized_path"] = re.sub(r'.+/(?=.+)', http_url, item["normalized_path"])
+
     # creates the HTML page
     def create_html_page(self):
         a = Airium()
@@ -53,7 +27,7 @@ class ReportGenerator:
             with a.head():
                 a.meta(charset='utf-8')
                 a.title(_t='Classifier Results')
-                
+
                 # CSS CDMs
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css")
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css")
@@ -99,27 +73,36 @@ class ReportGenerator:
         
         self.html_page = a
     
-    # launches the HTML page in default browser
-    def launch_page(self):
-        
+    # save file in predefined reports folder or into the defined directory
+    def save_file(self, output_path):
+       
         html = str(self.html_page)
         
         # if save path was not specified, creates reports directory and reports.html file within it
-        if not self.save_path:
-            dirname = os.path.dirname(os.getcwd())
+        if output_path:
+             with open(output_path, 'w') as f:
+                f.write(html)
+        else:
+            dirname = os.getcwd()
             report_dir = os.path.join(dirname, 'reports/')
             
             if not os.path.exists(report_dir):
                 os.mkdir(report_dir)
-                
-            self.save_path = os.path.join(report_dir, 'report.html')
+                print('directory has been created')
+            
+            output_path = os.path.join(report_dir, "report.html")
+            
+            with open(output_path, 'w') as f:
+                f.write(html)            
         
-        url = f"file://{os.path.abspath(self.save_path)}"
+        print(f"HTML file saved at {output_path}")
+        self.url = f"file://{os.path.abspath(output_path)}"
 
-        with open(self.save_path, 'w') as f:
-            f.write(html)
 
-        webbrowser.open_new_tab(url)
+
+    # launches the HTML page in default browser
+    def launch_page(self):
+        webbrowser.open_new_tab(self.url)
 
 
 ReportGenerator()
