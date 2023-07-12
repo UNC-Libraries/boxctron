@@ -103,6 +103,3 @@ class ReportGenerator:
     # launches the HTML page in default browser
     def launch_page(self):
         webbrowser.open_new_tab(self.url)
-
-
-ReportGenerator()
