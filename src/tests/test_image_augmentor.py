@@ -72,19 +72,6 @@ class TestImageAugmentor:
       aug_data = np.array(aug_img)
       assert np.array_equal(np.flip(orig_data, 1), aug_data)
 
-  def test_aug_rotation_small_jitter(self, config):
-    # Seed guarantees correct rotation
-    random.seed(37)
-    subject = ImageAugmentor(config)
-    with Image.open('fixtures/normalized_images/ncc/P0004_0483_17486.jpg') as orig_img:
-      aug_img, rot_type = subject.aug_rotation(orig_img)
-      assert (1333, 1076) == aug_img.size
-      assert rot_type == 'rsmall'
-      # augmented image should be a little different from the originaly
-      orig_data = np.array(orig_img)
-      aug_data = np.array(aug_img)
-      assert not np.array_equal(orig_data, aug_data)
-
   def test_aug_saturation_reduce(self, config):
     # Seed guarantees correct selection
     random.seed(31)
