@@ -12,11 +12,11 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--file_path', type=Path, required=True, 
+parser.add_argument('-f', '--file-path', type=Path, required=True, 
                     help="Path to csv file that will be used to generate html page.")
-parser.add_argument('-s', '--output_path', type=Path, default=False, required=False, 
+parser.add_argument('-s', '--output-path', type=Path, default=False, required=False, 
                     help="Path to output HTML report. Defaults to src/report/report.html")
-parser.add_argument('-n', '--normalized_url', type=Path, default=False, required=False,
+parser.add_argument('-n', '--normalized-url', type=Path, default=False, required=False,
                     help="HTTP path replace normalized image paths.")
 parser.add_argument('-O', '--open', action='store_true', required=False,
                     help="Flag indicates to open the html report in system's default browser.")
