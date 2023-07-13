@@ -14,7 +14,7 @@ class ImageClassifier:
     self.load_model()
 
   def load_model(self):
-    self.model = ColorBarClassifyingSystem.load_from_checkpoint(self.config.model_path)
+    self.model = ColorBarClassifyingSystem.load_from_checkpoint(self.config.model_path, map_location = self.device)
     self.model.eval()
 
   # path - path to image to make predictions on, generally a resized version of the image
