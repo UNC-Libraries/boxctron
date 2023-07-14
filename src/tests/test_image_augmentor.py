@@ -132,6 +132,27 @@ class TestImageAugmentor:
       assert str(output_path) in lines
       assert len(lines) == 13
 
+  def test_label_augmentation(self, config, tmp_path):
+    # Seed guarantees correct selection
+    random.seed(42)
+    subject = ImageAugmentor(config)
+    output_path = subject.process(Path('fixtures/normalized_images/gilmer/00276_op0204_0001.jpg'))
+    subject.persist_annotations()
+    with Image.open(output_path) as aug_img:
+      assert (1276, 1333) == aug_img.size # Augmented image is rotated by 90
+      assert output_path.stem == '00276_op0204_0001_r90_s75' 
+    aug_annos = from_json(config.annotations_output_path)
+    assert len(aug_annos) == 13 # 12 original + 1 augmented
+    assert aug_annos[12]['image'] == str(output_path)
+    assert aug_annos[12]['rotation_type'] == 'r90'
+    assert len(aug_annos[12]['label']) == 2 #Subject, color_bar
+    assert aug_annos[12]['label'][0]['x'] == 0 
+    assert aug_annos[12]['label'][0]['y'] == 0
+    assert aug_annos[12]['label'][0]['width'] == 17.731629392971247
+    assert aug_annos[12]['label'][0]['height'] == 98.92966360856269
+    assert aug_annos[12]['label'][0]['original_width'] == 1276
+    assert aug_annos[12]['label'][0]['original_height'] == 1333
+
   def test_process_with_rotation_and_saturation(self, config, tmp_path):
     # Seed guarantees correct selection
     random.seed(42)
@@ -146,6 +167,9 @@ class TestImageAugmentor:
     assert len(aug_annos) == 13 # 12 original + 1 augmented
     assert aug_annos[12]['image'] == str(output_path)
     assert aug_annos[12]['annotation_id'] == 8
+    assert aug_annos[12]['rotation_type'] == 'r90'
+    assert aug_annos[12]['label'][0]['original_width'] == 1076 # Swap height and width from annotation
+    assert aug_annos[12]['label'][0]['original_height'] == 1333
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 1
 
   def test_process_image_twice(self, config, tmp_path):
@@ -165,6 +189,8 @@ class TestImageAugmentor:
     assert len(aug_annos) == 14 # 12 original + 2 augmented
     assert aug_annos[12]['image'] == str(output_path)
     assert aug_annos[12]['annotation_id'] == 8
+    assert aug_annos[12]['rotation_type'] == 'r90'
     assert aug_annos[13]['image'] == str(output_path2)
     assert aug_annos[13]['annotation_id'] == 8
+    assert aug_annos[13]['rotation_type'] == 'r90fh'
     assert sum(1 for x in config.output_base_path.rglob('*') if x.is_file()) == 2

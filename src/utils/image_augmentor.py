@@ -13,6 +13,16 @@ class ImageAugmentor:
     self.load_annotations()
     self.init_file_list()
 
+  # Helper function to correct float rounding errors in LabelStudio
+  # ie. emission of values with percentages > 100 or < 0
+  def fp_adjust(self, dim):
+    if dim < 0:
+      return 0.0
+    elif dim > 100:
+      return 100.0
+    else:
+      return dim
+
   # Augment an image to the expected configuration, saving the new versions to an configured output path
   def process(self, path):
     with Image.open(path) as img:
@@ -35,7 +45,9 @@ class ImageAugmentor:
   def add_aug_annotation(self, orig_path, output_path, rotate_type):
     orig_anno = self.path_to_anno[str(orig_path.resolve())]
     aug_anno = copy.deepcopy(orig_anno)
+    # Populate augmented annotation
     aug_anno['image'] = str(output_path)
+    aug_anno['rotation_type'] = rotate_type
     for label in aug_anno['label']:
       # Image width and height are measured in pixels
       # Bar dimensions and x, y coord are 0-100 relative to width, height
@@ -43,39 +55,29 @@ class ImageAugmentor:
       orig_x, orig_y = label["x"], label["y"]
       bar_width, bar_height = label["width"], label["height"]
       if rotate_type=='r90':
-        # New top left coordinate for each label
-        # (y, 100 - (x + bar_width)
-        # Populate label, swapping dimensions accordingly
+        # Top left coordinate after rotation: (y, 100 - (x + bar_width)
+        label["x"] = self.fp_adjust(orig_y)
+        label["y"] = self.fp_adjust(100 - (orig_x + bar_width))
         label["original_width"] = orig_height
         label["original_height"] = orig_width
-        label["x"] = orig_y
-        label["y"] = 100 - (orig_x + bar_width)
-        label["width"] = bar_height
-        label["height"] = bar_width
+        label["width"] = self.fp_adjust(bar_height)
+        label["height"] = self.fp_adjust(bar_width)
       elif rotate_type=='rfv':
-        # (x, img_height - (y + bar_height)) ... (x + bar_width, img_height - (y + bar_height))
-        # (x, img_height - y)  ... (x + bar_width, img_height - y)
-        # Populate label
-        label["x"] = orig_x
-        label["y"] = 100 - (orig_y + bar_height)
+        # Top left coordinate after rotation: (x, 100 - (y + bar_height)) 
+        label["x"] = self.fp_adjust(orig_x)
+        label["y"] = self.fp_adjust(100 - (orig_y + bar_height))
       elif rotate_type == "rfh": 
-        # (img_width - (x + bar_width), y)  ... (img_width - x, y)
-        # (img_width - (x + bar_width), bar_height + y) ... (img_width - x, bar_height + y)
-        # Populate label
-        label["x"] =  100 - (orig_x + bar_width)
-        label["y"] = orig_y
+        # Top left coordinate after rotation: (100 - (x + bar_width)
+        label["x"] =  self.fp_adjust(100 - (orig_x + bar_width))
+        label["y"] = self.fp_adjust(orig_y)
       elif rotate_type == "r90fh":
-        # (img_height - (y + bar_height), img_width - (x + bar_width)) ... (img_height - y, img_width - (x + bar_width))
-        # (img_height - (y + bar_height), img_width - x) (img_height - y, img_width - x)
-        # Populate label
+        # Top left coordinate: (100 - (y + bar_height), 100 - (x + bar_width))
+        label["x"] = self.fp_adjust(100 - (orig_y + bar_height))
+        label["y"] = self.fp_adjust(100 - (orig_x + bar_width))
         label["original_width"] = orig_height
         label["original_height"] = orig_width
-        label["x"] = 100 - (orig_y + bar_height)
-        label["y"] = 100 - (orig_x + bar_width)
-        label["width"] = bar_height
-        label["height"] = bar_width
-    logging.debug(orig_anno)
-    logging.debug(aug_anno)
+        label["width"] = self.fp_adjust(bar_height)
+        label["height"] = self.fp_adjust(bar_width)
     self.annotations.append(aug_anno)
 
   def init_file_list(self):
