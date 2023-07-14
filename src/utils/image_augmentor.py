@@ -1,6 +1,5 @@
 from PIL import Image, ImageEnhance
 import random
-import logging
 from src.utils.json_utils import from_json, to_json
 import copy
 import shutil
@@ -28,9 +27,7 @@ class ImageAugmentor:
     with Image.open(path) as img:
       img, rotate_type = self.aug_rotation(img)
       img, satur_type = self.aug_saturation(img)
-      logging.info(rotate_type)
       output_path = self.build_output_path(path, [rotate_type, satur_type])
-      logging.info(output_path)
       # skip saving file and adding annotation if one exists with the same name
       if str(output_path.resolve()) in self.path_to_anno:
         return output_path
