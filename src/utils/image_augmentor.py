@@ -46,6 +46,7 @@ class ImageAugmentor:
     aug_anno['image'] = str(output_path)
     aug_anno['rotation_type'] = rotate_type
     if 'label' not in aug_anno: # Some negative examples do not have labeled subject regions
+      self.annotations.append(aug_anno)
       return
     for label in aug_anno['label']:
       # Image width and height are measured in pixels
