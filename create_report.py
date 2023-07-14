@@ -19,7 +19,7 @@ parser.add_argument('-s', '--output-path', type=Path, default=False, required=Fa
                     help="Path to output HTML report. Defaults to src/report/report.html")
 parser.add_argument('-x', '--substring', default="/shared/", required=False,
                     help="Substring that indicates the start of the normalized image path that will follow the normalized-url.")
-parser.add_argument('-n', '--normalized-url', type=Path, default=False, required=False,
+parser.add_argument('-n', '--normalized-url', default=False, required=False,
                     help="URL which normalized image paths will be made relative to.")
 parser.add_argument('-O', '--open', action='store_true', required=False,
                     help="Flag indicates to open the html report in system's default browser.")
@@ -41,7 +41,7 @@ generator = ReportGenerator()
 generator.parse_csv(args.file_path)
 
 if args.normalized_url:
-    generator.normalize_urls(args.normalized_url)
+    generator.normalize_urls(args.normalized_url, args.substring)
     
 generator.create_html_page()
 
