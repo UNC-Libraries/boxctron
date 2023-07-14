@@ -45,6 +45,8 @@ class ImageAugmentor:
     # Populate augmented annotation
     aug_anno['image'] = str(output_path)
     aug_anno['rotation_type'] = rotate_type
+    if 'label' not in aug_anno: # Some negative examples do not have labeled subject regions
+      return
     for label in aug_anno['label']:
       # Image width and height are measured in pixels
       # Bar dimensions and x, y coord are 0-100 relative to width, height
