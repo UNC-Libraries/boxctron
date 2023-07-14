@@ -3,8 +3,9 @@
 #                      original_path, normalized_path, predicted_class, predicted_conf
 #   2) -s : (OPTIONAL) The path to the saved html path. If this argument is not specified, 
 #                      a 'reports' directory will be created where 'reports.html' will be saved.
-#   3) -n : (OPTIONAL) HTTP url to replace the normalized image paths.
-#   4) -O : (OPTIONAL) Indicates whether the HTML report should be opened in default browser
+#   3) -x : (OPTIONAL) Substring that indicates the start of the normalized image path that will follow the normalized-url.
+#   4) -n : (OPTIONAL) HTTP url which the normalized image paths will be made relative to.
+#   5) -O : (OPTIONAL) Indicates whether the HTML report should be opened in default browser
 
 from src.utils.classifier_report import ReportGenerator
 from pathlib import Path
@@ -16,8 +17,10 @@ parser.add_argument('-f', '--file-path', type=Path, required=True,
                     help="Path to csv file that will be used to generate html page.")
 parser.add_argument('-s', '--output-path', type=Path, default=False, required=False, 
                     help="Path to output HTML report. Defaults to src/report/report.html")
+parser.add_argument('-x', '--substring', default="/shared/", required=False,
+                    help="Substring that indicates the start of the normalized image path that will follow the normalized-url.")
 parser.add_argument('-n', '--normalized-url', type=Path, default=False, required=False,
-                    help="HTTP path replace normalized image paths.")
+                    help="URL which normalized image paths will be made relative to.")
 parser.add_argument('-O', '--open', action='store_true', required=False,
                     help="Flag indicates to open the html report in system's default browser.")
 
@@ -47,8 +50,3 @@ generator.save_file(args.output_path)
 
 if args.open:
     generator.launch_page()
-
-
-
-
-

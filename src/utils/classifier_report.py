@@ -15,9 +15,9 @@ class ReportGenerator:
         with open(csv_path, 'r', encoding='utf-8-sig') as f:
             self.data = list(DictReader(f))
             
-    def normalize_urls(self, http_url):
+    def normalize_urls(self, http_url, substring):
         for item in self.data:
-            item["normalized_path"] = re.sub(r'.+/(?=.+)', http_url, item["normalized_path"])
+            item["normalized_path"] = re.sub(rf'.+(?={substring})', http_url, item["normalized_path"])
 
     # creates the HTML page
     def create_html_page(self):
@@ -28,7 +28,7 @@ class ReportGenerator:
                 a.meta(charset='utf-8')
                 a.title(_t='Classifier Results')
 
-                # CSS CDMs
+                # CSS CDNs
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css")
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css")
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css")
@@ -37,11 +37,11 @@ class ReportGenerator:
             with a.body():
                 a.table(id="myTable", klass="display")
                 
-                # JQuery Core and UI CDN
+                # JQuery Core and UI CDNs
                 a.script(src="https://code.jquery.com/jquery-3.7.0.js", integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=", crossorigin="anonymous")
                 a.script(src="https://code.jquery.com/ui/1.13.2/jquery-ui.js", integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=", crossorigin="anonymous")
 
-                # Datables CDN
+                # Datables CDNs
                 a.script(src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js")
                 a.script(src="https://cdn.datatables.net/searchpanes/2.1.2/js/dataTables.searchPanes.min.js")
                 a.script(src="https://cdn.datatables.net/select/1.6.2/js/dataTables.select.min.js")
