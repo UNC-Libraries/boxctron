@@ -31,66 +31,51 @@ class ImageAugmentor:
       self.add_to_file_list(output_path)
       return output_path
 
+  # Generates augmented annotation by recomputing dimensions and labels after rotation.
   def add_aug_annotation(self, orig_path, output_path, rotate_type):
     orig_anno = self.path_to_anno[str(orig_path.resolve())]
     aug_anno = copy.deepcopy(orig_anno)
     aug_anno['image'] = str(output_path)
-    # Original label coordinates are ...
-    # (x,y) (x + img_width * x, y)
-    # (x, y + img_height * height) (x + img_width *x, y + img_height * height)
     for label in aug_anno['label']:
-      # Compute dimensions required for all rotation types in pixels
-      orig_width = label['original_width']
-      orig_height = label['original_height']
-      orig_x = label["x"]/100.0 * orig_width
-      orig_y = label["y"]/100.0 * orig_height
-      label_width = label["width"]/100.0
-      label_height = label["height"]/100.0
-      bar_height = round(orig_height * label_height)
-      bar_width = round(orig_width * label_width)
+      # Image width and height are measured in pixels
+      # Bar dimensions and x, y coord are 0-100 relative to width, height
+      orig_width, orig_height = label['original_width'], label['original_height']
+      orig_x, orig_y = label["x"], label["y"]
+      bar_width, bar_height = label["width"], label["height"]
       if rotate_type=='r90':
-        # New top left coordinate is
-        # (y, img_width - (x + bar_width))
-        new_x = orig_y
-        new_y = orig_width - (orig_x + bar_width)
-        # Populate label
+        # New top left coordinate for each label
+        # (y, 100 - (x + bar_width)
+        # Populate label, swapping dimensions accordingly
         label["original_width"] = orig_height
         label["original_height"] = orig_width
-        # Convert pixels to relative measurements
-        label["x"] = (new_x/orig_height) * 100
-        label["y"] = (new_y/orig_width) * 100
-        label["width"] = label_height * 100
-        label["height"] = label_width * 100
+        label["x"] = orig_y
+        label["y"] = 100 - (orig_x + bar_width)
+        label["width"] = bar_height
+        label["height"] = bar_width
       elif rotate_type=='rfv':
         # (x, img_height - (y + bar_height)) ... (x + bar_width, img_height - (y + bar_height))
         # (x, img_height - y)  ... (x + bar_width, img_height - y)
-        new_x = orig_x
-        new_y = orig_height - (orig_y + bar_height)
         # Populate label
-        # Convert pixels to relative measurements, width and height remain unchanged
-        label["x"] = (new_x/orig_width) * 100
-        label["y"] = (new_y/orig_height) * 100
+        label["x"] = orig_x
+        label["y"] = 100 - (orig_y + bar_height)
       elif rotate_type == "rfh": 
         # (img_width - (x + bar_width), y)  ... (img_width - x, y)
         # (img_width - (x + bar_width), bar_height + y) ... (img_width - x, bar_height + y)
-        new_x = orig_width - (orig_x + bar_width)
-        new_y = orig_y
         # Populate label
-        # Convert pixels to relative measurements, width and height remain unchanged
-        label["x"] = (new_x/orig_width) * 100
-        label["y"] = (new_y/orig_height) * 100
+        label["x"] =  100 - (orig_x + bar_width)
+        label["y"] = orig_y
       elif rotate_type == "r90fh":
         # (img_height - (y + bar_height), img_width - (x + bar_width)) ... (img_height - y, img_width - (x + bar_width))
         # (img_height - (y + bar_height), img_width - x) (img_height - y, img_width - x)
-        new_x = orig_height - (orig_y + bar_height)
-        new_y = orig_width - (orig_x + bar_width)
         # Populate label
         label["original_width"] = orig_height
         label["original_height"] = orig_width
-        label["x"] = (new_x/orig_height) * 100
-        label["y"] = (new_y/orig_width) * 100
-        label["width"] = label_height * 100
-        label["height"] = label_width * 100
+        label["x"] = 100 - (orig_y + bar_height)
+        label["y"] = 100 - (orig_x + bar_width)
+        label["width"] = bar_height
+        label["height"] = bar_width
+    logging.debug(orig_anno)
+    logging.debug(aug_anno)
     self.annotations.append(aug_anno)
 
   def init_file_list(self):
