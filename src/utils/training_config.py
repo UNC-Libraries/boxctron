@@ -44,6 +44,8 @@ class TrainingConfig:
       self.log_dir = Path(data.get('log_dir', './logs/')).resolve()
       # Width of the hidden layer used in between the foundation model and the file result
       self.model_width = data.get('model_width', 256)
+      # Depth of the resnet foundation model to load for transfer learning
+      self.resnet_depth = data.get('resnet_depth', 50)
       # How often metrics will get logged during training
       self.log_every_n_steps = data.get('log_every_n_steps', 10)
       # Only predictions with confidence higher than this threshold will be counted as matching the class

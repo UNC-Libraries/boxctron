@@ -14,6 +14,7 @@ To checkout the project, create a virtual environment and install dependencies:
 cd /path/to/
 git clone git@github.com:UNC-Libraries/ml-repo-preingest-processing.git
 cd ml-repo-preingest-procressing
+# `python3 -m venv venv` on library servers
 python3 -m virtualenv venv
 
 # active the virtual env and install dependencies
@@ -64,12 +65,30 @@ python3 normalize.py -h
 python train_color_bar_classifier.py
 ```
 
+# Applying classifier to images
+
+This script makes use of a pretrained model to normalize and then classify images. The normalized files are stored under the path configured via the `output_base_path` field, recreating the original file path there to avoid collisions.
+
+It produces a CSV document containing the original file path, the normalized file path, the predicted class (1 = color bar, 0 = no color bar), and the confidence that the image contained a color bar. Multiple runs with the same CSV report path will append to the existing file.
+
+Example command:
+```
+python classify.py -c /path/to/color_bars/ml-repo-its-config/configs/classify_locos_test.json /path/to/rbc/11500_popayan/11500_0006/ /path/to/color_bars/shared/reports/results.csv
+```
+
+
 ## Viewing training metrics
 Training details are logged using tensorboard. They can be viewed by running:
 ```
 tensorboard --logdir logs/lightning_logs/version_1
 ```
 And then going to http://localhost:6006/
+
+# Generating Report
+`create_report.py` creates HTML report from CSV output from the classifier. It requires a path to the csv prefixed with `-f`. It also accepts the following: `-s` with path for report.html, `-n` with the HTTP url to replace the normalized image path, `-x` with the substring to indicate the area up to which the images' normalized path will be replaced by the HTTP url, and `-O` to open report in browser. 
+```
+python create_report.py -f /path/to/file.csv -s path/to/save/report.html -n https://example.com -x /shared/ -O
+```
 
 # Running tests
 To run the tests in your local environment (or python3 depending on the environment):

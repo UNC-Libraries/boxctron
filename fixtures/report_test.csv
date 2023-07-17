@@ -1,0 +1,6 @@
+﻿original_path,normalized_path,predicted_class,predicted_conf
+/path/to/ncc/Cm912_1945u1_sheet1.jpg,/ml-repo-preingest-processing/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg,1,0.523
+/path/to/ncc/P0004_0483_0001_verso.jpg,/ml-repo-preingest-processing/fixtures/normalized_images/ncc/P0004_0483_0001_verso.jpg,1,0.823
+/path/to/ncc/P0004_0483_17486.jpg,/ml-repo-preingest-processing/fixtures/normalized_images/ncc/P0004_0483_17486.jpg,0,0.712
+/path/to/ncc/G3902-F3-1981_U5_front.jpg,/ml-repo-preingest-processing/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg,1,0.945
+/path/to/ncc/11029-z_pa0001_0017.jpg,/ml-repo-preingest-processing/fixtures/normalized_images/rbc/11029-z_pa0001_0017.jpg,0,0.289

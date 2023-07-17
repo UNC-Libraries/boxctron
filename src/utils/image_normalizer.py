@@ -11,20 +11,22 @@ class ImageNormalizer:
     self.config = config
 
   # Normalize an image to the expected configuration, saving the normalized version to an configured output path
+  # Returns the path of the normalized file
   def process(self, path):
     output_path = self.build_output_path(path)
     # Skip regenerating 
     if not self.config.force and output_path.exists():
       logging.info('Derivative already exists, skipping %s', path)
-      return
+      return output_path
 
     with Image.open(path) as img:
       if img.mode != "RGB":
         img = img.convert("RGB")
       img = self.resize(img)
       # construct path to write to, then save the file
-      output_path.parent.mkdir(exist_ok=True)
+      output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
+    return output_path
 
   # Constructs an output path based on the input path and configured base paths.
   def build_output_path(self, path):
