@@ -84,6 +84,12 @@ tensorboard --logdir logs/lightning_logs/version_1
 ```
 And then going to http://localhost:6006/
 
+# Generating Report
+`create_report.py` creates HTML report from CSV output from the classifier. It requires a path to the csv prefixed with `-f`. It also accepts the following: `-s` with path for report.html, `-n` with the HTTP url to replace the normalized image path, `-x` with the substring to indicate the area up to which the images' normalized path will be replaced by the HTTP url, and `-O` to open report in browser. 
+```
+python create_report.py -f /path/to/file.csv -s path/to/save/report.html -n https://example.com -x /shared/ -O
+```
+
 # Running tests
 To run the tests in your local environment (or python3 depending on the environment):
 ```
