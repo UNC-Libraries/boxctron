@@ -20,7 +20,7 @@ class ImageAugmentor:
     elif dim > 100:
       return 100.0
     else:
-      return dim
+      return round(dim, 4)
 
   # Augment an image to the expected configuration, saving the new versions to an configured output path
   def process(self, path):

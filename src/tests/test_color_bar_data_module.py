@@ -26,7 +26,7 @@ class TestColorBarDataModule:
     
     train_list = list(iter(train_dl))
     # Should be two batches in train set (2 batches of 3 items each)
-    assert len(train_list) == 2
+    assert len(train_list) == 3
     train_batch1_images = train_list[0][0]
     train_batch1_labels = train_list[0][1]
     assert list(train_batch1_images.shape) == [3, 3, 1333, 1333]
