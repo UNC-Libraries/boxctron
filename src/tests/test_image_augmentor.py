@@ -130,8 +130,6 @@ class TestImageAugmentor:
     with open(config.file_list_output_path) as f:
       lines = f.read().splitlines()
       assert str(output_path) in lines
-      for line in lines:
-        print(line)
       assert len(lines) == 14
 
   def test_label_augmentation(self, config, tmp_path):
