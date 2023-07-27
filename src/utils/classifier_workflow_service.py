@@ -28,6 +28,9 @@ class ClassifierWorkflowService:
 
       for idx, path in enumerate(paths):
         print(f"Processing {idx + 1} of {total}: {path}")
-        normalized_path = self.normalizer.process(path)
-        results = self.classifier.predict(normalized_path)
-        csv_writer.writerow([path, normalized_path, results[1][0].item(), "{:.4f}".format(results[0][0].item())])
+        try:
+          normalized_path = self.normalizer.process(path)
+          results = self.classifier.predict(normalized_path)
+          csv_writer.writerow([path, normalized_path, results[1][0].item(), "{:.4f}".format(results[0][0].item())])
+        except BaseException as e:
+          print(f'Failed to process {path}: {e}')
