@@ -14,6 +14,8 @@ parser.add_argument('-e', '--extensions', default='tif,tiff,jp2,jpg,jpf,jpx,png'
                     help='List of comma separated file extensions to filter by when operating on a directory. Default: tif,tiff,jp2,jpg,jpf,jpx,png'),
 parser.add_argument('-l', '--file-list', action="store_true",
                     help='If provided, then the src_path will be treated as a text file containing a list of newline separated paths to normalize.'),
+parser.add_argument('-r', '--restart', action="store_true",
+                    help='If provided, then the progress log will be discarded and processing will start from the beginning'),
 
 
 args = parser.parse_args()
@@ -44,5 +46,5 @@ elif args.src_path.is_dir():
 else:
   paths = [args.src_path]
 
-service = ClassifierWorkflowService(config, Path(args.report_path))
+service = ClassifierWorkflowService(config, Path(args.report_path), args.restart)
 service.process(paths)
