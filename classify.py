@@ -35,7 +35,7 @@ if args.file_list:
     paths = []
     for line in f.read().splitlines():
       path = Path(line)
-      if path.is_dir:
+      if path.is_dir():
         add_expanded_dir(path, paths)
       else:
         paths.append(path)
