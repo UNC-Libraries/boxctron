@@ -16,7 +16,7 @@ def config(tmp_path):
   conf.output_base_path.mkdir(parents=True)
   conf.max_dimension = 256
   conf.min_dimension = 224
-  conf.predict_rounding_threshold = 0.7
+  conf.predict_rounding_threshold = 0.75
   conf.model_width = 256
   conf.resnet_depth = 18
   # Model was trained using 256 max dimensions, resnet18, over 20 epochs
