@@ -24,11 +24,23 @@ print(f'For types: {extensions}')
 
 config = ClassifierConfig(path=args.config)
 
+def add_expanded_dir(dir_path, paths):
+  for p in Path(dir_path).glob("**/*"):
+    if p.suffix in extensions:
+      paths.append(p)
+  return paths
+
 if args.file_list:
   with open(args.src_path) as f:
-    paths = list(Path(line) for line in f.read().splitlines())
+    paths = []
+    for line in f.read().splitlines():
+      path = Path(line)
+      if path.is_dir():
+        add_expanded_dir(path, paths)
+      else:
+        paths.append(path)
 elif args.src_path.is_dir():
-  paths = list(p for p in Path(args.src_path).glob("**/*") if p.suffix in extensions)
+  paths = add_expanded_dir(args.src_path, [])
 else:
   paths = [args.src_path]
 

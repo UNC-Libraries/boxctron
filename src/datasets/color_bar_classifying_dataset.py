@@ -10,6 +10,9 @@ class ColorBarClassifyingDataset(ColorBarDataset):
   def load_labels(self, path_to_labels):
     count_by_label = [0, 0]
     for index, image_path in enumerate(self.image_paths):
+      # Skip over blank paths
+      if not image_path:
+        continue
       image_labels = path_to_labels[str(image_path)]
       has_cb = 0
       for label in image_labels:

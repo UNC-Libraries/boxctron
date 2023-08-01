@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 import os
 import csv
+import math
 
 @pytest.fixture
 def config(tmp_path):
@@ -15,7 +16,7 @@ def config(tmp_path):
   conf.output_base_path.mkdir(parents=True)
   conf.max_dimension = 256
   conf.min_dimension = 224
-  conf.predict_rounding_threshold = 0.7
+  conf.predict_rounding_threshold = 0.75
   conf.model_width = 256
   conf.resnet_depth = 18
   # Model was trained using 256 max dimensions, resnet18, over 20 epochs
@@ -35,11 +36,22 @@ class TestClassifierWorkflowService:
     subject.process(img_paths)
 
     assert Path.exists(report_path)
-    
+
+    rows = self.load_csv_rows(report_path)
+    self.assert_row_matches(rows[1], img_paths[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
+    self.assert_row_matches(rows[2], img_paths[1], config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg', '1', 0.9409)
+    self.assert_row_matches(rows[3], img_paths[2], config.output_base_path / 'ncc/Cm912m_U58b9.jpg', '1', 0.9775)
+    self.assert_row_matches(rows[4], img_paths[3], config.output_base_path / 'ncc/fcpl_005.jpg', '0', 0.6976)
+    assert len(rows) == 5 # includes header row
+
+  def assert_row_matches(self, row, exp_original_path, exp_norm_path, exp_class, exp_conf):
+    assert row[0] == str(exp_original_path)
+    assert row[1] == str(exp_norm_path)
+    assert row[2] == exp_class
+    # allow confidence to be within 5% of expected value, since the number isn't totally consistent across environments
+    assert math.isclose(float(row[3]), exp_conf, rel_tol=0.05)
+
+  def load_csv_rows(self, report_path):
     with open(report_path, 'r') as file:
-        reader = csv.reader(file)
-        rows = list(reader)
-    assert rows[1] == [str(img_paths[0]), str(config.output_base_path / 'gilmer/00276_op0204_0001.jpg'), '1', '0.8863']
-    assert rows[2] == [str(img_paths[1]), str(config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg'), '1', '0.9409']
-    assert rows[3] == [str(img_paths[2]), str(config.output_base_path / 'ncc/Cm912m_U58b9.jpg'), '1', '0.9775']
-    assert rows[4] == [str(img_paths[3]), str(config.output_base_path / 'ncc/fcpl_005.jpg'), '0', '0.6976']
+      reader = csv.reader(file)
+      return list(reader)
