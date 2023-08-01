@@ -45,20 +45,6 @@ class TestClassifierWorkflowService:
     self.assert_row_matches(rows[4], img_paths[3], config.output_base_path / 'ncc/fcpl_005.jpg', '0', 0.6976)
     assert len(rows) == 5 # includes header row
 
-  def assert_row_matches(self, row, exp_original_path, exp_norm_path, exp_class, exp_conf):
-    assert row[0] == str(exp_original_path)
-    assert row[1] == str(exp_norm_path)
-    assert row[2] == exp_class
-    # allow confidence to be within 5% of expected value, since the number isn't totally consistent across environments
-    assert math.isclose(float(row[3]), exp_conf, rel_tol=0.05)
-    
-    rows = self.load_csv_rows(report_path)
-    assert rows[1] == [str(img_paths[0]), str(config.output_base_path / 'gilmer/00276_op0204_0001.jpg'), '1', '0.8863']
-    assert rows[2] == [str(img_paths[1]), str(config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg'), '1', '0.9409']
-    assert rows[3] == [str(img_paths[2]), str(config.output_base_path / 'ncc/Cm912m_U58b9.jpg'), '1', '0.9775']
-    assert rows[4] == [str(img_paths[3]), str(config.output_base_path / 'ncc/fcpl_005.jpg'), '0', '0.6976']
-    assert len(rows) == 5 # includes header row
-
   def test_with_resume(self, config, tmp_path):
     torch.manual_seed(42) 
     report_path = tmp_path / 'report.csv'
@@ -69,8 +55,8 @@ class TestClassifierWorkflowService:
     subject.process(img_paths)
 
     rows = self.load_csv_rows(report_path)
-    assert rows[1] == [str(img_paths[0]), str(config.output_base_path / 'gilmer/00276_op0204_0001.jpg'), '1', '0.8863']
-    assert rows[2] == [str(img_paths[1]), str(config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg'), '1', '0.9409']
+    self.assert_row_matches(rows[1], img_paths[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
+    self.assert_row_matches(rows[2], img_paths[1], config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg', '1', 0.9409)
     assert len(rows) == 3 # includes header row
 
     progress_list = self.load_progress_list(tmp_path)
@@ -87,10 +73,10 @@ class TestClassifierWorkflowService:
     subject2.process(img_paths2)
 
     rows = self.load_csv_rows(report_path)
-    assert rows[1] == [str(img_paths2[0]), str(config.output_base_path / 'gilmer/00276_op0204_0001.jpg'), '1', '0.8863']
-    assert rows[2] == [str(img_paths2[1]), str(config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg'), '1', '0.9409']
-    assert rows[3] == [str(img_paths2[2]), str(config.output_base_path / 'ncc/Cm912m_U58b9.jpg'), '1', '0.9775']
-    assert rows[4] == [str(img_paths2[3]), str(config.output_base_path / 'ncc/fcpl_005.jpg'), '0', '0.6976']
+    self.assert_row_matches(rows[1], img_paths2[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
+    self.assert_row_matches(rows[2], img_paths2[1], config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg', '1', 0.9409)
+    self.assert_row_matches(rows[3], img_paths2[2], config.output_base_path / 'ncc/Cm912m_U58b9.jpg', '1', 0.9775)
+    self.assert_row_matches(rows[4], img_paths2[3], config.output_base_path / 'ncc/fcpl_005.jpg', '0', 0.6976)
     assert len(rows) == 5 # includes header row
 
     progress_list = self.load_progress_list(tmp_path)
@@ -114,13 +100,20 @@ class TestClassifierWorkflowService:
     rows = self.load_csv_rows(report_path)
     # Duplicate entry should be present, since we told it to restart the progress tracking
     assert len(rows) == 3 # includes header row
-    assert rows[1] == [str(img_paths[0]), str(config.output_base_path / 'gilmer/00276_op0204_0001.jpg'), '1', '0.8863']
-    assert rows[2] == [str(img_paths[0]), str(config.output_base_path / 'gilmer/00276_op0204_0001.jpg'), '1', '0.8863']
+    self.assert_row_matches(rows[1], img_paths[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
+    self.assert_row_matches(rows[2], img_paths[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
 
     # Progress log should only have the one entry since it got reset
     progress_list = self.load_progress_list(tmp_path)
     assert progress_list[0] == str(img_paths[0])
     assert len(progress_list) == 1
+
+  def assert_row_matches(self, row, exp_original_path, exp_norm_path, exp_class, exp_conf):
+    assert row[0] == str(exp_original_path)
+    assert row[1] == str(exp_norm_path)
+    assert row[2] == exp_class
+    # allow confidence to be within 5% of expected value, since the number isn't totally consistent across environments
+    assert math.isclose(float(row[3]), exp_conf, rel_tol=0.05)
 
   def load_csv_rows(self, report_path):
     with open(report_path, 'r') as file:
