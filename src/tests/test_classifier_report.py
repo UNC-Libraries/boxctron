@@ -6,7 +6,7 @@ from src.utils.classifier_report import DataParser, ReportGenerator
 class TestDataParser:
         
     def test_simple_csv(self):
-        parser = DataParser("fixtures/test_report.csv")
+        parser = DataParser("fixtures/sample_report.csv")
         data = parser.get_data()
         # CSV has 5 items
         assert len(data) == 50
@@ -31,7 +31,7 @@ class TestDataParser:
     def test_normalize_url(self):
         http_url = "https://example.com/shared"
         substring = '/normalized_images/'
-        parser = DataParser("fixtures/test_report.csv", http_url, substring)
+        parser = DataParser("fixtures/sample_report.csv", http_url, substring)
         data = parser.get_data()
         # check both items' normalized path
         item_1 = data[0]
@@ -40,7 +40,7 @@ class TestDataParser:
         assert item_2['normalized_path'] == "https://example.com/shared/normalized_images/gilmer/00276_op0204_0001.jpg"
     
     def test_create_stats(self):
-        parser = DataParser("fixtures/test_report.csv")
+        parser = DataParser("fixtures/sample_report.csv")
         stats = parser.get_stats()
         
         assert type(stats) == list
@@ -67,7 +67,7 @@ class TestReportGenerator:
     
     # check the report is saved in the correct path
     def test_report_path(self, tmp_path):
-        parser = DataParser("fixtures/test_report.csv")
+        parser = DataParser("fixtures/sample_report.csv")
         data = parser.get_data()
         generator = ReportGenerator()
         generator.create_html_page(data)
