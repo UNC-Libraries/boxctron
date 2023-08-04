@@ -44,7 +44,6 @@ data = parser.get_data()
 stats = False
 if args.agg_data:
     stats = parser.get_stats()
-print(stats)
 generator.create_html_page(data, stats)
 generator.save_file(args.output_path)
 
