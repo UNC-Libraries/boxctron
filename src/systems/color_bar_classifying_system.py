@@ -43,7 +43,9 @@ class ColorBarClassifyingSystem(pl.LightningModule):
   # which is the class of having a color bar or not
   def get_model(self, starting_size):
     model = nn.Sequential(
-      nn.Linear(starting_size, self.config.model_width),
+      nn.Linear(starting_size, 256),
+      nn.ReLU(inplace=True),
+      nn.Linear(256, self.config.model_width),
       nn.ReLU(inplace=True),
       nn.Linear(self.config.model_width, 1),
     ).to(self.device)
