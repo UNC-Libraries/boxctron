@@ -1,6 +1,5 @@
 import os
 import pytest
-import shutil
 from src.utils.classifier_report import DataParser, ReportGenerator
 
 class TestDataParser:

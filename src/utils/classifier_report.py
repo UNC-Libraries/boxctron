@@ -44,13 +44,13 @@ class DataParser:
             if stats['has_CB'] == 'True':
                 stats['avg_conf_CB'] = stats['avg_conf_CB'] / (stats['count_CB'])
                 stats['percent_CB'] = stats['count_CB'] / stats['count']
-    
+    # returns item-level data
     def get_data(self):
         self.parse_csv(self.csv)
         if self.url:
             self.normalize_to_url(self.url, self.substring)
         return self.data
-    
+    # returns aggregate data
     def get_stats(self):
         if not self.data:
             self.parse_csv(self.csv)
