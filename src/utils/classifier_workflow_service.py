@@ -18,8 +18,9 @@ class ClassifierWorkflowService:
     self.classifier = ImageClassifier(config)
     self.progress_tracker = ProgressTracker(config.progress_log_path)
     if restart:
-      print(f'Restarting progress tracking')
+      print(f'Restarting progress tracking and reporting')
       self.progress_tracker.reset_log()
+      self.report_path.unlink()
 
   def process(self, paths):
     total = len(paths)

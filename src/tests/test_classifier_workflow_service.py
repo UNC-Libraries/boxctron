@@ -94,19 +94,23 @@ class TestClassifierWorkflowService:
     subject = ClassifierWorkflowService(config, report_path)
     subject.process(img_paths)
 
+    img_paths2 = [Path.cwd() / 'fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg',
+        Path.cwd() / 'fixtures/normalized_images/gilmer/00276_op0204_0001.jpg']
+
     subject2 = ClassifierWorkflowService(config, report_path, restart = True)
-    subject2.process(img_paths)
+    subject2.process(img_paths2)
 
     rows = self.load_csv_rows(report_path)
-    # Duplicate entry should be present, since we told it to restart the progress tracking
+    # After the restart, both entries should be present and the item that was previous first should be second to prove we didn't simply add to the CSV
     assert len(rows) == 3 # includes header row
-    self.assert_row_matches(rows[1], img_paths[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
-    self.assert_row_matches(rows[2], img_paths[0], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
+    self.assert_row_matches(rows[1], img_paths2[0], config.output_base_path / 'ncc/G3902-F3-1981_U5_front.jpg', '1', 0.9409)
+    self.assert_row_matches(rows[2], img_paths2[1], config.output_base_path / 'gilmer/00276_op0204_0001.jpg', '1', 0.8863)
 
-    # Progress log should only have the one entry since it got reset
+    # Progress log should have 2 items
     progress_list = self.load_progress_list(tmp_path)
-    assert progress_list[0] == str(img_paths[0])
-    assert len(progress_list) == 1
+    assert progress_list[0] == str(img_paths2[0])
+    assert progress_list[1] == str(img_paths2[1])
+    assert len(progress_list) == 2
 
   def assert_row_matches(self, row, exp_original_path, exp_norm_path, exp_class, exp_conf):
     assert row[0] == str(exp_original_path)
