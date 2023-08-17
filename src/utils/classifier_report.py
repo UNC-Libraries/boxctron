@@ -112,7 +112,7 @@ class ReportGenerator:
                             searchPanes: {{viewTotal: true, layout: 'columns-4', initCollapsed: true}},
                             dom: 'Plfrtip',
                             columns: [
-                                {{ title: 'Image', data: 'normalized_path', render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; />'}},
+                                {{ title: 'Image', data: 'normalized_path', render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
                                 {{ title: 'Path', data: 'original_path'}},
                                 {{ title: 'Class', data: 'predicted_class'}},
                                 {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}}
