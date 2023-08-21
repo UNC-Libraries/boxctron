@@ -16,14 +16,14 @@ class TestDataParser:
         item_2 = data[1]
         # check item 1
         assert type(item_1) == dict
-        assert item_1['original_path'] == "root_dir/subdir_3/gilmer/00276_op0226a_0001.jpg"
-        assert item_1['normalized_path'] == "fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg"
+        assert item_1['original_path'] == "/root_dir/subdir_3/gilmer/00276_op0226a_0001.jpg"
+        assert item_1['normalized_path'] == "/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg"
         assert item_1['predicted_class'] == "0"
         assert item_1['predicted_conf'] == "0.7218731549949939"
         #check item 2
         assert type(item_2) == dict
-        assert item_2['original_path'] == "root_dir/subdir_1/sfc/00276_op0204_0001.jpg"
-        assert item_2['normalized_path'] == "fixtures/normalized_images/gilmer/00276_op0204_0001.jpg"
+        assert item_2['original_path'] == "/root_dir/subdir_1/sfc/00276_op0204_0001.jpg"
+        assert item_2['normalized_path'] == "/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg"
         assert item_2['predicted_class'] == "0"
         assert item_2['predicted_conf'] == "0.6113711347206616"
     
@@ -48,14 +48,14 @@ class TestDataParser:
         item_1 = stats[1]
         item_2 = stats[-2]
         
-        assert item_1['path'] == 'root_dir/subdir_3'
+        assert item_1['path'] == '/root_dir/subdir_3'
         assert item_1['count'] == 13
         assert item_1['has_CB'] == 'True'
         assert item_1['count_CB'] == 6
         assert item_1['percent_CB'] == 0.46153846153846156
         assert item_1['avg_conf_CB'] == 0.4779377137821212
         
-        assert item_2['path'] == 'root_dir/subdir_3/sfc'
+        assert item_2['path'] == '/root_dir/subdir_3/sfc'
         assert item_2['count'] == 2
         assert item_2['has_CB'] == 'False'
         assert item_2['count_CB'] == 0

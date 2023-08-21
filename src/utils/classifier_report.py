@@ -6,6 +6,7 @@ import re
 import webbrowser
 
 class DataParser:
+    
     def __init__(self, csv_path, url=False, substring=False):
         self.csv = csv_path
         self.url = url
@@ -24,41 +25,41 @@ class DataParser:
 
     # if mode==1 generator constructs statistics about dir tree in files
     def create_stats(self):
-        self.stats = defaultdict(lambda: {'path': '', 'count': 0, 'count_CB': 0, 'percent_CB': 0, 'has_CB': 'False', 'avg_conf_CB': 0}) 
+        self.stats = defaultdict(lambda: {'path': '', 'count': 0, 'count_CB': 0, 'percent_CB': 0, 'has_CB': "False", 'avg_conf_CB': 0}) 
         for item in self.data:
             folders = item['original_path'].lstrip('/').split('/')
             current_path = ''
             for folder in folders[:-1]:
-                if current_path:
-                    current_path += f'/{folder}'
-                else:
-                    current_path = folder
+                current_path += f'/{folder}'
                 self.stats[current_path]['path'] = current_path
                 self.stats[current_path]['count'] +=1
                 if item['predicted_class'] == '1':
                     self.stats[current_path]['count_CB'] += 1
-                    self.stats[current_path]['has_CB'] = 'True'
+                    self.stats[current_path]['has_CB'] = "True"
                     self.stats[current_path]['avg_conf_CB'] += float(item['predicted_conf'])
         
-        for k, stats, in self.stats.items():
-            if stats['has_CB'] == 'True':
+        for stats in self.stats.values():
+            if stats['has_CB'] == "True":
                 stats['avg_conf_CB'] = stats['avg_conf_CB'] / (stats['count_CB'])
                 stats['percent_CB'] = stats['count_CB'] / stats['count']
+    
     # returns item-level data
     def get_data(self):
         self.parse_csv(self.csv)
         if self.url:
             self.normalize_to_url(self.url, self.substring)
         return self.data
+   
     # returns aggregate data
     def get_stats(self):
         if not self.data:
-            self.parse_csv(self.csv)
+            self.get_data()
         self.create_stats()
         return list(self.stats.values())
 
 
 class ReportGenerator:
+    
     # creates the HTML page
     def create_html_page(self, data, stats=False):
         a = Airium()
@@ -123,6 +124,7 @@ class ReportGenerator:
                         a(f'''
                             $("#statsTable").DataTable({{
                                 data: {stats},
+                                pageLength: 50,
                                 renderer: "jquery",
                                 deferRender: true,
                                 responsive: true,
@@ -137,7 +139,7 @@ class ReportGenerator:
                                     {{ title: 'Directory', data: 'path', class: 'hasPointer', 
                                         createdCell: (td, cData, rData, row, col) => {{
                                             $(td).css({{"cursor":"pointer", "text-decoration": "underline"}});
-                                            $(td).click( ()=> {{ filterTable(cData); }});       
+                                            $(td).click( ()=> {{ toggle_button(); filterTable(cData); }});       
                                             }}
                                     }},
                                     {{ title: 'Total Images', data: 'count'}},
@@ -148,26 +150,42 @@ class ReportGenerator:
                                         ],
                                 }});
                         ''')
+                        # function to toggle button text
                         a('''
-                        $("#toggleButton").click( () => {
-                            $("#imagesTable-container").toggle();
-                            $("#statsTable-container").toggle();
-                            $("#imagesTable").DataTable().search('').draw();
-                            if ($("#toggleButton").text() === "See Images Report") {
-                                $("#toggleButton").text("See Aggregate Report");
-                            } else {
-                                $("#toggleButton").text("See Images Report");
-                            }
-                        });
-                    ''')
-                        a('''
-                        filterTable = (filter_str) => {{
-                            $("#statsTable-container").toggle();
-                            $("#imagesTable").DataTable().search(filter_str).draw();
-                            $("#imagesTable-container").toggle();}}
+                            let toggle_button = () => {{
+                                if ($("#toggleButton").text() === "See Images Report") {{
+                                    $("#toggleButton").text("See Aggregate Report");
+                                    }} else {{
+                                        $("#toggleButton").text("See Images Report");
+                                    }}
+                            }};
                           ''')
+                        # function to toggle between tables
+                        a('''    
+                            let toggle_tables = () => {{
+                                $("#imagesTable-container").toggle();
+                                $("#statsTable").DataTable().draw('page');
+                                $("#statsTable-container").toggle();
+                                $("#imagesTable").DataTable().search('').draw();
+                                toggle_button();
+                                }};
+                           ''')
+                        # function to filter item-level table
+                        a('''
+                            let filterTable = (filter_str) => {{
+                                $("#statsTable-container").toggle();
+                                $("#imagesTable").DataTable().search(filter_str).draw();
+                                $("#imagesTable-container").toggle();
+                                }}
+                            ''')
+                         # sets click event for toggle button
+                        a('''     
+                            $("#toggleButton").click( () => toggle_tables());
+                            ''')
+                    # closing tags for $(document).ready    
                     a("});")
         self.html = str(a)
+    
     # save file in predefined reports folder or into the defined directory
     def save_file(self, output_path):
         # if save path was not specified, creates reports directory and reports.html file within it
@@ -183,6 +201,7 @@ class ReportGenerator:
             f.write(self.html)            
         print(f"HTML file saved at {output_path}")
         self.url = f"file://{os.path.abspath(output_path)}"
+    
     # launches the HTML page in default browser
     def launch_page(self):
         webbrowser.open_new_tab(self.url)
