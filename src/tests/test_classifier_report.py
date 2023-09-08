@@ -66,10 +66,11 @@ class TestReportGenerator:
     
     # check the report is saved in the correct path
     def test_report_path(self, tmp_path):
-        parser = DataParser("fixtures/sample_report.csv")
+        csv_path = "fixtures/sample_report.csv"
+        parser = DataParser(csv_path)
         data = parser.get_data()
         generator = ReportGenerator()
-        generator.create_html_page(data)
+        generator.create_html_page(data, csv_path)
         # create temp directory
         temp = tmp_path / "temp"
         temp.mkdir()
