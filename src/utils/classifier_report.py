@@ -71,10 +71,9 @@ class ReportGenerator:
                 a.meta(name="viewport", content="width=device-width, initial-scale=1.0")
                 a.title(_t="Model report")
                 a.title(_t='Classifier Results')
-                # CSS CDNs
-                a.link(rel="stylesheet", href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css")
-                a.link(rel="stylesheet", href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css")
-                a.link(rel="stylesheet", href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css")
+                # CSS CDN
+                a.link(rel="stylesheet", href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.css")
+
             with a.body():
                 # csv button
                 with a.div(style="display:flex;"):
@@ -99,12 +98,8 @@ class ReportGenerator:
                 # JQuery Core and UI CDNs
                 a.script(src="https://code.jquery.com/jquery-3.7.0.js", integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=", crossorigin="anonymous")
                 a.script(src="https://code.jquery.com/ui/1.13.2/jquery-ui.js", integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=", crossorigin="anonymous")
-                # Datables CDNs
-                a.script(src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js")
-                a.script(src="https://cdn.datatables.net/searchpanes/2.1.2/js/dataTables.searchPanes.min.js")
-                a.script(src="https://cdn.datatables.net/select/1.6.2/js/dataTables.select.min.js")
-                a.script(src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js")
-                a.script(src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js")
+                # Datables CDN
+                a.script(src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.js")
                 
                 # Javascript creating the table the 'Path' column accounts for the csv 
                 with a.script():
@@ -123,11 +118,11 @@ class ReportGenerator:
                             searchPanes: {{viewTotal: true, layout: 'columns-4', initCollapsed: true}},
                             dom: 'Plfrtip',
                             columns: [
-                                {{ title: 'Image', data: 'normalized_path', render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
+                                {{ title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
                                 {{ title: 'Path', data: 'original_path'}},
                                 {{ title: 'Class', data: 'predicted_class'}},
                                 {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}}
-                            ],
+                            ]
                         }});
                     ''')
                     if stats:
@@ -160,6 +155,17 @@ class ReportGenerator:
                                         ],
                                 }});
                         ''')
+                        # enable keystrokes for navigation
+                        a('''
+                           $("body").on('keydown', (e) => {
+                               if (e.which == 37) {
+                                $("table:visible").DataTable().page("previous").draw('page');
+                               }
+                               else if (e.which == 39) {
+                                $("table:visible").DataTable().page("next").draw("page");
+                               }
+                           });
+                           ''')
                         # function to toggle button text
                         a('''
                             let toggle_button = () => {{
