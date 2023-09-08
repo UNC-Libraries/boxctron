@@ -14,6 +14,7 @@ class ColorBarDataset(torch.utils.data.Dataset):
     self.labels = []
     self.split = split
     self.image_paths = image_paths
+    self.image_dimensions = [] 
     # Load the annotations from label studio
     annotations = from_json(self.config.annotations_path)
     # build a map of image file paths to label info
