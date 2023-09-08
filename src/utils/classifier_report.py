@@ -61,7 +61,7 @@ class DataParser:
 class ReportGenerator:
     
     # creates the HTML page
-    def create_html_page(self, data, stats=False):
+    def create_html_page(self, data, csv_path, stats=False):
         a = Airium()
         a('<!DOCTYPE html>')
         with a.html(lang='en'):
@@ -75,17 +75,27 @@ class ReportGenerator:
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css")
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css")
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css")
-            # creates table elements
             with a.body():
+                # csv button
+                with a.div(style="display:flex;"):
+                    with a.a(href=csv_path, download="original_data"):
+                        a.button(id='csvButton', _t="Original CSV", style="height:30px;padding:5px 8px; background-color:#2ea44f; color:#fff; margin-right:10px; border-style:none; border-radius:4px; cursor:pointer;")
+                    if stats:
+                    # toggle button
+                        a.button(id='toggleButton', _t="See Images Report", style="height:30px;padding:5px 8x; background-color: #678aaa; color: #fff; border-style: none; border-radius:4px; cursor:pointer;")
                 if stats:
-                    a.button(id='toggleButton', _t="See Images Report")
+                    # toggle button
+                    # a.button(id='toggleButton', _t="See Images Report")
+                    # stats/agg table
                     with a.div(id='statsTable-container', klass='table-container'):
                         a.table(id='statsTable', klass='display')
                         with a.thead(): pass
+                # item-level table
                 with a.div(id='imagesTable-container', klass='table-container', style='display:none;' if stats else ''):
                     a.table(id='imagesTable', klass='display')
                     with a.thead(): pass
-                       
+                
+
                 # JQuery Core and UI CDNs
                 a.script(src="https://code.jquery.com/jquery-3.7.0.js", integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=", crossorigin="anonymous")
                 a.script(src="https://code.jquery.com/ui/1.13.2/jquery-ui.js", integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=", crossorigin="anonymous")
