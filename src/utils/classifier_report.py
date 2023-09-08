@@ -73,15 +73,40 @@ class ReportGenerator:
                 a.title(_t='Classifier Results')
                 # CSS CDN
                 a.link(rel="stylesheet", href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.css")
-
+                # styling for spinner
+                with a.style():
+                    a('''
+                        #spinner-container {
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;  
+                        }
+                        #loading-spinner {
+                            width: 100px;
+                            height: 100px;
+                            border: 4px #ddd solid;
+                            border-top: 4px #2e93e6 solid;
+                            border-radius: 50%;
+                            animation: sp-anime 0.8s infinite linear;
+                        }
+                        @keyframes sp-anime {
+                            100% { 
+                                transform: rotate(360deg); 
+                            }
+                        }
+                      ''')
             with a.body():
                 # csv button
-                with a.div(style="display:flex;"):
+                with a.div(id="buttons", style="display:flex; visibility:hidden"):
                     with a.a(href=csv_path, download="original_data"):
                         a.button(id='csvButton', _t="Original CSV", style="height:30px;padding:5px 8px; background-color:#2ea44f; color:#fff; margin-right:10px; border-style:none; border-radius:4px; cursor:pointer;")
                     if stats:
                     # toggle button
                         a.button(id='toggleButton', _t="See Images Report", style="height:30px;padding:5px 8x; background-color: #678aaa; color: #fff; border-style: none; border-radius:4px; cursor:pointer;")
+                # loading spinner
+                with a.div(id="spinner-container"):
+                    a.span(id="loading-spinner")
                 if stats:
                     # toggle button
                     # a.button(id='toggleButton', _t="See Images Report")
@@ -104,6 +129,11 @@ class ReportGenerator:
                 # Javascript creating the table the 'Path' column accounts for the csv 
                 with a.script():
                     a("$(document).ready( () => {")
+                    # toggles off spinner and displays buttons
+                    a('''
+                       $("#spinner-container").toggle();
+                       $("#buttons").css("visibility", "visible");
+                      ''')
                     a(f'''
                         $("#imagesTable").DataTable({{
                             data: {data},
@@ -115,7 +145,7 @@ class ReportGenerator:
                             paging: true,
                             scrollY: true,
                             searching: true,
-                            searchPanes: {{viewTotal: true, layout: 'columns-4', initCollapsed: true}},
+                            searchPanes: {{viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true}},
                             dom: 'Plfrtip',
                             columns: [
                                 {{ title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
@@ -180,9 +210,9 @@ class ReportGenerator:
                         a('''    
                             let toggle_tables = () => {{
                                 $("#imagesTable-container").toggle();
-                                $("#statsTable").DataTable().draw('page');
+                                $("#imagesTable").DataTable().search('').draw().columns.adjust();
                                 $("#statsTable-container").toggle();
-                                $("#imagesTable").DataTable().search('').draw();
+                                $("#statsTable").DataTable().draw('page').columns.adjust();
                                 toggle_button();
                                 }};
                            ''')
@@ -190,13 +220,21 @@ class ReportGenerator:
                         a('''
                             let filterTable = (filter_str) => {{
                                 $("#statsTable-container").toggle();
-                                $("#imagesTable").DataTable().search(filter_str).draw();
                                 $("#imagesTable-container").toggle();
+                                $("#imagesTable").DataTable().search(filter_str).draw().columns.adjust();
                                 }}
                             ''')
                          # sets click event for toggle button
                         a('''     
-                            $("#toggleButton").click( () => toggle_tables());
+                            $("#toggleButton").click( () => {
+                                $("#spinner-container").toggle();
+                                $("#buttons").toggle();
+                                toggle_tables();
+                                $(document).ready(() => {
+                                  $("#buttons").toggle();
+                                  $("#spinner-container").toggle()
+                                });
+                            });
                             ''')
                     # closing tags for $(document).ready    
                     a("});")

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model report</title>
+    <title>Classifier Results</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.css" />
+    <style>
+      
+                        #spinner-container {
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;  
+                        }
+                        #loading-spinner {
+                            width: 100px;
+                            height: 100px;
+                            border: 4px #ddd solid;
+                            border-top: 4px #2e93e6 solid;
+                            border-radius: 50%;
+                            animation: sp-anime 0.8s infinite linear;
+                        }
+                        @keyframes sp-anime {
+                            100% { 
+                                transform: rotate(360deg); 
+                            }
+                        }
+                      
+    </style>
+  </head>
+  <body>
+    <div id="buttons" style="display:flex; visibility:hidden">
+      <a href="/Users/rolando/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/sodev/ml-repo-preingest-processing-development/fixtures/sample_report.csv" download="original_data">
+        <button id="csvButton" style="height:30px;padding:5px 8px; background-color:#2ea44f; color:#fff; margin-right:10px; border-style:none; border-radius:4px; cursor:pointer;">Original CSV</button>
+      </a>
+      <button id="toggleButton" style="height:30px;padding:5px 8x; background-color: #678aaa; color: #fff; border-style: none; border-radius:4px; cursor:pointer;">See Images Report</button>
+    </div>
+    <div id="spinner-container">
+      <span id="loading-spinner"></span>
+    </div>
+    <div id="statsTable-container" class="table-container">
+      <table id="statsTable" class="display"></table>
+      <thead>
+      </thead>
+    </div>
+    <div id="imagesTable-container" class="table-container" style="display:none;">
+      <table id="imagesTable" class="display"></table>
+      <thead>
+      </thead>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js" integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.js"></script>
+    <script>
+      $(document).ready( () => {
+      
+                       $("#spinner-container").toggle();
+                       $("#buttons").css("visibility", "visible");
+                      
+      
+                        $("#imagesTable").DataTable({
+                            data: [{'original_path': '/root_dir/subdir_3/gilmer/00276_op0226a_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg', 'predicted_class': '0', 'predicted_conf': '0.7218731549949939'}, {'original_path': '/root_dir/subdir_1/sfc/00276_op0204_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg', 'predicted_class': '0', 'predicted_conf': '0.6113711347206616'}, {'original_path': '/root_dir/subdir_3/ncc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.978669178010987'}, {'original_path': '/root_dir/subdir_2/gilmer/Cm912_1945u1_sheet1.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg', 'predicted_class': '0', 'predicted_conf': '0.5016135532275968'}, {'original_path': '/root_dir/subdir_3/ncc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.5032482418602595'}, {'original_path': '/root_dir/subdir_1/rbc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.888160845357571'}, {'original_path': '/root_dir/subdir_2/sfc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '1', 'predicted_conf': '0.16906395540580743'}, {'original_path': '/root_dir/subdir_3/rbc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.4082445029790699'}, {'original_path': '/root_dir/subdir_2/ncc/Cm912_1945u1_sheet1.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg', 'predicted_class': '1', 'predicted_conf': '0.638109714412122'}, {'original_path': '/root_dir/subdir_2/sfc/00276_op0226a_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.10847899994579902'}, {'original_path': '/root_dir/subdir_1/sfc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '1', 'predicted_conf': '0.36909247217260766'}, {'original_path': '/root_dir/subdir_2/rbc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.8732434623463378'}, {'original_path': '/root_dir/subdir_2/sfc/00276_op0204_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg', 'predicted_class': '0', 'predicted_conf': '0.4725909230251828'}, {'original_path': '/root_dir/subdir_2/sfc/Cm912m_U58b9.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912m_U58b9.jpg', 'predicted_class': '1', 'predicted_conf': '0.23260119417037772'}, {'original_path': '/root_dir/subdir_1/gilmer/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '1', 'predicted_conf': '0.9613008455273824'}, {'original_path': '/root_dir/subdir_1/rbc/00276_op0204_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.09603263276505025'}, {'original_path': '/root_dir/subdir_3/sfc/Cm912_1945u1_sheet1.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg', 'predicted_class': '0', 'predicted_conf': '0.7582615697359735'}, {'original_path': '/root_dir/subdir_2/rbc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.14887791771625503'}, {'original_path': '/root_dir/subdir_3/rbc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.7935536161395991'}, {'original_path': '/root_dir/subdir_1/gilmer/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.7552189068769634'}, {'original_path': '/root_dir/subdir_3/rbc/00276_op0226a_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.08536501771822602'}, {'original_path': '/root_dir/subdir_1/ncc/00276_op0204_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.008668737842873586'}, {'original_path': '/root_dir/subdir_3/sfc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.6440900711335599'}, {'original_path': '/root_dir/subdir_1/rbc/00276_op0204_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.9087956364736322'}, {'original_path': '/root_dir/subdir_2/sfc/Cm912m_U58b9.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912m_U58b9.jpg', 'predicted_class': '0', 'predicted_conf': '0.8907517703550183'}, {'original_path': '/root_dir/subdir_3/ncc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.2930238553724396'}, {'original_path': '/root_dir/subdir_1/sfc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.8340771975829725'}, {'original_path': '/root_dir/subdir_1/gilmer/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.5723984817955208'}, {'original_path': '/root_dir/subdir_3/rbc/00276_op0226a_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.6805610319476242'}, {'original_path': '/root_dir/subdir_1/sfc/Cm912m_U58b9.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912m_U58b9.jpg', 'predicted_class': '0', 'predicted_conf': '0.5678781510474984'}, {'original_path': '/root_dir/subdir_2/ncc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.42595319657666786'}, {'original_path': '/root_dir/subdir_1/sfc/Cm912m_U58b9.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912m_U58b9.jpg', 'predicted_class': '1', 'predicted_conf': '0.20111554725749348'}, {'original_path': '/root_dir/subdir_1/sfc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.9531788317221764'}, {'original_path': '/root_dir/subdir_1/ncc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.3213508399730386'}, {'original_path': '/root_dir/subdir_2/sfc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.9768590337886356'}, {'original_path': '/root_dir/subdir_2/sfc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.09380546801173151'}, {'original_path': '/root_dir/subdir_2/gilmer/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.5357794136047453'}, {'original_path': '/root_dir/subdir_1/gilmer/Cm912m_U58b9.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912m_U58b9.jpg', 'predicted_class': '1', 'predicted_conf': '0.18321907298942752'}, {'original_path': '/root_dir/subdir_1/sfc/Cm912_1945u1_sheet1.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg', 'predicted_class': '1', 'predicted_conf': '0.8262309059849997'}, {'original_path': '/root_dir/subdir_1/sfc/00276_op0204_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0204_0001.jpg', 'predicted_class': '1', 'predicted_conf': '0.5142498706487753'}, {'original_path': '/root_dir/subdir_1/gilmer/00276_op0226a_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg', 'predicted_class': '0', 'predicted_conf': '0.3042010088018836'}, {'original_path': '/root_dir/subdir_2/sfc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.811499323202226'}, {'original_path': '/root_dir/subdir_3/gilmer/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.5734034642519011'}, {'original_path': '/root_dir/subdir_2/ncc/00276_op0226a_0001.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg', 'predicted_class': '0', 'predicted_conf': '0.48728513765890735'}, {'original_path': '/root_dir/subdir_1/ncc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.5264787632391452'}, {'original_path': '/root_dir/subdir_3/ncc/00276_op0217_0001_e.jpg', 'normalized_path': '/fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg', 'predicted_class': '0', 'predicted_conf': '0.5477057413778096'}, {'original_path': '/root_dir/subdir_1/ncc/Cm912_1945u1_sheet1.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg', 'predicted_class': '1', 'predicted_conf': '0.089683903700023'}, {'original_path': '/root_dir/subdir_1/ncc/Cm912_1945u1_sheet1.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/Cm912_1945u1_sheet1.jpg', 'predicted_class': '0', 'predicted_conf': '0.1931215796016139'}, {'original_path': '/root_dir/subdir_3/ncc/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '1', 'predicted_conf': '0.42176269666438015'}, {'original_path': '/root_dir/subdir_1/gilmer/G3902-F3-1981_U5_front.jpg', 'normalized_path': '/fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg', 'predicted_class': '0', 'predicted_conf': '0.4517185305785991'}],
+                            renderer: "jquery",
+                            deferRender: true,
+                            responsive: true,
+                            fixedHeader:{ header: true, footer: true },
+                            ordering: true,
+                            paging: true,
+                            scrollY: true,
+                            searching: true,
+                            searchPanes: {viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true},
+                            dom: 'Plfrtip',
+                            columns: [
+                                { title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'},
+                                { title: 'Path', data: 'original_path'},
+                                { title: 'Class', data: 'predicted_class'},
+                                { title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}
+                            ]
+                        });
+                    
+      
+                            $("#statsTable").DataTable({
+                                data: [{'path': '/root_dir', 'count': 50, 'count_CB': 24, 'percent_CB': 0.48, 'has_CB': 'True', 'avg_conf_CB': 0.44616820551776476}, {'path': '/root_dir/subdir_3', 'count': 13, 'count_CB': 6, 'percent_CB': 0.46153846153846156, 'has_CB': 'True', 'avg_conf_CB': 0.4779377137821212}, {'path': '/root_dir/subdir_3/gilmer', 'count': 2, 'count_CB': 0, 'percent_CB': 0, 'has_CB': 'False', 'avg_conf_CB': 0}, {'path': '/root_dir/subdir_1', 'count': 22, 'count_CB': 11, 'percent_CB': 0.5, 'has_CB': 'True', 'avg_conf_CB': 0.4466916847490209}, {'path': '/root_dir/subdir_1/sfc', 'count': 8, 'count_CB': 4, 'percent_CB': 0.5, 'has_CB': 'True', 'avg_conf_CB': 0.477672199015969}, {'path': '/root_dir/subdir_3/ncc', 'count': 5, 'count_CB': 3, 'percent_CB': 0.6, 'has_CB': 'True', 'avg_conf_CB': 0.564485243349269}, {'path': '/root_dir/subdir_2', 'count': 15, 'count_CB': 7, 'percent_CB': 0.4666666666666667, 'has_CB': 'True', 'avg_conf_CB': 0.41811458821348596}, {'path': '/root_dir/subdir_2/gilmer', 'count': 2, 'count_CB': 0, 'percent_CB': 0, 'has_CB': 'False', 'avg_conf_CB': 0}, {'path': '/root_dir/subdir_1/rbc', 'count': 3, 'count_CB': 2, 'percent_CB': 0.6666666666666666, 'has_CB': 'True', 'avg_conf_CB': 0.5024141346193411}, {'path': '/root_dir/subdir_2/sfc', 'count': 8, 'count_CB': 5, 'percent_CB': 0.625, 'has_CB': 'True', 'avg_conf_CB': 0.2830897881471883}, {'path': '/root_dir/subdir_3/rbc', 'count': 4, 'count_CB': 3, 'percent_CB': 0.75, 'has_CB': 'True', 'avg_conf_CB': 0.3913901842149734}, {'path': '/root_dir/subdir_2/ncc', 'count': 3, 'count_CB': 1, 'percent_CB': 0.3333333333333333, 'has_CB': 'True', 'avg_conf_CB': 0.638109714412122}, {'path': '/root_dir/subdir_2/rbc', 'count': 2, 'count_CB': 1, 'percent_CB': 0.5, 'has_CB': 'True', 'avg_conf_CB': 0.8732434623463378}, {'path': '/root_dir/subdir_1/gilmer', 'count': 6, 'count_CB': 3, 'percent_CB': 0.5, 'has_CB': 'True', 'avg_conf_CB': 0.6332462751312579}, {'path': '/root_dir/subdir_3/sfc', 'count': 2, 'count_CB': 0, 'percent_CB': 0, 'has_CB': 'False', 'avg_conf_CB': 0}, {'path': '/root_dir/subdir_1/ncc', 'count': 5, 'count_CB': 2, 'percent_CB': 0.4, 'has_CB': 'True', 'avg_conf_CB': 0.04917632077144829}],
+                                pageLength: 50,
+                                renderer: "jquery",
+                                deferRender: true,
+                                responsive: true,
+                                fixedHeader:{ header: true, footer: true },
+                                ordering: true,
+                                paging: true,
+                                scrollY: true,
+                                searching: true,
+                                searchPanes: {viewTotal: true, columns: [2], layout: 'columns-4', initCollapsed: true},
+                                dom: 'Plfrtip',
+                                columns: [
+                                    { title: 'Directory', data: 'path', class: 'hasPointer', 
+                                        createdCell: (td, cData, rData, row, col) => {
+                                            $(td).css({"cursor":"pointer", "text-decoration": "underline"});
+                                            $(td).click( ()=> { toggle_button(); filterTable(cData); });       
+                                            }
+                                    },
+                                    { title: 'Total Images', data: 'count'},
+                                    { title: 'Contains CB', data: 'has_CB'},
+                                    { title: 'Total CB', data: 'count_CB'},
+                                    { title: 'Percent CB', data: 'percent_CB', render: $.fn.dataTable.render.number(',', '.', 3, '')},
+                                    { title: 'Average CB Conf', data: 'avg_conf_CB', render: $.fn.dataTable.render.number(',', '.', 3, '')},
+                                        ],
+                                });
+                        
+      
+                           $("body").on('keydown', (e) => {
+                               if (e.which == 37) {
+                                $("table:visible").DataTable().page("previous").draw('page');
+                               }
+                               else if (e.which == 39) {
+                                $("table:visible").DataTable().page("next").draw("page");
+                               }
+                           });
+                           
+      
+                            let toggle_button = () => {{
+                                if ($("#toggleButton").text() === "See Images Report") {{
+                                    $("#toggleButton").text("See Aggregate Report");
+                                    }} else {{
+                                        $("#toggleButton").text("See Images Report");
+                                    }}
+                            }};
+                          
+          
+                            let toggle_tables = () => {{
+                                $("#imagesTable-container").toggle();
+                                $("#imagesTable").DataTable().search('').draw().columns.adjust();
+                                $("#statsTable-container").toggle();
+                                $("#statsTable").DataTable().draw('page').columns.adjust();
+                                toggle_button();
+                                }};
+                           
+      
+                            let filterTable = (filter_str) => {{
+                                $("#statsTable-container").toggle();
+                                $("#imagesTable-container").toggle();
+                                $("#imagesTable").DataTable().search(filter_str).draw().columns.adjust();
+                                }}
+                            
+           
+                            $("#toggleButton").click( () => {
+                                $("#spinner-container").toggle();
+                                $("#buttons").toggle();
+                                toggle_tables();
+                                $(document).ready(() => {
+                                  $("#buttons").toggle();
+                                  $("#spinner-container").toggle()
+                                });
+                            });
+                            
+      });
+    </script>
+  </body>
+</html>
