@@ -1,7 +1,7 @@
 import logging
 from numpy import zeros, uint8
 from src.datasets.color_bar_dataset import ColorBarDataset
-from src.utils.resnet_utils import load_for_resnet
+from src.utils.resnet_utils import load_for_resnet, load_mask_for_resnet
 from pathlib import Path
 from PIL import Image, ImageDraw
 
@@ -11,10 +11,10 @@ class ColorBarSegmentationDataset(ColorBarDataset):
     super().__init__(config, image_paths, split)
   
   # Must be overriden from parent class
-  # def __getitem__(self, index):
-    # image_data = load_for_resnet(self.image_paths[index], self.config.max_dimension)
-    # label_mask = None
-    #return image_data, label_mask
+  def __getitem__(self, index):
+    image_data = load_for_resnet(self.image_paths[index], self.config.max_dimension)
+    label_mask = load_mask_for_resnet(self.labels[index], self.config.max_dimension)
+    return image_data, label_mask
 
   # Loads annotation data into self.labels in the same order they paths are listed in image_paths
   def load_labels(self, path_to_labels):
@@ -22,7 +22,7 @@ class ColorBarSegmentationDataset(ColorBarDataset):
    for index, image_path in enumerate(self.image_paths):
      if not image_path:
        continue
-      # Add image dimensions
+    # Add image dimensions
      w, h = None, None
      with Image.open(image_path) as img:
       w, h = img.width, img.height
@@ -37,6 +37,6 @@ class ColorBarSegmentationDataset(ColorBarDataset):
         y = int(label['y']/100.0 * label['original_height'])
         x2 = x + int(width/100.0 * label['original_width']) # bar width
         y2 = y + int(height/100.0 * label['original_height']) # bar height
-        mask[y:y2, x:x2] = 1
+        mask[y:y2, x:x2] = 1 # Mark all pixels in the masked region with ones
      self.labels.append(mask) 
          
