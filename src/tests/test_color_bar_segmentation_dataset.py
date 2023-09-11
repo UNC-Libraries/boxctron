@@ -1,11 +1,9 @@
-import logging
 from pathlib import Path
 import random
 from src.datasets.color_bar_segmentation_dataset import ColorBarSegmentationDataset
 from src.utils.training_config import TrainingConfig
 from src.utils.json_utils import to_json
 from torch import count_nonzero, all
-import logging
 
 class TestColorBarSegmentationDataset:
   def test_with_simple_data(self, tmp_path):

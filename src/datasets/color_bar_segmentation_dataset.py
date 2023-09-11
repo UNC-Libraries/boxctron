@@ -1,4 +1,3 @@
-import logging
 from numpy import zeros, uint8
 from torch import max
 from src.datasets.color_bar_dataset import ColorBarDataset
