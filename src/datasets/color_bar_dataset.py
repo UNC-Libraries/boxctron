@@ -1,8 +1,6 @@
-import os
 import numpy as np
 import torch
 from pathlib import Path
-from PIL import Image
 from src.utils.resnet_utils import load_for_resnet
 from src.utils.json_utils import from_json
 

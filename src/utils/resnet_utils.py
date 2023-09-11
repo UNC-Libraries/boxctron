@@ -1,5 +1,6 @@
 from PIL import Image
-from torchvision import transforms, from_numpy
+from torch import from_numpy
+from torchvision import transforms
 import torchvision.models as models
 import torch.nn as nn
 
@@ -14,12 +15,12 @@ def load_for_resnet(path, max_dimension):
   ])
   return preprocess(input_image)
 
-# Transform mask np.Array based on the requirements of resnet and convert to a tensor
+# Transform binary mask nd.Array for image segmentation, convert to a tensor
 def load_mask_for_resnet(mask_array, max_dimension):
   mask = from_numpy(mask_array).float()
   preprocess = transforms.Compose([
       # Crops masks with identical transformations to images
-      transforms.CenterCrop(max_dimension),
+      transforms.CenterCrop(max_dimension)
   ])
   return preprocess(mask)
 
