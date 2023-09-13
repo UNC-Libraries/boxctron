@@ -1,5 +1,4 @@
 from src.datasets.color_bar_dataset import ColorBarDataset
-from pathlib import Path
 
 # Dataset with single class for labeling images as having a color bar or not
 class ColorBarClassifyingDataset(ColorBarDataset):

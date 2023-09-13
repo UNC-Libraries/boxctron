@@ -1,8 +1,6 @@
-import os
 import numpy as np
 import torch
 from pathlib import Path
-from PIL import Image
 from src.utils.resnet_utils import load_for_resnet
 from src.utils.json_utils import from_json
 
@@ -14,6 +12,7 @@ class ColorBarDataset(torch.utils.data.Dataset):
     self.labels = []
     self.split = split
     self.image_paths = image_paths
+    self.image_dimensions = [] 
     # Load the annotations from label studio
     annotations = from_json(self.config.annotations_path)
     # build a map of image file paths to label info

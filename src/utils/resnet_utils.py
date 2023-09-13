@@ -1,4 +1,5 @@
 from PIL import Image
+from torch import from_numpy
 from torchvision import transforms
 import torchvision.models as models
 import torch.nn as nn
@@ -13,6 +14,15 @@ def load_for_resnet(path, max_dimension):
       transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
   ])
   return preprocess(input_image)
+
+# Transform binary mask nd.Array for image segmentation, convert to a tensor
+def load_mask_for_resnet(mask_array, max_dimension):
+  mask = from_numpy(mask_array).float()
+  preprocess = transforms.Compose([
+      # Crops masks with identical transformations to images
+      transforms.CenterCrop(max_dimension)
+  ])
+  return preprocess(mask)
 
 def resnet_foundation_model(device, resnet_depth = 50):
   foundation = None
