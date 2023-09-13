@@ -39,5 +39,5 @@ class TestColorBarSegmentationDataset:
     assert count_nonzero(mask2[0]) == 0 
     assert count_nonzero(mask2[100]) == 1318
     assert count_nonzero(mask2[1332]) == 0
-    dataset.visualize_tensor(item2) # Demonstrates the tensor visualization method
-    dataset.visualize_tensor(mask2)
+    # dataset.visualize_tensor(item2) # Demonstrates the tensor visualization method
+    # dataset.visualize_tensor(mask2)
