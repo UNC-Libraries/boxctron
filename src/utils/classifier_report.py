@@ -10,20 +10,24 @@ class DataParser:
     def __init__(self, csv_path, url=False, substring=False):
         self.csv = csv_path
         self.url = url
-        self.data = False
         self.substring = substring
+        self.data = False
     
     # parses csv and creates a list of dictionaries  
     def parse_csv(self, csv_path):
         with open(csv_path, 'r', encoding='utf-8-sig') as f:
              self.data = list(DictReader(f))
     
-    # converts imge paths to urls based on argumet
-    def normalize_to_url(self, http_url, substring):
+    # normalize given path with given url and substring
+    def normalize_to_url(self, original_path, url, substring):
+        return re.sub(rf'.+(?={substring})', url, original_path)
+    
+    # convert image paths with url and substring provided at initialization
+    def normalize_item_paths(self):
         for item in self.data:
-            item["normalized_path"] = re.sub(rf'.+(?={substring})', http_url, item["normalized_path"])
-
-    # if mode==1 generator constructs statistics about dir tree in files
+            item["normalized_path"] = self.normalize_to_url(item['normalized_path'], self.url, self.substring)
+            
+    # if mode = 1 generator constructs statistics about dir tree in files
     def create_stats(self):
         self.stats = defaultdict(lambda: {'path': '', 'count': 0, 'count_CB': 0, 'percent_CB': 0, 'has_CB': "False", 'avg_conf_CB': 0}) 
         for item in self.data:
@@ -47,7 +51,7 @@ class DataParser:
     def get_data(self):
         self.parse_csv(self.csv)
         if self.url:
-            self.normalize_to_url(self.url, self.substring)
+            self.normalize_item_paths()
         return self.data
    
     # returns aggregate data
@@ -119,7 +123,6 @@ class ReportGenerator:
                     a.table(id='imagesTable', klass='display')
                     with a.thead(): pass
                 
-
                 # JQuery Core and UI CDNs
                 a.script(src="https://code.jquery.com/jquery-3.7.0.js", integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=", crossorigin="anonymous")
                 a.script(src="https://code.jquery.com/ui/1.13.2/jquery-ui.js", integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=", crossorigin="anonymous")
@@ -155,6 +158,7 @@ class ReportGenerator:
                             ]
                         }});
                     ''')
+                    # if agg stats requested, creates stats table
                     if stats:
                         a(f'''
                             $("#statsTable").DataTable({{
@@ -174,7 +178,7 @@ class ReportGenerator:
                                     {{ title: 'Directory', data: 'path', class: 'hasPointer', 
                                         createdCell: (td, cData, rData, row, col) => {{
                                             $(td).css({{"cursor":"pointer", "text-decoration": "underline"}});
-                                            $(td).click( ()=> {{ toggle_button(); filterTable(cData); }});       
+                                            $(td).click( ()=> {{ toggle_button_txt(); filterTable(cData); }});       
                                             }}
                                     }},
                                     {{ title: 'Total Images', data: 'count'}},
@@ -196,9 +200,20 @@ class ReportGenerator:
                                }
                            });
                            ''')
+                        # toggles buttons and spinner with timeout
+                        a('''
+                          async function toggle_buttons_spinner(secs) {
+                              setTimeout(() => {
+                                $(document).ready( async () => {
+                                  await $("#spinner-container").toggle();
+                                  await $("#buttons").toggle();
+                                });
+                              }, secs);
+                            }
+                          ''')
                         # function to toggle button text
                         a('''
-                            let toggle_button = () => {{
+                            let toggle_button_txt = () => {{
                                 if ($("#toggleButton").text() === "See Images Report") {{
                                     $("#toggleButton").text("See Aggregate Report");
                                     }} else {{
@@ -208,32 +223,31 @@ class ReportGenerator:
                           ''')
                         # function to toggle between tables
                         a('''    
-                            let toggle_tables = () => {{
-                                $("#imagesTable-container").toggle();
+                            let toggle_tables = async () => {
+                                await $("#imagesTable-container").toggle();
+                                await $("#statsTable-container").toggle();
                                 $("#imagesTable").DataTable().search('').draw().columns.adjust();
-                                $("#statsTable-container").toggle();
                                 $("#statsTable").DataTable().draw('page').columns.adjust();
-                                toggle_button();
-                                }};
+                                toggle_button_txt();
+                                };
                            ''')
                         # function to filter item-level table
                         a('''
-                            let filterTable = (filter_str) => {{
-                                $("#statsTable-container").toggle();
-                                $("#imagesTable-container").toggle();
+                            let filterTable = async (filter_str) => {
+                                await toggle_buttons_spinner("0");
+                                await $("#statsTable-container").toggle();
+                                await $("#imagesTable-container").toggle();
                                 $("#imagesTable").DataTable().search(filter_str).draw().columns.adjust();
-                                }}
+                                toggle_button_txt();
+                                toggle_buttons_spinner("200");
+                                }
                             ''')
-                         # sets click event for toggle button
+                        # sets click event for toggle button
                         a('''     
-                            $("#toggleButton").click( () => {
-                                $("#spinner-container").toggle();
-                                $("#buttons").toggle();
-                                toggle_tables();
-                                $(document).ready(() => {
-                                  $("#buttons").toggle();
-                                  $("#spinner-container").toggle()
-                                });
+                           $("#toggleButton").click( async () => {
+                                toggle_buttons_spinner("0");
+                                await toggle_tables()
+                                await toggle_buttons_spinner("200");
                             });
                             ''')
                     # closing tags for $(document).ready    

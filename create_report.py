@@ -51,7 +51,7 @@ if args.agg_data:
 
 # create url for csv download
 if args.normalized_url:
-    csv_url = args.normalized_url+str(args.file_path)
+    csv_url = parser.normalize_to_url(str(args.file_path), args.normalized_url, '/reports/')
 else:
     csv_url = os.path.abspath(args.file_path)
 

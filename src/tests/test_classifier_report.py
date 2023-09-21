@@ -27,16 +27,22 @@ class TestDataParser:
         assert item_2['predicted_class'] == "0"
         assert item_2['predicted_conf'] == "0.6113711347206616"
     
-    def test_normalize_url(self):
-        http_url = "https://example.com/shared"
+    def test_normalize_item_paths(self):
+        url = "https://example.com/shared"
         substring = '/normalized_images/'
-        parser = DataParser("fixtures/sample_report.csv", http_url, substring)
+        parser = DataParser("fixtures/sample_report.csv", url, substring)
         data = parser.get_data()
         # check both items' normalized path
         item_1 = data[0]
         item_2 = data[1]
         assert item_1['normalized_path'] == "https://example.com/shared/normalized_images/gilmer/00276_op0226a_0001.jpg"
         assert item_2['normalized_path'] == "https://example.com/shared/normalized_images/gilmer/00276_op0204_0001.jpg"
+    
+    def test_normalize_to_url(self):
+        csv_path = "data/color_bars/shared/reports/sample_report.csv"
+        url = "https://example.com/shared"
+        parser = DataParser(csv_path, url)
+        assert parser.normalize_to_url(csv_path, url, "/reports/") == "https://example.com/shared/reports/sample_report.csv"
     
     def test_create_stats(self):
         parser = DataParser("fixtures/sample_report.csv")
