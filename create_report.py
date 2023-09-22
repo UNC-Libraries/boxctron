@@ -26,26 +26,39 @@ parser.add_argument('-O', '--open', action='store_true', required=False,
 parser.add_argument('-A', '--agg-data', action='store_true', required=False,
                     help="Parser will provide additional table with aggregate data.")
 
+# command line arguments
 args = parser.parse_args()
-
 print(f'CSV path: {args.file_path}')
 print(f'Outpath path: {args.output_path}')
 print(f'Normalized HTTP URL: {args.normalized_url}')
 
+# check that input path is a csv file
 assert os.path.splitext(args.file_path)[-1].lower() == '.csv'
 
+# if provided, checks the output path is a html file
 if args.output_path:
     assert os.path.splitext(args.output_path)[-1].lower() == '.html'
 
+# initializes data parser and report generator objects
 parser = DataParser(args.file_path, args.normalized_url, args.substring)
 generator = ReportGenerator()
 
+# parser creates item-level data and aggregate data if indicated
 data = parser.get_data()
 stats = False
 if args.agg_data:
     stats = parser.get_stats()
-generator.create_html_page(data, stats)
+
+# create url for csv download
+if args.normalized_url:
+    csv_url = parser.normalize_to_url(str(args.file_path), args.normalized_url, '/reports/')
+else:
+    csv_url = os.path.abspath(args.file_path)
+
+# generate html page and saves it    
+generator.create_html_page(data, csv_url, stats)
 generator.save_file(args.output_path)
 
+# if indicated, opens html report in browser
 if args.open:
     generator.launch_page()
