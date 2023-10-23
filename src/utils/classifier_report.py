@@ -10,20 +10,24 @@ class DataParser:
     def __init__(self, csv_path, url=False, substring=False):
         self.csv = csv_path
         self.url = url
-        self.data = False
         self.substring = substring
+        self.data = False
     
     # parses csv and creates a list of dictionaries  
     def parse_csv(self, csv_path):
         with open(csv_path, 'r', encoding='utf-8-sig') as f:
              self.data = list(DictReader(f))
     
-    # converts imge paths to urls based on argumet
-    def normalize_to_url(self, http_url, substring):
+    # normalize given path with given url and substring
+    def normalize_to_url(self, original_path, url, substring):
+        return re.sub(rf'.+(?={substring})', url, original_path)
+    
+    # convert image paths with url and substring provided at initialization
+    def normalize_item_paths(self):
         for item in self.data:
-            item["normalized_path"] = re.sub(rf'.+(?={substring})', http_url, item["normalized_path"])
-
-    # if mode==1 generator constructs statistics about dir tree in files
+            item["normalized_path"] = self.normalize_to_url(item['normalized_path'], self.url, self.substring)
+            
+    # if mode = 1 generator constructs statistics about dir tree in files
     def create_stats(self):
         self.stats = defaultdict(lambda: {'path': '', 'count': 0, 'count_CB': 0, 'percent_CB': 0, 'has_CB': "False", 'avg_conf_CB': 0}) 
         for item in self.data:
@@ -47,7 +51,7 @@ class DataParser:
     def get_data(self):
         self.parse_csv(self.csv)
         if self.url:
-            self.normalize_to_url(self.url, self.substring)
+            self.normalize_item_paths()
         return self.data
    
     # returns aggregate data
@@ -61,7 +65,7 @@ class DataParser:
 class ReportGenerator:
     
     # creates the HTML page
-    def create_html_page(self, data, stats=False):
+    def create_html_page(self, data, csv_path, stats=False):
         a = Airium()
         a('<!DOCTYPE html>')
         with a.html(lang='en'):
@@ -71,34 +75,68 @@ class ReportGenerator:
                 a.meta(name="viewport", content="width=device-width, initial-scale=1.0")
                 a.title(_t="Model report")
                 a.title(_t='Classifier Results')
-                # CSS CDNs
-                a.link(rel="stylesheet", href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css")
-                a.link(rel="stylesheet", href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css")
-                a.link(rel="stylesheet", href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css")
-            # creates table elements
+                # CSS CDN
+                a.link(rel="stylesheet", href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.css")
+                # styling for spinner
+                with a.style():
+                    a('''
+                        #spinner-container {
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;  
+                        }
+                        #loading-spinner {
+                            width: 100px;
+                            height: 100px;
+                            border: 4px #ddd solid;
+                            border-top: 4px #2e93e6 solid;
+                            border-radius: 50%;
+                            animation: sp-anime 0.8s infinite linear;
+                        }
+                        @keyframes sp-anime {
+                            100% { 
+                                transform: rotate(360deg); 
+                            }
+                        }
+                      ''')
             with a.body():
+                # csv button
+                with a.div(id="buttons", style="display:flex; visibility:hidden"):
+                    with a.a(href=csv_path, download="original_data"):
+                        a.button(id='csvButton', _t="Original CSV", style="height:30px;padding:5px 8px; background-color:#2ea44f; color:#fff; margin-right:10px; border-style:none; border-radius:4px; cursor:pointer;")
+                    if stats:
+                    # toggle button
+                        a.button(id='toggleButton', _t="See Images Report", style="height:30px;padding:5px 8x; background-color: #678aaa; color: #fff; border-style: none; border-radius:4px; cursor:pointer;")
+                # loading spinner
+                with a.div(id="spinner-container"):
+                    a.span(id="loading-spinner")
                 if stats:
-                    a.button(id='toggleButton', _t="See Images Report")
+                    # toggle button
+                    # a.button(id='toggleButton', _t="See Images Report")
+                    # stats/agg table
                     with a.div(id='statsTable-container', klass='table-container'):
                         a.table(id='statsTable', klass='display')
                         with a.thead(): pass
+                # item-level table
                 with a.div(id='imagesTable-container', klass='table-container', style='display:none;' if stats else ''):
                     a.table(id='imagesTable', klass='display')
                     with a.thead(): pass
-                       
+                
                 # JQuery Core and UI CDNs
                 a.script(src="https://code.jquery.com/jquery-3.7.0.js", integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=", crossorigin="anonymous")
                 a.script(src="https://code.jquery.com/ui/1.13.2/jquery-ui.js", integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=", crossorigin="anonymous")
-                # Datables CDNs
-                a.script(src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js")
-                a.script(src="https://cdn.datatables.net/searchpanes/2.1.2/js/dataTables.searchPanes.min.js")
-                a.script(src="https://cdn.datatables.net/select/1.6.2/js/dataTables.select.min.js")
-                a.script(src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js")
-                a.script(src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js")
+                # Datables CDN
+                a.script(src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.js")
                 
                 # Javascript creating the table the 'Path' column accounts for the csv 
                 with a.script():
                     a("$(document).ready( () => {")
+                    # toggles off spinner and displays buttons
+                    a('''
+                       $("#spinner-container").toggle();
+                       $("#buttons").css("visibility", "visible");
+                      ''')
                     a(f'''
                         $("#imagesTable").DataTable({{
                             data: {data},
@@ -110,16 +148,17 @@ class ReportGenerator:
                             paging: true,
                             scrollY: true,
                             searching: true,
-                            searchPanes: {{viewTotal: true, layout: 'columns-4', initCollapsed: true}},
+                            searchPanes: {{viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true}},
                             dom: 'Plfrtip',
                             columns: [
-                                {{ title: 'Image', data: 'normalized_path', render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
+                                {{ title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
                                 {{ title: 'Path', data: 'original_path'}},
                                 {{ title: 'Class', data: 'predicted_class'}},
                                 {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}}
-                            ],
+                            ]
                         }});
                     ''')
+                    # if agg stats requested, creates stats table
                     if stats:
                         a(f'''
                             $("#statsTable").DataTable({{
@@ -139,7 +178,7 @@ class ReportGenerator:
                                     {{ title: 'Directory', data: 'path', class: 'hasPointer', 
                                         createdCell: (td, cData, rData, row, col) => {{
                                             $(td).css({{"cursor":"pointer", "text-decoration": "underline"}});
-                                            $(td).click( ()=> {{ toggle_button(); filterTable(cData); }});       
+                                            $(td).click( ()=> {{ toggle_button_txt(); filterTable(cData); }});       
                                             }}
                                     }},
                                     {{ title: 'Total Images', data: 'count'}},
@@ -150,9 +189,31 @@ class ReportGenerator:
                                         ],
                                 }});
                         ''')
+                        # enable keystrokes for navigation
+                        a('''
+                           $("body").on('keydown', (e) => {
+                               if (e.which == 37) {
+                                $("table:visible").DataTable().page("previous").draw('page');
+                               }
+                               else if (e.which == 39) {
+                                $("table:visible").DataTable().page("next").draw("page");
+                               }
+                           });
+                           ''')
+                        # toggles buttons and spinner with timeout
+                        a('''
+                          async function toggle_buttons_spinner(secs) {
+                              setTimeout(() => {
+                                $(document).ready( async () => {
+                                  await $("#spinner-container").toggle();
+                                  await $("#buttons").toggle();
+                                });
+                              }, secs);
+                            }
+                          ''')
                         # function to toggle button text
                         a('''
-                            let toggle_button = () => {{
+                            let toggle_button_txt = () => {{
                                 if ($("#toggleButton").text() === "See Images Report") {{
                                     $("#toggleButton").text("See Aggregate Report");
                                     }} else {{
@@ -162,25 +223,32 @@ class ReportGenerator:
                           ''')
                         # function to toggle between tables
                         a('''    
-                            let toggle_tables = () => {{
-                                $("#imagesTable-container").toggle();
-                                $("#statsTable").DataTable().draw('page');
-                                $("#statsTable-container").toggle();
-                                $("#imagesTable").DataTable().search('').draw();
-                                toggle_button();
-                                }};
+                            let toggle_tables = async () => {
+                                await $("#imagesTable-container").toggle();
+                                await $("#statsTable-container").toggle();
+                                $("#imagesTable").DataTable().search('').draw().columns.adjust();
+                                $("#statsTable").DataTable().draw('page').columns.adjust();
+                                toggle_button_txt();
+                                };
                            ''')
                         # function to filter item-level table
                         a('''
-                            let filterTable = (filter_str) => {{
-                                $("#statsTable-container").toggle();
-                                $("#imagesTable").DataTable().search(filter_str).draw();
-                                $("#imagesTable-container").toggle();
-                                }}
+                            let filterTable = async (filter_str) => {
+                                await toggle_buttons_spinner("0");
+                                await $("#statsTable-container").toggle();
+                                await $("#imagesTable-container").toggle();
+                                $("#imagesTable").DataTable().search(filter_str).draw().columns.adjust();
+                                toggle_button_txt();
+                                toggle_buttons_spinner("200");
+                                }
                             ''')
-                         # sets click event for toggle button
+                        # sets click event for toggle button
                         a('''     
-                            $("#toggleButton").click( () => toggle_tables());
+                           $("#toggleButton").click( async () => {
+                                toggle_buttons_spinner("0");
+                                await toggle_tables()
+                                await toggle_buttons_spinner("200");
+                            });
                             ''')
                     # closing tags for $(document).ready    
                     a("});")
