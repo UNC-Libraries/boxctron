@@ -13,7 +13,7 @@ class TestColorBarSegmentationDataset:
       'image_list_path' : 'fixtures/mini_file_list.txt',
       'annotations_path' : 'fixtures/mini_annotations.json',
       'base_image_path' : str(Path("fixtures/normalized_images").resolve()),
-      'dataset_class' : 'src.datasets.color_bar_classifying_dataset.ColorBarClassifyingDataset',
+      'dataset_class' : 'src.datasets.color_bar_segmentation_dataset.ColorBarSegmentationDataset',
       'max_dimension' : 1333
     }, config_path)
     config = TrainingConfig(config_path)
@@ -39,5 +39,5 @@ class TestColorBarSegmentationDataset:
     assert count_nonzero(mask2[0]) == 0 
     assert count_nonzero(mask2[100]) == 1318
     assert count_nonzero(mask2[1332]) == 0
-    # dataset.visualize_tensor(item2) # Demonstrates the tensor visualization method
-    # dataset.visualize_tensor(mask2)
+    dataset.visualize_tensor(item2, mask2)
+    dataset.visualize_tensor(item0, mask0)
