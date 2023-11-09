@@ -17,7 +17,7 @@ def load_for_resnet(path, max_dimension):
 
 # Transform binary mask nd.Array for image segmentation, convert to a tensor
 def load_mask_for_resnet(mask_array, max_dimension):
-  mask = from_numpy(mask_array).float()
+  mask = from_numpy(mask_array)
   preprocess = transforms.Compose([
       # Crops masks with identical transformations to images
       transforms.CenterCrop(max_dimension)
