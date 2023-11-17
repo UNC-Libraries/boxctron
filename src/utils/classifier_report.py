@@ -17,6 +17,7 @@ class DataParser:
     def parse_csv(self, csv_path):
         with open(csv_path, 'r', encoding='utf-8-sig') as f:
              self.data = list(DictReader(f))
+        self.add_review_columns()
     
     # normalize given path with given url and substring
     def normalize_to_url(self, original_path, url, substring):
@@ -26,6 +27,11 @@ class DataParser:
     def normalize_item_paths(self):
         for item in self.data:
             item["normalized_path"] = self.normalize_to_url(item['normalized_path'], self.url, self.substring)
+    
+    def add_review_columns(self):
+        for item in self.data:
+            item['correct'] = 0
+            item['incorrect'] = 0
             
     # if mode = 1 generator constructs statistics about dir tree in files
     def create_stats(self):
@@ -103,11 +109,12 @@ class ReportGenerator:
             with a.body():
                 # csv button
                 with a.div(id="buttons", style="display:flex; visibility:hidden"):
+                    a.button(id="export_review", _t="Export Reviewed", style="heigh:30px;padding:5px 8px; background-color:red; color:#fff; border-style:none; border-radius:5px; cursor:pointer; margin-right:10px;")
                     with a.a(href=csv_path, download="original_data"):
                         a.button(id='csvButton', _t="Original CSV", style="height:30px;padding:5px 8px; background-color:#2ea44f; color:#fff; margin-right:10px; border-style:none; border-radius:4px; cursor:pointer;")
                     if stats:
                     # toggle button
-                        a.button(id='toggleButton', _t="See Images Report", style="height:30px;padding:5px 8x; background-color: #678aaa; color: #fff; border-style: none; border-radius:4px; cursor:pointer;")
+                        a.button(id='toggleButton', _t="See Images Report", style="height:30px;padding:5px 8x; background-color:#678aaa; color: #fff; border-style:none; border-radius:4px; cursor:pointer;")
                 # loading spinner
                 with a.div(id="spinner-container"):
                     a.span(id="loading-spinner")
@@ -131,11 +138,17 @@ class ReportGenerator:
                 
                 # Javascript creating the table the 'Path' column accounts for the csv 
                 with a.script():
+                    
                     a("$(document).ready( () => {")
                     # toggles off spinner and displays buttons
                     a('''
                        $("#spinner-container").toggle();
                        $("#buttons").css("visibility", "visible");
+                      ''')
+                    a('''
+                      document.querySelectorAll('input').forEach(item => {
+                        item.checked = localStorage.getItem(`${item.id}`)
+                       })
                       ''')
                     a(f'''
                         $("#imagesTable").DataTable({{
@@ -154,7 +167,9 @@ class ReportGenerator:
                                 {{ title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
                                 {{ title: 'Path', data: 'original_path'}},
                                 {{ title: 'Class', data: 'predicted_class'}},
-                                {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}}
+                                {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
+                                {{ title: 'Correct', data: 'correct', render: (d,t,r,m) => `<input type="checkbox" class="correct" id="correct_${{m.row}}" name="correct_radio" value="correct_review">`}},
+                                {{ title: 'Incorrect', data: 'incorrect', render: (d,t,r,m) => `<input type="checkbox" class="incorrect" id="correct_${{m.row}}" name="incorrect_review" value="incorrect_review">`}}
                             ]
                         }});
                     ''')
@@ -231,6 +246,19 @@ class ReportGenerator:
                                 toggle_button_txt();
                                 };
                            ''')
+                        # saves input data to localstorage when checked
+                        a('''
+                          $('input').click(e => {
+                              console.log(e.target.checked);
+
+                              if (e.target.checked) {
+                                localStorage.setItem(`${e.target.id}`, 'true')
+                              } else {
+                                localStorage.setItem(`${e.target.id}`, 'false');
+                              }
+                              console.log(localStorage.getItem(`${e.target.id}`));
+                            })
+                          ''')
                         # function to filter item-level table
                         a('''
                             let filterTable = async (filter_str) => {
