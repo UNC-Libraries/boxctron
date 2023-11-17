@@ -268,8 +268,9 @@ class ReportGenerator:
                         # function to update review export button
                         a('''
                           let updateReviewButton = () => {
-                            $("#reviewButton").text(`Export ${JSON.parse(localStorage.getItem("reviewItems")).length} reviewed items`)
-                            if (localStorage.length == 0) {
+                            let len = JSON.parse(localStorage.getItem("reviewItems")).length
+                            $("#reviewButton").text(`Export ${len} reviewed items`)
+                            if (len == 0) {
                                     $("#reviewButton").prop("disabled",true);
                             } else {
                                 $("#reviewButton").prop("disabled",false);
@@ -281,9 +282,8 @@ class ReportGenerator:
                         a('''
                         if (localStorage.length == 0) {
                             localStorage.setItem("reviewItems", "[]");  
-                        } else {
-                            updateReviewButton();
-                        }
+                            }
+                        updateReviewButton();
                         ''')
                         # saves input data to localstorage when checked and updates review button
                         a('''
