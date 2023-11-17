@@ -105,16 +105,31 @@ class ReportGenerator:
                                 transform: rotate(360deg); 
                             }
                         }
+                        .button {
+                            height: 30px;
+                            padding: 5px 8px;
+                            border-style:none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            margin-right: 10px;
+                        }
+                        .button:disabled {
+                            background-color: #D3D3D3 !important;
+                            color: #71716F !important;
+                            cursor: default;
+                        }
                       ''')
             with a.body():
-                # csv button
                 with a.div(id="buttons", style="display:flex; visibility:hidden"):
-                    a.button(id="export_review", _t="Export Reviewed", style="heigh:30px;padding:5px 8px; background-color:red; color:#fff; border-style:none; border-radius:5px; cursor:pointer; margin-right:10px;")
+                    # button to export reviewed rows
+                    with a.a(href="#", id="reviewLink", download="reviewed_data"):
+                        a.button(id="reviewButton", _t="Export 0 reviewed items", disabled=True, klass="button", style="background-color:red; color:#fff;")
+                    # csv button
                     with a.a(href=csv_path, download="original_data"):
-                        a.button(id='csvButton', _t="Original CSV", style="height:30px;padding:5px 8px; background-color:#2ea44f; color:#fff; margin-right:10px; border-style:none; border-radius:4px; cursor:pointer;")
+                        a.button(id='csvButton', _t="Original CSV", klass="button", style="background-color:#2ea44f; color:#fff;")
                     if stats:
                     # toggle button
-                        a.button(id='toggleButton', _t="See Images Report", style="height:30px;padding:5px 8x; background-color:#678aaa; color: #fff; border-style:none; border-radius:4px; cursor:pointer;")
+                        a.button(id='toggleButton', _t="See Images Report", klass="button", style="background-color:#678aaa; color: #fff;")
                 # loading spinner
                 with a.div(id="spinner-container"):
                     a.span(id="loading-spinner")
@@ -145,11 +160,7 @@ class ReportGenerator:
                        $("#spinner-container").toggle();
                        $("#buttons").css("visibility", "visible");
                       ''')
-                    a('''
-                      document.querySelectorAll('input').forEach(item => {
-                        item.checked = localStorage.getItem(`${item.id}`)
-                       })
-                      ''')
+                    # creates image-level datatable
                     a(f'''
                         $("#imagesTable").DataTable({{
                             data: {data},
@@ -168,8 +179,8 @@ class ReportGenerator:
                                 {{ title: 'Path', data: 'original_path'}},
                                 {{ title: 'Class', data: 'predicted_class'}},
                                 {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
-                                {{ title: 'Correct', data: 'correct', render: (d,t,r,m) => `<input type="checkbox" class="correct" id="correct_${{m.row}}" name="correct_radio" value="correct_review">`}},
-                                {{ title: 'Incorrect', data: 'incorrect', render: (d,t,r,m) => `<input type="checkbox" class="incorrect" id="correct_${{m.row}}" name="incorrect_review" value="incorrect_review">`}}
+                                {{ title: 'Correct', data: 'correct', render: (d,t,r,m) => `<input type="checkbox" class="correct" id="correct_${{m.row}}" name="correct_radio" value='{{"id": "correct_${{m.row}}", "path": "${{r["original_path"]}}", "predicted_class": ${{r["predicted_class"]}}, "review": 1 }}' >`}},
+                                {{ title: 'Incorrect', data: 'incorrect', render: (d,t,r,m) => `<input type="checkbox" class="incorrect" id="incorrect_${{m.row}}" name="incorrect_review" value='{{"id": "incorrect_${{m.row}}", "path": "${{r["original_path"]}}", "predicted_class": ${{r["predicted_class"]}}, "review": 0 }}'>`}}
                             ]
                         }});
                     ''')
@@ -246,18 +257,64 @@ class ReportGenerator:
                                 toggle_button_txt();
                                 };
                            ''')
-                        # saves input data to localstorage when checked
+                        # loads checked items from local storage
+                        a('''
+                            let reviewedItems = JSON.parse(localStorage.getItem("reviewItems"))
+                            reviewedItems.forEach(e => {
+                                e = JSON.parse(e);
+                                $(`#${e['id']}`).prop("checked", true);
+                            })
+                        ''')
+                        # function to update review export button
+                        a('''
+                          let updateReviewButton = () => {
+                            $("#reviewButton").text(`Export ${JSON.parse(localStorage.getItem("reviewItems")).length} reviewed items`)
+                            if (localStorage.length == 0) {
+                                    $("#reviewButton").prop("disabled",true);
+                            } else {
+                                $("#reviewButton").prop("disabled",false);
+                            }
+                          }
+                          ''')
+                        
+                        # initialize localStorage object
+                        a('''
+                        if (localStorage.length == 0) {
+                            localStorage.setItem("reviewItems", "[]");  
+                        } else {
+                            updateReviewButton();
+                        }
+                        ''')
+                        # saves input data to localstorage when checked and updates review button
                         a('''
                           $('input').click(e => {
-                              console.log(e.target.checked);
-
+                            let reviewItems = JSON.parse(localStorage.getItem("reviewItems"));
                               if (e.target.checked) {
-                                localStorage.setItem(`${e.target.id}`, 'true')
+                                reviewItems.push(e.target.value);
                               } else {
-                                localStorage.setItem(`${e.target.id}`, 'false');
+                                reviewItems = $.grep(reviewItems, (x) => JSON.parse(x).id != e.target.id);
                               }
-                              console.log(localStorage.getItem(`${e.target.id}`));
+                            localStorage.setItem("reviewItems", JSON.stringify(reviewItems));
+                            updateReviewButton();
                             })
+                          ''')
+                        # exports reviewed items as CSV
+                        a('''
+                          $("#reviewButton").click( () => {
+                            let reviewData = JSON.parse(localStorage.get("reviewItems"));
+                            reviewData = reviewData.map(e => {
+                                e['corrected_class'] = Number(e['predicted_class'] == e['review'])
+                            })
+                            let csvContent = "data:text/csv;charset=utf-8,"
+                            csvContent += "path,predicted_class,corrected_class\\n"
+                            csvContent += reviewData.map(e => `${e['path'],e['predicted_class'],e['corrected_class']}`).join("\\n")
+                            
+                            let encodedUri = encodeURI(csvContent);
+                            $("#reviewLink").attr("href", encodedUri)
+                            $("#reviewLink").click();
+                            window.open(encodedUri);
+                            
+                          })
                           ''')
                         # function to filter item-level table
                         a('''
