@@ -311,7 +311,7 @@ class ReportGenerator:
                             
                             let encodedUri = encodeURI(csvContent);
                             $("#reviewLink").attr("href", encodedUri)
-                            $("#reviewLink").click();
+                            $("#reviewLink").trigger("click");
                             window.open(encodedUri);
                             
                           })
