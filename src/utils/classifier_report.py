@@ -303,16 +303,17 @@ class ReportGenerator:
                           $("#reviewButton").click( () => {
                             let reviewData = JSON.parse(localStorage.getItem("reviewItems"));
                             reviewData = reviewData.map(e => {
+                                e = JSON.parse(e);
                                 e['corrected_class'] = Number(e['predicted_class'] == e['review'])
+                                return e
                             })
                             let csvContent = "data:text/csv;charset=utf-8,"
                             csvContent += "path,predicted_class,corrected_class\\n"
-                            csvContent += reviewData.map(e => `${e['path'],e['predicted_class'],e['corrected_class']}`).join("\\n")
-                            
+                            csvContent += reviewData.map(e => `${e["path"]}, ${e["predicted_class"]}, ${e["corrected_class"]}`).join("\\n")
+                            console.log(csvContent);
                             let encodedUri = encodeURI(csvContent);
                             $("#reviewLink").attr("href", encodedUri)
                             $("#reviewLink").trigger("click");
-                            window.open(encodedUri);
                             
                           })
                           ''')
