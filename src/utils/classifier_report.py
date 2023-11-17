@@ -301,7 +301,7 @@ class ReportGenerator:
                         # exports reviewed items as CSV
                         a('''
                           $("#reviewButton").click( () => {
-                            let reviewData = JSON.parse(localStorage.get("reviewItems"));
+                            let reviewData = JSON.parse(localStorage.getItem("reviewItems"));
                             reviewData = reviewData.map(e => {
                                 e['corrected_class'] = Number(e['predicted_class'] == e['review'])
                             })
