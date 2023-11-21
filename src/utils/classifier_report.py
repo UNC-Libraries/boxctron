@@ -259,7 +259,8 @@ class ReportGenerator:
                         # updates review export button
                         a('''
                           let updateReviewButton = () => {
-                            let len = JSON.parse(localStorage.getItem("reviewItems")).length
+                            let reviewItems = localStorage.getItem("reviewItems");
+                            let len = (reviewItems == null) ? 0 : JSON.parse(reviewItems).length;
                             $("#reviewExportButton").text(`Export ${len} reviewed items`)
                             if (len == 0) {
                                     $("#reviewExportButton").prop("disabled",true);
