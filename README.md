@@ -37,7 +37,7 @@ To recreate the environment:
 conda remove --name ./envs --all
 
 module add anaconda/2023.03
-conda create --prefix ./envs -c pytorch -c nvidia -c conda-forge python=3.10 pillow=9.4 pytorch=2.0 torchvision=0.15 pytorch-lightning=2.0 metaflow=2.8 pytest=7.3 pytorch-cuda=11.8 tensorboard=2.12 pandas=2.0 seaborn=0.12 scikit-learn=1.2
+conda create --prefix ./envs -c pytorch -c nvidia -c conda-forge python=3.10 pillow=9.4 pytorch=2.1 torchvision=0.16 pytorch-lightning=2.1 metaflow=2.8 pytest=7.3 pytorch-cuda=11.8 tensorboard=2.12 pandas=2.0 seaborn=0.12 scikit-learn=1.2
 ```
 To activate the environment, run tests, and deactivate it:
 ```
