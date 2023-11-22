@@ -276,7 +276,7 @@ class ReportGenerator:
                         # loads review choices from local storage
                         a('''
                           let loadReviewChoices = () => {
-                          if (!localStorage['reviewItems']) {
+                          if (!localStorage.getItem('reviewItems')) {
                             localStorage.setItem("reviewItems", "[]");  
                           } else {
                             let reviewedItems = JSON.parse(localStorage.getItem("reviewItems"))
