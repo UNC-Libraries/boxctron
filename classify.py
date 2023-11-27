@@ -28,7 +28,7 @@ config = ClassifierConfig(path=args.config)
 
 def add_expanded_dir(dir_path, paths):
   for p in Path(dir_path).glob("**/*"):
-    if p.suffix in extensions:
+    if p.suffix.lower() in extensions:
       paths.append(p)
   return paths
 
