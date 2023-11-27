@@ -46,5 +46,7 @@ elif args.src_path.is_dir():
 else:
   paths = [args.src_path]
 
+print(f'Found {len(paths)} images, beginning processing')
+
 service = ClassifierWorkflowService(config, Path(args.report_path), args.restart)
 service.process(paths)
