@@ -20,7 +20,8 @@ class ClassifierWorkflowService:
     if restart:
       print(f'Restarting progress tracking and reporting')
       self.progress_tracker.reset_log()
-      self.report_path.unlink()
+      if self.report_path.exists():
+        self.report_path.unlink()
 
   def process(self, paths):
     total = len(paths)
