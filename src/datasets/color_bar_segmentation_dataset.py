@@ -11,6 +11,8 @@ from PIL import Image
 # A normalized image of (3, h, w) and a mask of (1, h, w)
 # Where h and w are image dimensions after being resized for resnet
 class ColorBarSegmentationDataset(ColorBarDataset):
+  ROUNDING_THRESHOLD = 2.5
+
   def __init__(self, config, image_paths, split = 'train'):
     super().__init__(config, image_paths, split)
   
@@ -43,10 +45,20 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       mask = zeros((h, w), dtype=bool)
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
-          width, height = label['width'], label['height']
-          x = int(label['x']/100 * label['original_width'])
-          y = int(label['y']/100 * label['original_height'])
-          x2 = x + int(width/100 * label['original_width']) # bar width
-          y2 = y + int(height/100 * label['original_height']) # bar height
+          width, height = self.round_to_edge(label['width']), self.round_to_edge(label['height'])
+          x, y = self.round_to_edge(label['x']), self.round_to_edge(label['y'])
+          x = int(x * label['original_width'])
+          y = int(y * label['original_height'])
+          x2 = x + int(width * label['original_width']) # bar width
+          y2 = y + int(height * label['original_height']) # bar height
           mask[y:y2, x:x2] = 1 # Mark all pixels in the masked region with ones
-      self.labels.append(mask) 
+      self.labels.append(mask)
+
+  # Rounds a percentage based coordinate to the nearest edge if it is within the
+  # threshold, and converts the percentage to 0-1 form.
+  def round_to_edge(self, percent):
+    if percent > (100.0 - self.ROUNDING_THRESHOLD):
+      return 1.0
+    if percent < (0 + self.ROUNDING_THRESHOLD):
+      return 0.0
+    return percent / 100

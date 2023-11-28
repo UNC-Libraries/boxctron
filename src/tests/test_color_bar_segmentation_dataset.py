@@ -33,11 +33,12 @@ class TestColorBarSegmentationDataset:
     assert list(mask1.shape) == [1333, 1333] # Check dimensions of cropped mask
     assert all((mask1 == 0) | (mask1 == 1)) # Verify mask is binary
     assert count_nonzero(mask1) == 365242 # 274 * 1333 pixels are marked as color bars
-    item2, mask2 = dataset.__getitem__(6) # Has color bar with margins on all sides after resize
+    item2, mask2 = dataset.__getitem__(6) # Has color bar with margins on all sides before rounding
     assert list(item2.shape) == [3, 1333, 1333]
-    assert count_nonzero(mask2) == 297868 # 1318 * 226 pixels are marked as color bars
+    # Color bar label gets rounded to nearest edges since they are within threshold
+    assert count_nonzero(mask2) == 301258 # 1333 * 226 pixels are marked as color bars
     assert count_nonzero(mask2[0]) == 0 
-    assert count_nonzero(mask2[100]) == 1318
+    assert count_nonzero(mask2[100]) == 1333
     assert count_nonzero(mask2[1332]) == 0
     dataset.visualize_tensor(item2, mask2)
     dataset.visualize_tensor(item0, mask0)
