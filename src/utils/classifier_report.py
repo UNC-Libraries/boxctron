@@ -219,9 +219,11 @@ class ReportGenerator:
                            $("body").on('keydown', (e) => {
                                if (e.which == 37) {
                                 $("table:visible").DataTable().page("previous").draw('page');
+                                loadReviewChoices();
                                }
                                else if (e.which == 39) {
                                 $("table:visible").DataTable().page("next").draw("page");
+                                loadReviewChoices();
                                }
                            });
                            ''')
@@ -282,7 +284,9 @@ class ReportGenerator:
                             let reviewedItems = JSON.parse(localStorage.getItem("reviewItems"))
                             reviewedItems.forEach(e => {
                                 e = JSON.parse(e);
-                                $(`#${e['id']}`).toggleClass('active');
+                               if ($(`#${e['id']}`).hasClass('active') === false) {
+                                  $(`#${e['id']}`).toggleClass('active');
+                                }
                             })
                           }
                         }
@@ -311,7 +315,7 @@ class ReportGenerator:
                                 let reviewItems = JSON.parse(localStorage.getItem("reviewItems"));
                                 reviewItems.push(e.target.value);
                                 localStorage.setItem("reviewItems", JSON.stringify(reviewItems));
-                            }
+                            };
                           ''')
                         # updates sibling buttons when a button is pressed
                         a('''
@@ -330,7 +334,7 @@ class ReportGenerator:
                           ''')
                         # event listener for review button being clicked
                         a('''
-                          $('.reviewButton').click(e => {
+                          $("#imagesTable").on("click", "td .reviewButton", e => {
                             e.target.classList.toggle("active");
                             updateSibling(e);
 
@@ -341,7 +345,7 @@ class ReportGenerator:
                             }
                               
                             updateReviewButton();
-                            })
+                            });
                           ''')
                         # event listener for clear reviews button being clicked
                         a('''
