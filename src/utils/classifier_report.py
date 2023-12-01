@@ -282,6 +282,7 @@ class ReportGenerator:
                             localStorage.setItem("reviewItems", "[]");  
                           } else {
                             let reviewedItems = JSON.parse(localStorage.getItem("reviewItems"))
+                            $('.reviewButton').removeClass('active');
                             reviewedItems.forEach(e => {
                                 e = JSON.parse(e);
                                if ($(`#${e['id']}`).hasClass('active') === false) {
