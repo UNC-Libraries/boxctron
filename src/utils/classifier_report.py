@@ -175,7 +175,7 @@ class ReportGenerator:
                                 {{ title: 'Review', data: 'correct', render: (d,t,r,m) => {{
                                   return `<div>
                                     <button type="button" class="reviewButton btn btn-outline-success" id="correct_${{m.row}}" name="review" value='{{"id": "correct_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 1 }}'>Correct</button>
-                                    <button type="button" class="reviewButton btn btn-outline-danger" id="incorrect_${{m.row}}" name="review" value='{{"id": "incorrect_${{m.row}}", "path": "${{r["original_path"]}}", "predicted_class": ${{r["predicted_class"]}}, "review": 0 }}'>Incorrect</button>
+                                    <button type="button" class="reviewButton btn btn-outline-danger" id="incorrect_${{m.row}}" name="review" value='{{"id": "incorrect_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 0 }}'>Incorrect</button>
                                       </div>`
                                 }}
                                 
