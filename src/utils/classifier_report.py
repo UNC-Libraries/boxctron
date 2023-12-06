@@ -175,7 +175,7 @@ class ReportGenerator:
                     searchPanes: {{viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true}},
                     dom: 'Plfrtip',
                     columns: [
-                        {{ title: 'Image', data: 'normalized_path', className: "w-33 overflow-auto", render: (d,t,r,m) => '<img class="mw-100" src="'+d+'" style=height:200px; loading="lazy" />'}},
+                        {{ title: 'Image', data: 'normalized_path', className: "w-33 overflow-auto", render: (d,t,r,m) => '<img class="mw-100 mx-auto" src="'+d+'" loading="lazy" />'}},
                         {{ title: 'Path', data: 'original_path', className: "w-33", render: (d,t,r,m) => '<p class="overflow-auto text-break mw-100">'+d+'</p>'}},
                         {{ title: 'Class', data: 'predicted_class'}},
                         {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
