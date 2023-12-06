@@ -95,6 +95,9 @@ class ReportGenerator:
                   justify-content: center;
                   align-items: center;  
                 }
+                .w-15 {
+                  width: 25%;
+                }
                 #loading-spinner {
                   width: 100px;
                   height: 100px;
@@ -129,7 +132,7 @@ class ReportGenerator:
               # loading spinner
               with a.div(id="spinner-container"):
                 a.span(id="loading-spinner")
-              with a.div(klass="container-fluid w-100 ms-2 me-2"):
+              with a.div(klass=" w-100 ms-2 me-2"):
                 if stats:
                   # stats/agg table
                   with a.div(id='statsTable-container', klass='table-container w-100'):
@@ -169,11 +172,11 @@ class ReportGenerator:
                     searchPanes: {{viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true}},
                     dom: 'Plfrtip',
                     columns: [
-                        {{ title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
-                        {{ title: 'Path', data: 'original_path', width: "25%"}},
+                        {{ title: 'Image', data: 'normalized_path', className: "w-25 overflow-auto", render: (d,t,r,m) => '<img class="mw-100" src="'+d+'" style=height:200px; loading="lazy" />'}},
+                        {{ title: 'Path', data: 'original_path', className: "w-25", render: (d,t,r,m) => '<p class="overflow-auto text-break mw-100">'+d+'</p>'}},
                         {{ title: 'Class', data: 'predicted_class'}},
                         {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
-                        {{ title: 'Review', data: 'correct', render: (d,t,r,m) => {{
+                        {{ title: 'Review', data: 'correct', className: "w-15", render: (d,t,r,m) => {{
                           return `<div>
                             <button type="button" class="reviewButton btn btn-outline-success w-50 mb-1" id="correct_${{m.row}}" name="review" value='{{"id": "correct_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 1 }}'>Correct</button>
                             <button type="button" class="reviewButton btn btn-outline-danger w-50" id="incorrect_${{m.row}}" name="review" value='{{"id": "incorrect_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 0 }}'>Incorrect</button>
