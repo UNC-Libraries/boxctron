@@ -132,7 +132,7 @@ class ReportGenerator:
               # loading spinner
               with a.div(id="spinner-container"):
                 a.span(id="loading-spinner")
-              with a.div(klass=" w-100 ms-2 me-2"):
+              with a.div(klass="container-fluid w-100 ms-2 me-2"):
                 if stats:
                   # stats/agg table
                   with a.div(id='statsTable-container', klass='table-container w-100'):
