@@ -113,7 +113,7 @@ class ReportGenerator:
           with a.body():
             with a.main():
               # top button row
-              with a.div(id="buttonsTop", klass="container mt-3 ms-2"):
+              with a.div(id="buttonsTop", klass="container mt-3 ms-2", style="visibility:hidden;"):
                 # button to export reviewed rows
                 with a.a(href="#", id="reviewLink", style="text-decoration:none;", download="reviewed_data"):
                   a.button(id="reviewExportButton", _t="Export 0 reviewed items", disabled=True, klass="btn btn-success")
