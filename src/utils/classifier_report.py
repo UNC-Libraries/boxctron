@@ -175,14 +175,14 @@ class ReportGenerator:
                     searchPanes: {{viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true}},
                     dom: 'Plfrtip',
                     columns: [
-                        {{ title: 'Image', data: 'normalized_path', className: "w-33 overflow-auto", render: (d,t,r,m) => '<img class="mw-100 mx-auto" src="'+d+'" loading="lazy" />'}},
+                        {{ title: 'Image', data: 'normalized_path', className: "w-33 overflow-auto", render: (d,t,r,m) => '<img class="mw-100 mx-auto" src="'+d+'" style=max-height:400px; loading="lazy" />'}},
                         {{ title: 'Path', data: 'original_path', className: "w-33", render: (d,t,r,m) => '<p class="overflow-auto text-break mw-100">'+d+'</p>'}},
                         {{ title: 'Class', data: 'predicted_class'}},
                         {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
                         {{ title: 'Review', data: 'correct', className: "w-15", render: (d,t,r,m) => {{
                           return `<div>
-                            <button type="button" class="reviewButton btn btn-outline-success w-50 mb-1" id="correct_${{m.row}}" name="review" value='{{"id": "correct_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 1 }}'>Correct</button>
-                            <button type="button" class="reviewButton btn btn-outline-danger w-50" id="incorrect_${{m.row}}" name="review" value='{{"id": "incorrect_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 0 }}'>Incorrect</button>
+                            <button type="button" class="reviewButton btn btn-outline-success w-100 mb-1" id="correct_${{m.row}}" name="review" value='{{"id": "correct_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 1 }}'>Correct</button>
+                            <button type="button" class="reviewButton btn btn-outline-danger w-100" id="incorrect_${{m.row}}" name="review" value='{{"id": "incorrect_${{m.row}}", "path": "${{r["original_path"].replace(/'/g, '&apos;')}}", "predicted_class": ${{r["predicted_class"]}}, "review": 0 }}'>Incorrect</button>
                               </div>`
                         }}
                         
