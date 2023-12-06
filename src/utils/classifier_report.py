@@ -170,7 +170,7 @@ class ReportGenerator:
                     dom: 'Plfrtip',
                     columns: [
                         {{ title: 'Image', data: 'normalized_path', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'}},
-                        {{ title: 'Path', data: 'original_path'}},
+                        {{ title: 'Path', data: 'original_path', width: "25%"}},
                         {{ title: 'Class', data: 'predicted_class'}},
                         {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
                         {{ title: 'Review', data: 'correct', render: (d,t,r,m) => {{
