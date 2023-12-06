@@ -96,7 +96,10 @@ class ReportGenerator:
                   align-items: center;  
                 }
                 .w-15 {
-                  width: 25%;
+                  width: 15%;
+                }
+                .w-33 {
+                  width: 33%;
                 }
                 #loading-spinner {
                   width: 100px;
@@ -172,8 +175,8 @@ class ReportGenerator:
                     searchPanes: {{viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true}},
                     dom: 'Plfrtip',
                     columns: [
-                        {{ title: 'Image', data: 'normalized_path', className: "w-25 overflow-auto", render: (d,t,r,m) => '<img class="mw-100" src="'+d+'" style=height:200px; loading="lazy" />'}},
-                        {{ title: 'Path', data: 'original_path', className: "w-25", render: (d,t,r,m) => '<p class="overflow-auto text-break mw-100">'+d+'</p>'}},
+                        {{ title: 'Image', data: 'normalized_path', className: "w-33 overflow-auto", render: (d,t,r,m) => '<img class="mw-100" src="'+d+'" style=height:200px; loading="lazy" />'}},
+                        {{ title: 'Path', data: 'original_path', className: "w-33", render: (d,t,r,m) => '<p class="overflow-auto text-break mw-100">'+d+'</p>'}},
                         {{ title: 'Class', data: 'predicted_class'}},
                         {{ title: 'Confidence', data: 'predicted_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}},
                         {{ title: 'Review', data: 'correct', className: "w-15", render: (d,t,r,m) => {{
