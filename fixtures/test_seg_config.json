@@ -1,0 +1,13 @@
+{
+  "image_list_path" : "fixtures/mini_file_list.txt",
+  "annotations_path" : "fixtures/mini_annotations.json",
+  "base_image_path" : "fixtures/normalized_images",
+  "system_class" : "src.systems.color_bar_segmentation_system.ColorBarSegmentationSystem",
+  "dataset_class" : "src.datasets.color_bar_segmentation_dataset.ColorBarSegmentationDataset",
+  "max_dimension" : 1333,
+  "batch_size" : 3,
+  "test_percent": 0.25,
+  "val_percent": 0.25,
+  "save_dir" : "./artifacts/ckpts/seg-train",
+  "log_every_n_steps" : 1
+}
