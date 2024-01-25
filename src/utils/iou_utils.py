@@ -3,7 +3,6 @@ import torch
 
 _all__ = ["_evaluate_iou", "_evaluate_giou"]
 
-# https://github.com/oke-aditya/quickvision/blob/dc3c083356f3afa12c8992254249d3a1a3ea0d7d/quickvision/models/detection/utils.py
 def evaluate_iou(target, pred):
     """
     Evaluate intersection over union (IOU) for target from dataset and output prediction
@@ -14,7 +13,7 @@ def evaluate_iou(target, pred):
         # no box detected, 0 IOU
         return torch.tensor(0.0, device=pred.device)
     # return box_iou(target["boxes"], pred["boxes"]).diag().mean()
-    return box_iou(target, pred).diag().mean()
+    return box_iou(target.unsqueeze(0), pred.unsqueeze(0)).diag().mean()
 
 
 def evaluate_giou(target, pred):
@@ -27,4 +26,4 @@ def evaluate_giou(target, pred):
         # no box detected, 0 IOU
         return torch.tensor(0.0, device=pred.device)
     # return generalized_box_iou(target["boxes"], pred["boxes"]).diag().mean()
-    return generalized_box_iou(target, pred).diag().mean()
+    return generalized_box_iou(target.unsqueeze(0), pred.unsqueeze(0)).diag().mean()

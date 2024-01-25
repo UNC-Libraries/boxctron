@@ -65,20 +65,17 @@ class ColorBarSegmentationSystem(pl.LightningModule):
   def validation_step(self, batch, batch_idx):
     images, targets = batch
     print('====validation_step====')
-    loss_dict = None
-    # Enabling training mode so we get the same model specific metrics as during training for comparison
-    self.model.train()
-    # Disable gradiants so that the model does not learn from the validation data
-    with torch.no_grad():
-      loss_dict = self.model(images, targets)
+    loss, loss_dict = self.get_model_loss(images, targets)
     print(f'Validation loss_dict {loss_dict}')
-    loss = sum(loss for loss in loss_dict.values())
+
+    iou, giou = self.calculate_iou_giou(images, targets)
+    print(f'Validation step iou {iou}, giou {giou}')
 
     self.validation_step_loss.append(loss)
     return loss
 
   def get_top_predicted(self, out_entry):
-    threshold = 0.4
+    threshold = 0.1
     scores = out_entry['scores']
     if not torch.any(scores > threshold):
       return {
@@ -106,25 +103,13 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     # Evaluation step after all epochs of training have completed
   def test_step(self, test_batch, batch_idx):
     images, targets = test_batch
-    outs = self.model(images)
-    # iou = torch.stack([evaluate_iou(t, o) for t, o in zip(targets, outs)]).mean()
-    # self.test_step_iou.append(iou)
-    # giou = torch.stack([evaluate_giou(t, o) for t, o in zip(targets, outs)]).mean()
-    # self.test_step_giou.append(giou)
-    print(f'Targets: {targets}')
+    loss, loss_dict = self.get_model_loss(images, targets)
+    self.test_step_loss.append(loss)
 
-    target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32)) for t in targets]
+    print(f'Loss:\n{loss}')
 
-    top_predicted = [self.get_top_predicted(o) for o in outs]
-    predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32)) for o in top_predicted]
-
-    print(f'Test step targets:\n{targets}\nouts\n{outs}')
-    print(f'Target boxes:\n{target_boxes}')
-    print(f'Predicted:\n{predicted_boxes}')
-
-    iou = torch.stack([evaluate_iou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
+    iou, giou = self.calculate_iou_giou(images, targets)
     self.test_step_iou.append(iou)
-    giou = torch.stack([evaluate_giou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
     self.test_step_giou.append(giou)
     print(f'Test step iou {iou}, giou {giou}')
     return giou
@@ -132,13 +117,43 @@ class ColorBarSegmentationSystem(pl.LightningModule):
   def on_test_epoch_end(self):
     avg_iou = torch.stack(self.test_step_iou).mean()
     avg_giou = torch.stack(self.test_step_giou).mean()
+    avg_loss = torch.stack(self.validation_step_loss).mean()
     results = {
-      'test_iou': avg_iou,
-      'test_giou': avg_giou,
+      'loss': avg_loss.item(),
+      'test_iou': avg_iou.item(),
+      'test_giou': avg_giou.item(),
       }
 
     self.log_dict(results, on_step=False, on_epoch=True, prog_bar=self.config.enable_progress_bar, logger=True)
     self.test_results = results
+
+  def get_model_loss(self, images, targets):
+    # Enabling training mode so we get the same model specific metrics as during training for comparison
+    self.model.train()
+    # Disable gradiants so that the model does not learn from the validation data
+    with torch.no_grad():
+      loss_dict = self.model(images, targets)
+    print(f'Validation loss_dict {loss_dict}')
+    loss = sum(loss for loss in loss_dict.values())
+    self.model.eval()
+    return loss, loss_dict
+
+  def calculate_iou_giou(self, images, targets):
+    outs = self.model(images)
+
+    target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32)) for t in targets]
+
+    top_predicted = [self.get_top_predicted(o) for o in outs]
+    predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32)) for o in top_predicted]
+
+    # print(f'Targets:\n{targets}')
+    print(f'Outs:\n{outs}')
+    print(f'Target boxes:\n{target_boxes}')
+    print(f'Predicted:\n{predicted_boxes}')
+
+    iou = torch.stack([evaluate_iou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
+    giou = torch.stack([evaluate_giou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
+    return (iou, giou)
 
   def configure_optimizers(self):
     return torch.optim.SGD(self.model.parameters(), lr=self.config.lr,
