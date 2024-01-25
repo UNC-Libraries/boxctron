@@ -7,6 +7,7 @@ from torchvision import tv_tensors
 from torchvision.transforms.v2 import functional as F
 from torchvision.ops import box_area
 import torch
+from torchvision import transforms
 
 from PIL import Image
 
@@ -30,7 +31,13 @@ class ColorBarSegmentationDataset(ColorBarDataset):
   
   # Must be overriden from parent class
   def __getitem__(self, index):
-    image_data = load_for_resnet(self.image_paths[index], self.config.max_dimension)
+    input_image = Image.open(self.image_paths[index])
+    preprocess = transforms.Compose([
+        # Resize image to standard dimensions, no padding
+        transforms.Resize((self.config.max_dimension, self.config.max_dimension)),
+        transforms.ToTensor(),
+    ])
+    image_data = preprocess(input_image)
     # Convert to a pytorchvision image
     image_data = tv_tensors.Image(image_data)
     target = {}
@@ -69,39 +76,37 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       # mask = zeros((h, w), dtype=bool)
       bounding_boxes = []
       bar_box = None
-      labels = []
+      labels = [0]
       original_width, original_height = w, h
 
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
-          width, height = label['width'], label['height']
           norm_x, norm_y = self.round_to_edge(label['x']), self.round_to_edge(label['y'])
-          norm_x2, norm_y2 = self.round_to_edge(label['x'] + width), self.round_to_edge(label['y'] + height)
-          # original_width, original_height = label['original_width'], label['original_height']
-          # print(f'Got dimensions {w}x{h} versus {original_width}x{original_height}')
-          # x1 = int(norm_x * original_width)
-          # y1 = int(norm_y * original_height)
-          # x2 = int(norm_x2 * original_width) # bar width
-          # y2 = int(norm_y2 * original_height) # bar height
+          norm_x2, norm_y2 = self.round_to_edge(label['x'] + w), self.round_to_edge(label['y'] + h)
+          x1, y1, x2, y2 = self.norms_to_pixels(norm_x, norm_y, norm_x2, norm_y2, w, h)
+          bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
+          bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
+          bounding_boxes.append([bgx1, bgy1, bgx2, bgy2])
           # mask[y1:y2, x1:x2] = 1 # Mark all pixels in the masked region with ones
-          bar_box = [norm_x, norm_y, norm_x2, norm_y2]
-          # bar_box = [x1, y1, x2, y2]
-          # bar_box = [1, 1, 2, 2]
+          bar_box = [x1, y1, x2, y2]
+          bounding_boxes.append(bar_box)
           labels.append(1)
       self.labels.append(labels)
       # self.masks.append(mask)
-      # bounding_boxes.append(self.background_box(bounding_boxes))
-      if bar_box == None:
-        self.boxes.append(torch.zeros((0, 4), dtype=torch.float32))
-      else:
-        self.boxes.append(torch.tensor([bar_box], dtype=torch.float32))
-        # bounding_boxes.append(bar_box)
-      # self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
-      # self.boxes.append(tv_tensors.BoundingBoxes(bounding_boxes, format="XYXY", canvas_size=(w, h)))
+      if len(bounding_boxes) == 0:
+        bounding_boxes.append([0, 0, w, h])
+      self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
+
+  def norms_to_pixels(self, norm_x, norm_y, norm_x2, norm_y2, width, height):
+    x1 = int(norm_x * width)
+    y1 = int(norm_y * height)
+    x2 = int(norm_x2 * width) # bar width
+    y2 = int(norm_y2 * height) # bar height
+    return (x1, y1, x2, y2)
 
   def background_box(self, bar_box):
     if bar_box == None:
-      return [0, 0, 1, 1]
+      return (0, 0, 1, 1)
     x, y, x2, y2 = 0, 0, 1, 1
     if bar_box[0] == 0 and bar_box[2] != 1:
       x = bar_box[2]
@@ -111,7 +116,7 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       x2 = bar_box[0]
     if bar_box[1] != 0 and bar_box[3] == 1:
       y2 = bar_box[1]
-    return [x, y, x2, y2]
+    return (x, y, x2, y2)
 
   # Rounds a percentage based coordinate to the nearest edge if it is within the
   # threshold, and converts the percentage to 0-1 form.

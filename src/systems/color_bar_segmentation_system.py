@@ -73,7 +73,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
       loss_dict = self.model(images, targets)
     print(f'Validation loss_dict {loss_dict}')
     loss = sum(loss for loss in loss_dict.values())
-  
+
     self.validation_step_loss.append(loss)
     return loss
 
