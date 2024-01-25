@@ -3,7 +3,9 @@ from src.datasets.color_bar_dataset import ColorBarDataset
 from src.utils.resnet_utils import load_for_resnet, load_mask_for_resnet
 from torchvision.transforms.functional import to_pil_image
 from torchvision.utils import draw_segmentation_masks
-# from torchvision import tv_tensors
+from torchvision import tv_tensors
+from torchvision.transforms.v2 import functional as F
+from torchvision.ops import box_area
 import torch
 
 from PIL import Image
@@ -15,16 +17,11 @@ from PIL import Image
 class ColorBarSegmentationDataset(ColorBarDataset):
   ROUNDING_THRESHOLD = 2.5
 
-  def collate_segmentation_fn(batch):
-    print(f'Collating {batch}')
-    print(f'LAbels {[x[1] for x in batch]}')
-    return torch.stack([x[0] for x in batch]), [x[1] for x in batch]
-    # return {
-    #   'image_data': torch.stack([x[0] for x in batch]),
-    #   'targets': torch.tensor([x[1] for x in batch])
-    # }
+  def collate_zip_fn(data):
+    zipped = zip(*data)
+    return tuple(zipped)
 
-  collate_fn = collate_segmentation_fn
+  collate_fn = collate_zip_fn
 
   def __init__(self, config, image_paths, split = 'train'):
     self.boxes = []
@@ -34,16 +31,20 @@ class ColorBarSegmentationDataset(ColorBarDataset):
   # Must be overriden from parent class
   def __getitem__(self, index):
     image_data = load_for_resnet(self.image_paths[index], self.config.max_dimension)
+    # Convert to a pytorchvision image
+    image_data = tv_tensors.Image(image_data)
     target = {}
     # label_mask = load_mask_for_resnet(self.masks[index], self.config.max_dimension)
     # label_mask = label_mask.bool()
     target = {
-      'boxes' : self.boxes[index],
+      'boxes' : tv_tensors.BoundingBoxes(self.boxes[index], format="XYXY", canvas_size=F.get_size(image_data)),
+      'area' : box_area(self.boxes[index]),
+      'image_id' : torch.tensor([index], dtype=torch.int64),
       # 'masks' : [label_mask],
       'labels' : torch.tensor(self.labels[index], dtype=torch.int64)
       # 'img_path' : str(self.image_paths[index])
     }
-    print(f'Getitem {target}')
+    # print(f'Getitem {target}')
     return image_data, target
 
   # Helper function for displaying masks imposed on transformed image tensors
@@ -76,24 +77,26 @@ class ColorBarSegmentationDataset(ColorBarDataset):
           width, height = label['width'], label['height']
           norm_x, norm_y = self.round_to_edge(label['x']), self.round_to_edge(label['y'])
           norm_x2, norm_y2 = self.round_to_edge(label['x'] + width), self.round_to_edge(label['y'] + height)
-          original_width, original_height = label['original_width'], label['original_height']
+          # original_width, original_height = label['original_width'], label['original_height']
           # print(f'Got dimensions {w}x{h} versus {original_width}x{original_height}')
           # x1 = int(norm_x * original_width)
           # y1 = int(norm_y * original_height)
-          # x2 = x + int(width * original_width) # bar width
-          # y2 = y + int(height * original_height) # bar height
+          # x2 = int(norm_x2 * original_width) # bar width
+          # y2 = int(norm_y2 * original_height) # bar height
           # mask[y1:y2, x1:x2] = 1 # Mark all pixels in the masked region with ones
           bar_box = [norm_x, norm_y, norm_x2, norm_y2]
+          # bar_box = [x1, y1, x2, y2]
+          # bar_box = [1, 1, 2, 2]
           labels.append(1)
       self.labels.append(labels)
       # self.masks.append(mask)
       # bounding_boxes.append(self.background_box(bounding_boxes))
       if bar_box == None:
-        self.boxes.append(torch.zeros((0, 4), dtype=torch.float64))
+        self.boxes.append(torch.zeros((0, 4), dtype=torch.float32))
       else:
-        self.boxes.append(torch.tensor([bar_box], dtype=torch.float64))
+        self.boxes.append(torch.tensor([bar_box], dtype=torch.float32))
         # bounding_boxes.append(bar_box)
-      # self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float64))
+      # self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
       # self.boxes.append(tv_tensors.BoundingBoxes(bounding_boxes, format="XYXY", canvas_size=(w, h)))
 
   def background_box(self, bar_box):

@@ -40,6 +40,7 @@ class ColorBarModelTrainer:
     )
 
     self.trainer = Trainer(
+      num_sanity_val_steps = 0,
       max_epochs = self.config.max_epochs,
       log_every_n_steps = self.config.log_every_n_steps,
       enable_progress_bar = self.config.enable_progress_bar,
@@ -68,7 +69,7 @@ class ColorBarModelTrainer:
   def write_test_results(self):
     log_file = self.config.log_dir / 'results.json'
     os.makedirs(str(log_file.parent), exist_ok = True)
-    to_json(results, log_file)  # save to disk
+    to_json(self.system.test_results, log_file)  # save to disk
 
   def get_test_incorrect_results(self):
     return self.system.record_test_incorrect_predictions(self.dm.test_dataset)
