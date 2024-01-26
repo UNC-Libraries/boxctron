@@ -78,9 +78,7 @@ class ColorBarSegmentationDataset(ColorBarDataset):
 
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
-          label_w, label_h = label['width'], label['height']
-          norm_x, norm_y = self.round_to_edge(label['x']), self.round_to_edge(label['y'])
-          norm_x2, norm_y2 = self.round_to_edge(label['x'] + label_w), self.round_to_edge(label['y'] + label_h)
+          norm_x, norm_y, norm_x2, norm_y2 = self.round_box_to_edge(label)
           x1, y1, x2, y2 = self.norms_to_pixels(norm_x, norm_y, norm_x2, norm_y2, w, h)
           bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
           bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
@@ -115,6 +113,16 @@ class ColorBarSegmentationDataset(ColorBarDataset):
     if bar_box[1] != 0 and bar_box[3] == 1:
       y2 = bar_box[1]
     return (x, y, x2, y2)
+
+  def round_box_to_edge(self, label):
+    label_w, label_h = label['width'], label['height']
+    x, y = label['x'], label['y']
+    x2, y2 = x + label_w, y + label_h
+    norm_x, norm_y = self.round_to_edge(x), self.round_to_edge(y)
+    norm_x2, norm_y2 = self.round_to_edge(x2), self.round_to_edge(y2)
+    if norm_x == norm_x2 or norm_y == norm_y2:
+      return (x / 100, y / 100, x2 / 100, y2 / 100)
+    return (norm_x, norm_y, norm_x2, norm_y2)
 
   # Rounds a percentage based coordinate to the nearest edge if it is within the
   # threshold, and converts the percentage to 0-1 form.

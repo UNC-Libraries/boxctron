@@ -11,3 +11,4 @@ fixtures/normalized_images/ncc/fcpl_005.jpg
 fixtures/normalized_images/rbc/11029-z_pa0001_0034.jpg
 fixtures/normalized_images/ncc/Cm912m_U58b9.jpg
 fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg
+fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg

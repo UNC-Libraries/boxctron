@@ -52,18 +52,18 @@ class TestColorBarSegmentationDataset:
   def test_with_simple_data(self, config, image_paths):
     random.seed(10)
     dataset = ColorBarSegmentationDataset(config, image_paths)
-    assert dataset.__len__() == 13
+    assert dataset.__len__() == 14
     # assert len(dataset.image_dimensions) == len(dataset)
     # assert dataset.image_dimensions[0] == (1333, 964)
     item0, target0 = dataset.__getitem__(0)
     # mask0 = target0['masks'][0]
     assert list(item0.shape) == [3, 1333, 1333] 
     # assert count_nonzero(mask0) == 0 # Negative example should have an all-zero mask
-    assert len(dataset.labels) == 13
+    assert len(dataset.labels) == 14
      # Negative example, only bounding box is the background
     assert target0['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1333.0]]
     assert target0['labels'].data.tolist() == [0]
-    item1, target1 = dataset.__getitem__(1) 
+    item1, target1 = dataset.__getitem__(1)
     # mask1 = target1['masks'][0]
     assert list(item1.shape) == [3, 1333, 1333] # Check dimensions of cropped image
     # assert list(mask1.shape) == [1333, 1333] # Check dimensions of cropped mask
@@ -86,3 +86,7 @@ class TestColorBarSegmentationDataset:
     # Uncomment to generate images with masks applied
     # dataset.visualize_tensor(item2, mask2)
     # dataset.visualize_tensor(item0, mask0)
+    # Item has a really small color bar, smaller than the rounding threshold, so don't round
+    item3, target3 = dataset.__getitem__(13)
+    assert target3['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1319.0], [0.0, 1319.0, 1333.0, 1333.0]]
+    assert target3['labels'].data.tolist() == [0, 1]
