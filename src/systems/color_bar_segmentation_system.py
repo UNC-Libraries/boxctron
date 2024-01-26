@@ -141,10 +141,10 @@ class ColorBarSegmentationSystem(pl.LightningModule):
   def calculate_iou_giou(self, images, targets):
     outs = self.model(images)
 
-    target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32)) for t in targets]
+    target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for t in targets]
 
     top_predicted = [self.get_top_predicted(o) for o in outs]
-    predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32)) for o in top_predicted]
+    predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for o in top_predicted]
 
     # print(f'Targets:\n{targets}')
     print(f'Outs:\n{outs}')
