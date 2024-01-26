@@ -48,8 +48,8 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       'area' : box_area(self.boxes[index]),
       'image_id' : torch.tensor([index], dtype=torch.int64),
       # 'masks' : [label_mask],
-      'labels' : torch.tensor(self.labels[index], dtype=torch.int64)
-      # 'img_path' : str(self.image_paths[index])
+      'labels' : torch.tensor(self.labels[index], dtype=torch.int64),
+      'img_path' : str(self.image_paths[index]),
     }
     # print(f'Getitem {target}')
     return image_data, target
@@ -68,10 +68,7 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       if not image_path:
         continue
       # Add image dimensions
-      w, h = None, None
-      with Image.open(image_path) as img:
-        w, h = img.width, img.height
-      self.image_dimensions.append((w, h))
+      w, h = self.config.max_dimension, self.config.max_dimension
       image_labels = path_to_labels[str(image_path)]
       # mask = zeros((h, w), dtype=bool)
       bounding_boxes = []
@@ -81,8 +78,9 @@ class ColorBarSegmentationDataset(ColorBarDataset):
 
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
+          label_w, label_h = label['width'], label['height']
           norm_x, norm_y = self.round_to_edge(label['x']), self.round_to_edge(label['y'])
-          norm_x2, norm_y2 = self.round_to_edge(label['x'] + w), self.round_to_edge(label['y'] + h)
+          norm_x2, norm_y2 = self.round_to_edge(label['x'] + label_w), self.round_to_edge(label['y'] + label_h)
           x1, y1, x2, y2 = self.norms_to_pixels(norm_x, norm_y, norm_x2, norm_y2, w, h)
           bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
           bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
