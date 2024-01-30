@@ -30,6 +30,9 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.test_step_iou = []
     self.test_step_giou = []
     self.test_step_loss = []
+    self.test_step_predicted_boxes = []
+    self.test_step_target_boxes = []
+    self.test_step_image_paths = []
     # self.validation_step_acc = []
     # self.validation_step_raw_predictions = []
     # self.validation_step_predicted_segments = []
@@ -68,8 +71,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     loss, loss_dict = self.get_model_loss(images, targets)
     print(f'Validation loss_dict {loss_dict}')
 
-    iou, giou = self.calculate_iou_giou(images, targets)
-    print(f'Validation step iou {iou}, giou {giou}')
+    # iou, giou = self.calculate_iou_giou(images, targets)
+    # print(f'Validation step iou {iou}, giou {giou}')
 
     self.validation_step_loss.append(loss)
     return loss
@@ -108,9 +111,17 @@ class ColorBarSegmentationSystem(pl.LightningModule):
 
     print(f'Loss:\n{loss}')
 
-    iou, giou = self.calculate_iou_giou(images, targets)
+    outs = self.model(images)
+    # print(f'Targets:\n{targets}')
+    print(f'Outs:\n{outs}')
+    predicted_boxes, target_boxes = self.get_step_boxes(outs, targets)
+    iou, giou = self.calculate_iou_giou(predicted_boxes, target_boxes)
     self.test_step_iou.append(iou)
     self.test_step_giou.append(giou)
+    self.test_step_predicted_boxes.extend(predicted_boxes)
+    self.test_step_target_boxes.extend(target_boxes)
+    for t in targets:
+      self.test_step_image_paths.append(t['img_path'])
     print(f'Test step iou {iou}, giou {giou}')
     return giou
 
@@ -138,22 +149,26 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.model.eval()
     return loss, loss_dict
 
-  def calculate_iou_giou(self, images, targets):
-    outs = self.model(images)
-
-    target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for t in targets]
-
-    top_predicted = [self.get_top_predicted(o) for o in outs]
-    predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for o in top_predicted]
-
-    # print(f'Targets:\n{targets}')
-    print(f'Outs:\n{outs}')
+  def calculate_iou_giou(self, target_boxes, predicted_boxes):
     print(f'Target boxes:\n{target_boxes}')
     print(f'Predicted:\n{predicted_boxes}')
 
     iou = torch.stack([evaluate_iou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
     giou = torch.stack([evaluate_giou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
     return (iou, giou)
+
+  def get_step_boxes(self, outs, targets):
+    target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for t in targets]
+    top_predicted = [self.get_top_predicted(o) for o in outs]
+    predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for o in top_predicted]
+    return target_boxes, predicted_boxes
+
+  def get_test_set_predictions(self):
+    return {
+      'img_paths' : self.test_step_image_paths,
+      'predicted_boxes' : self.test_step_predicted_boxes,
+      'target_boxes' : self.test_step_target_boxes
+    }
 
   def configure_optimizers(self):
     return torch.optim.SGD(self.model.parameters(), lr=self.config.lr,

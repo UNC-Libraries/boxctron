@@ -61,8 +61,10 @@ class TestColorBarSegmentationDataset:
     # assert count_nonzero(mask0) == 0 # Negative example should have an all-zero mask
     assert len(dataset.labels) == 14
      # Negative example, only bounding box is the background
-    assert target0['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1333.0]]
-    assert target0['labels'].data.tolist() == [0]
+    # assert target0['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1333.0]]
+    assert target0['boxes'].data.tolist() == []
+    # assert target0['labels'].data.tolist() == [0]
+    assert target0['labels'].data.tolist() == []
     item1, target1 = dataset.__getitem__(1)
     # mask1 = target1['masks'][0]
     assert list(item1.shape) == [3, 1333, 1333] # Check dimensions of cropped image
@@ -70,8 +72,10 @@ class TestColorBarSegmentationDataset:
     # assert all((mask1 == 0) | (mask1 == 1)) # Verify mask is binary
     # assert count_nonzero(mask1) == 365242 # 274 * 1333 pixels are marked as color bars
     print(f"Image1 {target1['img_path']}")
-    assert target1['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1029.0], [0.0, 1029.0, 1333.0, 1333.0]]
-    assert target1['labels'].data.tolist() == [0, 1]
+    # assert target1['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1029.0], [0.0, 1029.0, 1333.0, 1333.0]]
+    assert target1['boxes'].data.tolist() == [[0.0, 1029.0, 1333.0, 1333.0]]
+    # assert target1['labels'].data.tolist() == [0, 1]
+    assert target1['labels'].data.tolist() == [1]
     item2, target2 = dataset.__getitem__(6) # Has color bar with margins on all sides before rounding
     # mask2 = target2['masks'][0]
     assert list(item2.shape) == [3, 1333, 1333]
@@ -81,12 +85,16 @@ class TestColorBarSegmentationDataset:
     # assert count_nonzero(mask2[100]) == 1333
     # assert count_nonzero(mask2[1332]) == 0
     print(f"Image2 {target2['img_path']}")
-    assert target2['boxes'].data.tolist() == [[0.0, 236.0, 1333.0, 1333.0], [0.0, 0.0, 1333.0, 236.0]]
-    assert target2['labels'].data.tolist() == [0, 1]
+    # assert target2['boxes'].data.tolist() == [[0.0, 236.0, 1333.0, 1333.0], [0.0, 0.0, 1333.0, 236.0]]
+    # assert target2['labels'].data.tolist() == [0, 1]
+    assert target2['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 236.0]]
+    assert target2['labels'].data.tolist() == [1]
     # Uncomment to generate images with masks applied
     # dataset.visualize_tensor(item2, mask2)
     # dataset.visualize_tensor(item0, mask0)
     # Item has a really small color bar, smaller than the rounding threshold, so don't round
     item3, target3 = dataset.__getitem__(13)
-    assert target3['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1319.0], [0.0, 1319.0, 1333.0, 1333.0]]
-    assert target3['labels'].data.tolist() == [0, 1]
+    # assert target3['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1319.0], [0.0, 1319.0, 1333.0, 1333.0]]
+    # assert target3['labels'].data.tolist() == [0, 1]
+    assert target3['boxes'].data.tolist() == [[0.0, 1319.0, 1333.0, 1333.0]]
+    assert target3['labels'].data.tolist() == [1]

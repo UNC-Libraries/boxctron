@@ -73,25 +73,30 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       # mask = zeros((h, w), dtype=bool)
       bounding_boxes = []
       bar_box = None
-      labels = [0]
+      # labels = [0]
+      labels = []
       original_width, original_height = w, h
 
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
           norm_x, norm_y, norm_x2, norm_y2 = self.round_box_to_edge(label)
           x1, y1, x2, y2 = self.norms_to_pixels(norm_x, norm_y, norm_x2, norm_y2, w, h)
-          bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
-          bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
-          bounding_boxes.append([bgx1, bgy1, bgx2, bgy2])
+          # bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
+          # bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
+          # bounding_boxes.append([bgx1, bgy1, bgx2, bgy2])
           # mask[y1:y2, x1:x2] = 1 # Mark all pixels in the masked region with ones
           bar_box = [x1, y1, x2, y2]
-          bounding_boxes.append(bar_box)
+          # bounding_boxes.append(bar_box)
           labels.append(1)
       self.labels.append(labels)
       # self.masks.append(mask)
-      if len(bounding_boxes) == 0:
-        bounding_boxes.append([0, 0, w, h])
-      self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
+      if bar_box == None:
+        self.boxes.append(torch.zeros((0, 4), dtype=torch.float32))
+      else:
+        self.boxes.append(torch.tensor([bar_box], dtype=torch.float32))
+      # if len(bounding_boxes) == 0:
+        # bounding_boxes.append([0, 0, w, h])
+      # self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
 
   def norms_to_pixels(self, norm_x, norm_y, norm_x2, norm_y2, width, height):
     x1 = int(norm_x * width)

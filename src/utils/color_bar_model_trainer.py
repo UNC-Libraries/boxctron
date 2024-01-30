@@ -74,5 +74,8 @@ class ColorBarModelTrainer:
   def get_test_incorrect_results(self):
     return self.system.record_test_incorrect_predictions(self.dm.test_dataset)
 
+  def get_test_set_predictions(self):
+    return self.system.get_test_set_predictions()
+
   def get_test_incorrect_results_as_csv(self):
     return self.get_test_incorrect_results().to_csv(index=False)
