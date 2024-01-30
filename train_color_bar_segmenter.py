@@ -30,7 +30,8 @@ if __name__ == "__main__":
   model_trainer.write_test_results()
   test_preds = model_trainer.get_test_set_predictions()
   output_path = model_trainer.config.log_dir / 'predictions'
-  shutil.rmtree(str(output_path))
+  if output_path.exists():
+    shutil.rmtree(str(output_path))
   output_path.mkdir()
   resize_dims = (model_trainer.config.max_dimension, model_trainer.config.max_dimension)
   draw_result_bounding_boxes(test_preds['img_paths'], output_path, resize_dims, test_preds['predicted_boxes'], test_preds['target_boxes'])

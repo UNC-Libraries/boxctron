@@ -61,16 +61,16 @@ class ColorBarSegmentationSystem(pl.LightningModule):
 
     # fasterrcnn takes both images and targets for training
     loss_dict = self.model(images, targets)
-    print(f'Training loss {loss_dict}')
+    log(f'Training loss {loss_dict}')
     loss = sum(loss for loss in loss_dict.values())
     self.log_dict({'loss': loss}, on_step=True, on_epoch=False, prog_bar=True, logger=True)
     return loss
 
   def validation_step(self, batch, batch_idx):
     images, targets = batch
-    print('====validation_step====')
+    log('====validation_step====')
     loss, loss_dict = self.get_model_loss(images, targets)
-    print(f'Validation loss_dict {loss_dict}')
+    log(f'Validation loss_dict {loss_dict}')
 
     # iou, giou = self.calculate_iou_giou(images, targets)
     # print(f'Validation step iou {iou}, giou {giou}')
@@ -97,7 +97,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
 
 
   def on_validation_epoch_end(self):
-    print("====On validation epoch end ====")
+    log("====On validation epoch end ====")
     avg_loss = torch.stack(self.validation_step_loss).mean()
     
     self.log_dict({
@@ -110,11 +110,11 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     loss, loss_dict = self.get_model_loss(images, targets)
     self.test_step_loss.append(loss)
 
-    print(f'Loss:\n{loss}')
+    log(f'Loss:\n{loss}')
 
     outs = self.model(images)
     # print(f'Targets:\n{targets}')
-    print(f'Outs:\n{outs}')
+    # log(f'Outs:\n{outs}')
     predicted_boxes, target_boxes = self.get_step_boxes(outs, targets)
     iou, giou = self.calculate_iou_giou(predicted_boxes, target_boxes)
     self.test_step_iou.append(iou)
@@ -145,14 +145,14 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     # Disable gradiants so that the model does not learn from the validation data
     with torch.no_grad():
       loss_dict = self.model(images, targets)
-    print(f'Validation loss_dict {loss_dict}')
+    log(f'Model loss_dict {loss_dict}')
     loss = sum(loss for loss in loss_dict.values())
     self.model.eval()
     return loss, loss_dict
 
   def calculate_iou_giou(self, target_boxes, predicted_boxes):
-    print(f'Target boxes:\n{target_boxes}')
-    print(f'Predicted:\n{predicted_boxes}')
+    # log(f'Target boxes:\n{target_boxes}')
+    # log(f'Predicted:\n{predicted_boxes}')
 
     try:
       iou = torch.stack([evaluate_iou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
