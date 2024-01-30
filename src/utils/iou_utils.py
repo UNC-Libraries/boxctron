@@ -9,7 +9,7 @@ def evaluate_iou(target, pred):
     from model.
     """
     # Taken from pl-bolts
-    if pred.shape[0] == 0 || target.shape[0] == 0:
+    if pred.shape[0] == 0 or target.shape[0] == 0:
         # no box detected, 0 IOU
         return torch.tensor(0.0, device=pred.device)
     # return box_iou(target["boxes"], pred["boxes"]).diag().mean()
@@ -22,7 +22,7 @@ def evaluate_giou(target, pred):
     from model.
     """
 
-    if pred.shape[0] == 0 || target.shape[0] == 0:
+    if pred.shape[0] == 0 or target.shape[0] == 0:
         # no box detected, 0 IOU
         return torch.tensor(0.0, device=pred.device)
     # return generalized_box_iou(target["boxes"], pred["boxes"]).diag().mean()
