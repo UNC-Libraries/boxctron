@@ -15,6 +15,7 @@ from src.utils.resnet_utils import resnet_foundation_model
 from src.utils.iou_utils import evaluate_iou, evaluate_giou
 from torchvision.models.detection.faster_rcnn import (fasterrcnn_resnet50_fpn, FasterRCNN, FastRCNNPredictor,)
 import pdb
+from src.utils.common_utils import log
 
 # System for training a model to classify images as either containing a color bar or not.
 # It uses a resnet model as its foundation for transfer learning, then trains on top of that
@@ -153,9 +154,13 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     print(f'Target boxes:\n{target_boxes}')
     print(f'Predicted:\n{predicted_boxes}')
 
-    iou = torch.stack([evaluate_iou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
-    giou = torch.stack([evaluate_giou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
-    return (iou, giou)
+    try:
+      iou = torch.stack([evaluate_iou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
+      giou = torch.stack([evaluate_giou(t, o) for t, o in zip(target_boxes, predicted_boxes)]).mean()
+      return (iou, giou)
+    except Exception as e:
+      log(f'Failed to calculate IOU/GIOU for targets:\n{target_boxes}\nPrediced:\n{predicted_boxes}\nError was:\n{e}')
+    return (0, 0)
 
   def get_step_boxes(self, outs, targets):
     target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for t in targets]
