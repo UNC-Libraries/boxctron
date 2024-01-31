@@ -20,7 +20,7 @@ class TestColorBarClassifyingDataset:
     with open(config.image_list_path) as f:
       image_paths = [Path(p).resolve() for p in f.read().splitlines()]
     dataset = ColorBarClassifyingDataset(config, image_paths)
-    assert dataset.__len__() == 13
+    assert dataset.__len__() == 14
     item0 = dataset.__getitem__(0)
     assert list(item0[0].shape) == [3, 1333, 1333]
     assert item0[1] == 0
