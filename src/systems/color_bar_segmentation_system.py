@@ -71,11 +71,15 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     log('====validation_step====')
     loss, loss_dict = self.get_model_loss(images, targets)
     log(f'Validation loss_dict {loss_dict}')
-
-    # iou, giou = self.calculate_iou_giou(images, targets)
-    # print(f'Validation step iou {iou}, giou {giou}')
-
     self.validation_step_loss.append(loss)
+
+    outs = self.model(images)
+    # print(f'Targets:\n{targets}')
+    # log(f'Outs:\n{outs}')
+    predicted_boxes, target_boxes = self.get_step_boxes(outs, targets)
+    iou, giou = self.calculate_iou_giou(predicted_boxes, target_boxes)
+    self.validation_step_iou.append(iou)
+    self.validation_step_giou.append(giou)
     return loss
 
   def get_top_predicted(self, out_entry):
@@ -99,9 +103,13 @@ class ColorBarSegmentationSystem(pl.LightningModule):
   def on_validation_epoch_end(self):
     log("====On validation epoch end ====")
     avg_loss = torch.stack(self.validation_step_loss).mean()
+    avg_iou = torch.stack(self.validation_step_iou).mean()
+    avg_giou = torch.stack(self.validation_step_giou).mean()
     
     self.log_dict({
       'loss': avg_loss,
+      'validation_iou': avg_iou.item(),
+      'validation_giou': avg_giou.item(),
       }, on_step=False, on_epoch=True, prog_bar=self.config.enable_progress_bar, logger=True)
 
     # Evaluation step after all epochs of training have completed
@@ -129,7 +137,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
   def on_test_epoch_end(self):
     avg_iou = torch.stack(self.test_step_iou).mean()
     avg_giou = torch.stack(self.test_step_giou).mean()
-    avg_loss = torch.stack(self.validation_step_loss).mean()
+    avg_loss = torch.stack(self.test_step_loss).mean()
     results = {
       'loss': avg_loss.item(),
       'test_iou': avg_iou.item(),
