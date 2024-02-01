@@ -70,7 +70,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     images, targets = batch
     log('====validation_step====')
     loss, loss_dict = self.get_model_loss(images, targets)
-    log(f'Validation loss_dict {loss_dict}')
+    log(f'Validation loss_dict {loss} {loss_dict}')
     self.validation_step_loss.append(loss)
 
     outs = self.model(images)
@@ -154,7 +154,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     with torch.no_grad():
       loss_dict = self.model(images, targets)
     log(f'Model loss_dict {loss_dict}')
-    loss = sum(loss for loss in loss_dict.values())
+    self.config.loss_weights
+    loss = sum(self.config.loss_weights[key] * loss for key, loss in loss_dict.items())
     self.model.eval()
     return loss, loss_dict
 

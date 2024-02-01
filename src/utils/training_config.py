@@ -53,6 +53,8 @@ class TrainingConfig:
       self.validation_monitor_metric = data.get('validation_monitor_metric', 'val_fp_loss')
       # How to compare metric values across epochs, 'min' means lower values are better
       self.validation_monitor_mode = data.get('validation_monitor_mode', 'min')
+      # Weights for various types of loss, when calculating loss for a model that provides multiple metrics
+      self.loss_weights = data.get('loss_weights', {})
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
 

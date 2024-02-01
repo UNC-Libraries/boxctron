@@ -13,5 +13,6 @@
   "validation_monitor_metric" : "loss",
   "validation_monitor_mode" :  "min",
   "max_epochs" : 5,
-  "lr" : 0.001
+  "lr" : 0.001,
+  "loss_weights" : {"loss_classifier" : 1.0, "loss_box_reg" : 1.0, "loss_objectness" : 0.5, "loss_rpn_box_reg" : 0.5}
 }
