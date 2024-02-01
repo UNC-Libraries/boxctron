@@ -49,7 +49,6 @@ oauthlib==3.2.2
 packaging==23.1
 pandas==2.0.0
 Pillow==9.4.0
-pip==23.1
 platformdirs==3.2.0
 pluggy==1.0.0
 protobuf==4.22.3
@@ -72,7 +71,6 @@ s3transfer==0.6.0
 scikit-learn==1.2.2
 scipy==1.10.1
 seaborn==0.12.2
-setuptools==67.6.1
 six==1.16.0
 sympy==1.11.1
 tensorboard==2.12.2
@@ -81,7 +79,7 @@ tensorboard-plugin-wit==1.8.1
 threadpoolctl==3.1.0
 tomli==2.0.1
 tomlkit==0.11.7
-torch==2.1.2
+torch==2.1.1
 torchmetrics==0.11.4
 torchvision==0.16.1
 tqdm==4.65.0
@@ -89,7 +87,6 @@ typing_extensions==4.5.0
 tzdata==2023.3
 urllib3==1.26.15
 Werkzeug==2.2.3
-wheel==0.40.0
 wrapt==1.15.0
 yarl==1.8.2
 zipp==3.15.0
