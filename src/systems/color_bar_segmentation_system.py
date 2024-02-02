@@ -105,7 +105,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.test_step_target_boxes.extend([t.tolist() for t in target_boxes])
     for t in targets:
       self.test_step_image_paths.append(t['img_path'])
-    self.test_step_predicted_scores = self.get_top_scores(outs)
+    self.test_step_predicted_scores.extend(self.get_top_scores(outs))
     print(f'Test step iou {iou}, giou {giou}')
     return giou
 
