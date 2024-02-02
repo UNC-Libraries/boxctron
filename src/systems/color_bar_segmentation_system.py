@@ -74,28 +74,6 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.validation_step_giou.append(giou)
     return loss
 
-  # Takes output from the model for one item, and selects the bounding box with
-  # the highest score, assuming its higher than the minimum score threshold
-  def get_top_predicted(self, out_entry):
-    threshold = self.config.predict_rounding_threshold
-    scores = out_entry['scores']
-    if not torch.any(scores > threshold):
-      return {
-      'boxes' : torch.zeros((0, 4), dtype=torch.float32),
-      'labels' : torch.tensor([]),
-      'scores' : torch.zeros((0, 4), dtype=torch.float32)
-    }
-
-    top_index = scores.argmax().item()
-    return {
-      'boxes' : out_entry['boxes'][top_index].unsqueeze(0),
-      'labels' : torch.tensor([1]),
-      'scores' : out_entry['scores'][top_index].unsqueeze(0)
-    }
-
-  def get_top_scores(self, outs):
-    return [entry['scores'].argmax().item() for entry in outs]
-
   def on_validation_epoch_end(self):
     log("====On validation epoch end ====")
     avg_loss = torch.stack(self.validation_step_loss).mean()
@@ -171,6 +149,35 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     except Exception as e:
       log(f'Failed to calculate IOU/GIOU for targets:\n{target_boxes}\nPrediced:\n{predicted_boxes}\nError was:\n{e}')
     return (0, 0)
+
+  # Takes output from the model for one item, and selects the bounding box with
+  # the highest score, assuming its higher than the minimum score threshold
+  def get_top_predicted(self, out_entry):
+    threshold = self.config.predict_rounding_threshold
+    scores = out_entry['scores']
+    if not torch.any(scores > threshold):
+      return {
+      'boxes' : torch.zeros((0, 4), dtype=torch.float32),
+      'labels' : torch.tensor([]),
+      'scores' : torch.zeros((0, 4), dtype=torch.float32)
+    }
+
+    top_index = scores.argmax().item()
+    return {
+      'boxes' : out_entry['boxes'][top_index].unsqueeze(0),
+      'labels' : torch.tensor([1]),
+      'scores' : out_entry['scores'][top_index].unsqueeze(0)
+    }
+
+  def get_top_scores(self, outs):
+    top = []
+    for entry in outs:
+      scores = entry['scores']
+      if scores.shape[0] == 0:
+        top.append(0)
+      else:
+        top.append(scores.max().item())
+    return top
 
   # extract predicted and target bounding boxes
   def get_step_boxes(self, outs, targets):
