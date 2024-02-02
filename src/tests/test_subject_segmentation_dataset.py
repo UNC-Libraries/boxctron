@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 import random
-from src.datasets.color_bar_segmentation_dataset import ColorBarSegmentationDataset
+from src.datasets.subject_segmentation_dataset import SubjectSegmentationDataset
 from src.utils.training_config import TrainingConfig
 from src.utils.json_utils import to_json
 from torch import count_nonzero, all
@@ -13,7 +13,7 @@ def config(tmp_path):
     'image_list_path' : 'fixtures/mini_file_list.txt',
     'annotations_path' : 'fixtures/mini_annotations.json',
     'base_image_path' : str(Path("fixtures/normalized_images").resolve()),
-    'dataset_class' : 'src.datasets.color_bar_segmentation_dataset.ColorBarSegmentationDataset',
+    'dataset_class' : 'src.datasets.subject_segmentation_dataset.SubjectSegmentationDataset',
     'max_dimension' : 1333
   }, config_path)
   return TrainingConfig(config_path)
@@ -23,35 +23,11 @@ def image_paths(config):
   with open(config.image_list_path) as f:
     return [Path(p).resolve() for p in f.read().splitlines()]
 
-class TestColorBarSegmentationDataset:
-  def test_background_box_with_origin_vertical_bar(self, config, image_paths):
-    dataset = ColorBarSegmentationDataset(config, image_paths)
-    box = dataset.background_box([0, 0, 1, 0.3])
-    assert box == (0, 0.3, 1, 1)
-
-  def test_background_box_with_origin_horizontal_bar(self, config, image_paths):
-    dataset = ColorBarSegmentationDataset(config, image_paths)
-    box = dataset.background_box([0, 0, 0.3, 1])
-    assert box == (0.3, 0, 1, 1)
-
-  def test_background_box_with_offset_vertical_bar(self, config, image_paths):
-    dataset = ColorBarSegmentationDataset(config, image_paths)
-    box = dataset.background_box([0.25, 0, 1, 1])
-    assert box == (0, 0, 0.25, 1)
-
-  def test_background_box_with_offset_horizontal_bar(self, config, image_paths):
-    dataset = ColorBarSegmentationDataset(config, image_paths)
-    box = dataset.background_box([0, 0.4, 1, 1])
-    assert box == (0, 0, 1, 0.4)
-
-  def test_background_box_with_no_bar(self, config, image_paths):
-    dataset = ColorBarSegmentationDataset(config, image_paths)
-    box = dataset.background_box(None)
-    assert box == (0, 0, 1, 1)
+class TestSubjectSegmentationDataset:
 
   def test_with_simple_data(self, config, image_paths):
     random.seed(10)
-    dataset = ColorBarSegmentationDataset(config, image_paths)
+    dataset = SubjectSegmentationDataset(config, image_paths)
     assert dataset.__len__() == 14
     # assert len(dataset.image_dimensions) == len(dataset)
     # assert dataset.image_dimensions[0] == (1333, 964)
@@ -60,11 +36,11 @@ class TestColorBarSegmentationDataset:
     assert list(item0.shape) == [3, 1333, 1333] 
     # assert count_nonzero(mask0) == 0 # Negative example should have an all-zero mask
     assert len(dataset.labels) == 14
-     # Negative example, only bounding box is the background
-    # assert target0['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1333.0]]
-    assert target0['boxes'].data.tolist() == []
+     # Negative example, entire image is subject
+    assert target0['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1333.0]]
+    # assert target0['boxes'].data.tolist() == []
     # assert target0['labels'].data.tolist() == [0]
-    assert target0['labels'].data.tolist() == []
+    assert target0['labels'].data.tolist() == [1]
     item1, target1 = dataset.__getitem__(1)
     # mask1 = target1['masks'][0]
     assert list(item1.shape) == [3, 1333, 1333] # Check dimensions of cropped image
@@ -73,7 +49,7 @@ class TestColorBarSegmentationDataset:
     # assert count_nonzero(mask1) == 365242 # 274 * 1333 pixels are marked as color bars
     print(f"Image1 {target1['img_path']}")
     # assert target1['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1029.0], [0.0, 1029.0, 1333.0, 1333.0]]
-    assert target1['boxes'].data.tolist() == [[0.0, 1029.0, 1333.0, 1333.0]]
+    assert target1['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1025.0]]
     # assert target1['labels'].data.tolist() == [0, 1]
     assert target1['labels'].data.tolist() == [1]
     item2, target2 = dataset.__getitem__(6) # Has color bar with margins on all sides before rounding
@@ -87,7 +63,7 @@ class TestColorBarSegmentationDataset:
     print(f"Image2 {target2['img_path']}")
     # assert target2['boxes'].data.tolist() == [[0.0, 236.0, 1333.0, 1333.0], [0.0, 0.0, 1333.0, 236.0]]
     # assert target2['labels'].data.tolist() == [0, 1]
-    assert target2['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 236.0]]
+    assert target2['boxes'].data.tolist() == [[0.0, 232.0, 1333.0, 1333.0]]
     assert target2['labels'].data.tolist() == [1]
     # Uncomment to generate images with masks applied
     # dataset.visualize_tensor(item2, mask2)
@@ -96,5 +72,5 @@ class TestColorBarSegmentationDataset:
     item3, target3 = dataset.__getitem__(13)
     # assert target3['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1319.0], [0.0, 1319.0, 1333.0, 1333.0]]
     # assert target3['labels'].data.tolist() == [0, 1]
-    assert target3['boxes'].data.tolist() == [[0.0, 1319.0, 1333.0, 1333.0]]
+    assert target3['boxes'].data.tolist() == [[0.0, 0.0, 1333.0, 1319.0]]
     assert target3['labels'].data.tolist() == [1]

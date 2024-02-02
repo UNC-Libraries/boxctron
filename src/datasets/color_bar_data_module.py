@@ -21,18 +21,20 @@ class ColorBarDataModule(pl.LightningDataModule):
     self.val_dataset = config.dataset_class(config, val_paths, split='val')
     self.test_dataset = config.dataset_class(config, test_paths, split='test')
     self.train_dataset = config.dataset_class(config, train_paths, split='train')
+    self.collate_fn = config.dataset_class.collate_fn
+    print(f'Collate_fn {self.collate_fn}')
 
     self.batch_size = config.batch_size
     self.num_workers = config.num_workers
 
   def train_dataloader(self):
     return DataLoader(self.train_dataset, batch_size = self.batch_size,
-      shuffle = True, num_workers = self.num_workers)
+      shuffle = True, num_workers = self.num_workers, collate_fn = self.collate_fn, persistent_workers=True)
 
   def val_dataloader(self):
     return DataLoader(self.val_dataset, batch_size = self.batch_size,
-      num_workers = self.num_workers)
+      num_workers = self.num_workers, collate_fn = self.collate_fn, persistent_workers=True)
 
   def test_dataloader(self):
     return DataLoader(self.test_dataset, batch_size = self.batch_size,
-      num_workers = self.num_workers)
+      num_workers = self.num_workers, collate_fn = self.collate_fn, persistent_workers=True)

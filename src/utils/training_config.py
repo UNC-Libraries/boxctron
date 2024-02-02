@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import importlib
 from src.datasets.color_bar_classifying_dataset import ColorBarClassifyingDataset
+from src.systems.color_bar_classifying_system import ColorBarClassifyingSystem
 
 class TrainingConfig:
   def __init__(self, path):
@@ -13,12 +14,10 @@ class TrainingConfig:
       self.annotations_path = Path(data['annotations_path'])
       # Base path where image paths should be evaluated against
       self.base_image_path = Path(data.get('base_image_path', '/')).resolve()
+      # class for the system used for training the model
+      self.system_class = self.get_class_property(data, 'system_class', ColorBarClassifyingSystem)
       # dataset class to use to load the training data
-      self.dataset_class = data.get('dataset_class', ColorBarClassifyingDataset)
-      if isinstance(self.dataset_class, str):
-        ds_module, ds_class = self.dataset_class.rsplit(".", 1)
-        ds_module = importlib.import_module(ds_module)
-        self.dataset_class = getattr(ds_module, ds_class)
+      self.dataset_class = self.get_class_property(data, 'dataset_class', ColorBarClassifyingDataset)
       # Data module/optimizer settings
       # Size of batches to use in training
       self.batch_size = data.get('batch_size', 8)
@@ -50,6 +49,20 @@ class TrainingConfig:
       self.log_every_n_steps = data.get('log_every_n_steps', 10)
       # Only predictions with confidence higher than this threshold will be counted as matching the class
       self.predict_rounding_threshold = data.get('predict_rounding_threshold', 0.7)
+      # Metric that will be used to evaluate how well an epoch has performed
+      self.validation_monitor_metric = data.get('validation_monitor_metric', 'val_fp_loss')
+      # How to compare metric values across epochs, 'min' means lower values are better
+      self.validation_monitor_mode = data.get('validation_monitor_mode', 'min')
+      # Weights for various types of loss, when calculating loss for a model that provides multiple metrics
+      self.loss_weights = data.get('loss_weights', {})
     # Percentage of the dataset which will be used for the training dataset, which is the remainder not used for dev or test.
     self.train_percent = 1 - self.val_percent - self.test_percent
+
+  def get_class_property(self, data, prop_name, default_class):
+    class_val = data.get(prop_name, default_class)
+    if isinstance(class_val, str):
+      class_module, class_name = class_val.rsplit(".", 1)
+      class_module = importlib.import_module(class_module)
+      class_val = getattr(class_module, class_name)
+    return class_val
 

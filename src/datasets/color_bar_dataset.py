@@ -6,6 +6,8 @@ from src.utils.json_utils import from_json
 
 # Base dataset class for color bar data
 class ColorBarDataset(torch.utils.data.Dataset):
+  collate_fn = None
+
   def __init__(self, config, image_paths, split = 'train'):
     super().__init__()
     self.config = config

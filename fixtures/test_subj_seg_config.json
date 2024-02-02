@@ -1,0 +1,18 @@
+{
+  "image_list_path" : "fixtures/mini_file_list.txt",
+  "annotations_path" : "fixtures/mini_annotations.json",
+  "base_image_path" : "fixtures/normalized_images",
+  "system_class" : "src.systems.color_bar_segmentation_system.ColorBarSegmentationSystem",
+  "dataset_class" : "src.datasets.subject_segmentation_dataset.SubjectSegmentationDataset",
+  "max_dimension" : 1333,
+  "batch_size" : 3,
+  "test_percent": 0.25,
+  "val_percent": 0.25,
+  "save_dir" : "./artifacts/ckpts/subj-seg-train",
+  "log_every_n_steps" : 1,
+  "validation_monitor_metric" : "loss",
+  "validation_monitor_mode" :  "min",
+  "max_epochs" : 2,
+  "lr" : 0.001,
+  "loss_weights" : {"loss_classifier" : 1.0, "loss_box_reg" : 1.0, "loss_objectness" : 1.0, "loss_rpn_box_reg" : 1.0}
+}

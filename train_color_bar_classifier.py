@@ -1,86 +1,11 @@
 import os
 import argparse
-import torch
-import random
-import numpy as np
 from pathlib import Path
 from pprint import pprint
-from datetime import datetime
-
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import TensorBoardLogger
 
 from src.utils.training_config import TrainingConfig
-from src.datasets.color_bar_data_module import ColorBarDataModule
-from src.systems.color_bar_classifying_system import ColorBarClassifyingSystem
-from src.utils.json_utils import to_json
-
-class TrainColorBarClassifier:
-  def init_system(self, config_path):
-    r"""Instantiates a data module, pytorch lightning module, 
-    and lightning trainer instance.
-    """
-    # configuration files contain all hyperparameters
-    self.config = TrainingConfig(config_path)
-
-    # a data module wraps around training, dev, and test datasets
-    self.dm = ColorBarDataModule(self.config)
-
-    # a PyTorch Lightning system wraps around model logic
-    self.system = ColorBarClassifyingSystem(self.config)
-    self.log(f'Initializing system, saving to {self.config.save_dir}')
-
-    # a callback to save best model weights
-    checkpoint_callback = ModelCheckpoint(
-      dirpath = self.config.save_dir,
-      monitor = 'val_fp_loss',
-      mode = 'min',    # look for lowest `val_fp_loss`
-      save_last = True,
-      save_top_k = 1,  # save top 1 checkpoints
-      every_n_epochs=1,
-      verbose = True,
-    )
-
-    self.trainer = Trainer(
-      max_epochs = self.config.max_epochs,
-      log_every_n_steps = self.config.log_every_n_steps,
-      enable_progress_bar = self.config.enable_progress_bar,
-      logger = TensorBoardLogger(save_dir=self.config.log_dir),
-      callbacks = [checkpoint_callback])
-
-  def train_model(self):
-    self.log('Training model')
-    self.trainer.fit(self.system, self.dm)
-
-  def validation_evaluation(self):
-    self.log('Validation Evaluation')
-    self.trainer.validate(self.system, self.dm, ckpt_path = 'best')
-    incorrect_results = self.system.record_val_incorrect_predictions(self.dm.val_dataset)
-    self.log(f'Validation Incorrect Results\n{incorrect_results.to_csv(index=False)}')
-
-  def offline_test(self):
-    self.log('Testing model')
-    # Load the best checkpoint and compute results using `self.trainer.test`
-    self.trainer.test(self.system, self.dm, ckpt_path = 'best')
-
-    # results are saved into the system
-    results = self.system.test_results
-
-    # print results to command line
-    pprint(results)
-
-    incorrect_results = self.system.record_test_incorrect_predictions(self.dm.test_dataset)
-    self.log(f'Test Incorrect Results\n{incorrect_results.to_csv(index=False)}')
-
-    log_file = self.config.log_dir / 'results.json'
-    os.makedirs(str(log_file.parent), exist_ok = True)
-    to_json(results, log_file)  # save to disk
-    self.log('Training completed')
-
-  def log(self, message):
-    print(f'{datetime.now().isoformat()} {message}')
-
+from src.utils.color_bar_model_trainer import ColorBarModelTrainer
+from src.utils.common_utils import log
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Train color bar classifier.')
@@ -89,8 +14,16 @@ if __name__ == "__main__":
                     help='Path to training config')
   args = parser.parse_args()
 
-  train_classifier = TrainColorBarClassifier()
+  train_classifier = ColorBarModelTrainer()
   train_classifier.init_system(args.config)
+  log('Training model')
   train_classifier.train_model()
+  log('Validation Evaluation')
   train_classifier.validation_evaluation()
+  validation_incorrect = train_classifier.get_validation_incorrect_results_as_csv()
+  log(f"Validation Incorrect Results{validation_incorrect}")
+  log('Testing model')
   train_classifier.offline_test()
+  pprint(train_classifier.get_test_results())
+  train_classifier.write_test_results()
+  log(f'Test Incorrect Results\n{train_classifier.get_test_incorrect_results_as_csv()}')

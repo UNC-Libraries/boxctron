@@ -5,10 +5,12 @@ name = "pypi"
 
 [packages]
 pillow = "==9.4.0"
-torch = "==2.0.0"
-torchvision = ">=0.15.0"
-pytorch-lightning = "==2.0.0"
+torch = "=2.1.1"
+torchvision = ">=0.16.0"
+pytorch-lightning = ">=2.1.0"
 metaflow = "*"
+scipi = ">= 1.10.0"
+numpy = ">= 1.24.0"
 
 [dev-packages]
 pytest = "*"

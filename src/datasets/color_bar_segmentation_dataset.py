@@ -3,6 +3,11 @@ from src.datasets.color_bar_dataset import ColorBarDataset
 from src.utils.resnet_utils import load_for_resnet, load_mask_for_resnet
 from torchvision.transforms.functional import to_pil_image
 from torchvision.utils import draw_segmentation_masks
+from torchvision import tv_tensors
+from torchvision.transforms.v2 import functional as F
+from torchvision.ops import box_area
+import torch
+from torchvision import transforms
 
 from PIL import Image
 
@@ -13,15 +18,41 @@ from PIL import Image
 class ColorBarSegmentationDataset(ColorBarDataset):
   ROUNDING_THRESHOLD = 2.5
 
+  def collate_zip_fn(data):
+    zipped = zip(*data)
+    return tuple(zipped)
+
+  collate_fn = collate_zip_fn
+
   def __init__(self, config, image_paths, split = 'train'):
+    self.boxes = []
+    self.masks = []
     super().__init__(config, image_paths, split)
   
   # Must be overriden from parent class
   def __getitem__(self, index):
-    image_data = load_for_resnet(self.image_paths[index], self.config.max_dimension)
-    label_mask = load_mask_for_resnet(self.labels[index], self.config.max_dimension)
-    label_mask = label_mask.bool()
-    return image_data, label_mask
+    input_image = Image.open(self.image_paths[index])
+    preprocess = transforms.Compose([
+        # Resize image to standard dimensions, no padding
+        transforms.Resize((self.config.max_dimension, self.config.max_dimension)),
+        transforms.ToTensor(),
+    ])
+    image_data = preprocess(input_image)
+    # Convert to a pytorchvision image
+    image_data = tv_tensors.Image(image_data)
+    target = {}
+    # label_mask = load_mask_for_resnet(self.masks[index], self.config.max_dimension)
+    # label_mask = label_mask.bool()
+    target = {
+      'boxes' : tv_tensors.BoundingBoxes(self.boxes[index], format="XYXY", canvas_size=F.get_size(image_data)),
+      'area' : box_area(self.boxes[index]),
+      'image_id' : torch.tensor([index], dtype=torch.int64),
+      # 'masks' : [label_mask],
+      'labels' : torch.tensor(self.labels[index], dtype=torch.int64),
+      'img_path' : str(self.image_paths[index]),
+    }
+    # print(f'Getitem {target}')
+    return image_data, target
 
   # Helper function for displaying masks imposed on transformed image tensors
   def visualize_tensor(self, img, mask):
@@ -37,22 +68,66 @@ class ColorBarSegmentationDataset(ColorBarDataset):
       if not image_path:
         continue
       # Add image dimensions
-      w, h = None, None
-      with Image.open(image_path) as img:
-        w, h = img.width, img.height
-      self.image_dimensions.append((w, h))
+      w, h = self.config.max_dimension, self.config.max_dimension
       image_labels = path_to_labels[str(image_path)]
-      mask = zeros((h, w), dtype=bool)
+      # mask = zeros((h, w), dtype=bool)
+      bounding_boxes = []
+      bar_box = None
+      # labels = [0]
+      labels = []
+      original_width, original_height = w, h
+
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
-          width, height = self.round_to_edge(label['width']), self.round_to_edge(label['height'])
-          x, y = self.round_to_edge(label['x']), self.round_to_edge(label['y'])
-          x = int(x * label['original_width'])
-          y = int(y * label['original_height'])
-          x2 = x + int(width * label['original_width']) # bar width
-          y2 = y + int(height * label['original_height']) # bar height
-          mask[y:y2, x:x2] = 1 # Mark all pixels in the masked region with ones
-      self.labels.append(mask)
+          norm_x, norm_y, norm_x2, norm_y2 = self.round_box_to_edge(label)
+          x1, y1, x2, y2 = self.norms_to_pixels(norm_x, norm_y, norm_x2, norm_y2, w, h)
+          # bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
+          # bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
+          # bounding_boxes.append([bgx1, bgy1, bgx2, bgy2])
+          # mask[y1:y2, x1:x2] = 1 # Mark all pixels in the masked region with ones
+          bar_box = [x1, y1, x2, y2]
+          # bounding_boxes.append(bar_box)
+          labels.append(1)
+      self.labels.append(labels)
+      # self.masks.append(mask)
+      if bar_box == None:
+        self.boxes.append(torch.zeros((0, 4), dtype=torch.float32))
+      else:
+        self.boxes.append(torch.tensor([bar_box], dtype=torch.float32))
+      # if len(bounding_boxes) == 0:
+        # bounding_boxes.append([0, 0, w, h])
+      # self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
+
+  def norms_to_pixels(self, norm_x, norm_y, norm_x2, norm_y2, width, height):
+    x1 = int(norm_x * width)
+    y1 = int(norm_y * height)
+    x2 = int(norm_x2 * width) # bar width
+    y2 = int(norm_y2 * height) # bar height
+    return (x1, y1, x2, y2)
+
+  def background_box(self, bar_box):
+    if bar_box == None:
+      return (0, 0, 1, 1)
+    x, y, x2, y2 = 0, 0, 1, 1
+    if bar_box[0] == 0 and bar_box[2] != 1:
+      x = bar_box[2]
+    if bar_box[1] == 0 and bar_box[3] != 1:
+      y = bar_box[3]
+    if bar_box[0] != 0 and bar_box[2] == 1:
+      x2 = bar_box[0]
+    if bar_box[1] != 0 and bar_box[3] == 1:
+      y2 = bar_box[1]
+    return (x, y, x2, y2)
+
+  def round_box_to_edge(self, label):
+    label_w, label_h = label['width'], label['height']
+    x, y = label['x'], label['y']
+    x2, y2 = x + label_w, y + label_h
+    norm_x, norm_y = self.round_to_edge(x), self.round_to_edge(y)
+    norm_x2, norm_y2 = self.round_to_edge(x2), self.round_to_edge(y2)
+    if norm_x == norm_x2 or norm_y == norm_y2:
+      return (x / 100, y / 100, x2 / 100, y2 / 100)
+    return (norm_x, norm_y, norm_x2, norm_y2)
 
   # Rounds a percentage based coordinate to the nearest edge if it is within the
   # threshold, and converts the percentage to 0-1 form.
