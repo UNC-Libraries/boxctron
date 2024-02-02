@@ -12,7 +12,7 @@ def draw_bounding_boxes(img_path, output_path, resize_dims, boxes):
       img_path (str): Path to the input image file.
       output_path (str): Path to the output image file
       resize_dims (list): dimensions to resize image to, in form [w, h]
-      boxes (list): List of tensors containing coordinates in the format [[x1, y1, x2, y2]], with shape (N, 4).
+      boxes (list): List of coordinates in the format [[x1, y1, x2, y2]], with shape (N, 4).
   """
   with Image.open(img_path) as img:
     img = img.resize(resize_dims)
@@ -21,7 +21,7 @@ def draw_bounding_boxes(img_path, output_path, resize_dims, boxes):
     colors = itertools.cycle(["green", "red", "blue", "yellow"])
     for i, bounding_box in enumerate(boxes):
       color = next(colors)
-      box_list = bounding_box.tolist()
+      box_list = bounding_box
       if box_list:
         draw.rectangle(box_list, outline=color, width=4)
 

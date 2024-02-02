@@ -32,17 +32,9 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.test_step_giou = []
     self.test_step_loss = []
     self.test_step_predicted_boxes = []
+    self.test_step_predicted_scores = []
     self.test_step_target_boxes = []
     self.test_step_image_paths = []
-    # self.validation_step_acc = []
-    # self.validation_step_raw_predictions = []
-    # self.validation_step_predicted_segments = []
-    # self.validation_step_labels = []
-    # self.test_step_loss = []
-    # self.test_step_acc = []
-    # self.test_step_raw_predictions = []
-    # self.test_step_predicted_segments = []
-    # self.test_step_labels = []
 
     self.model = fasterrcnn_resnet50_fpn(pretrained=True, trainable_backbone_layers=3)
     in_features = self.model.roi_heads.box_predictor.cls_score.in_features
@@ -61,8 +53,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
 
     # fasterrcnn takes both images and targets for training
     loss_dict = self.model(images, targets)
-    log(f'Training loss {loss_dict}')
-    loss = sum(loss for loss in loss_dict.values())
+    loss = self.calculate_model_loss(loss_dict)
+    log(f'Training loss {loss} {loss_dict}')
     self.log_dict({'loss': loss}, on_step=True, on_epoch=False, prog_bar=True, logger=True)
     return loss
 
@@ -82,8 +74,10 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.validation_step_giou.append(giou)
     return loss
 
+  # Takes output from the model for one item, and selects the bounding box with
+  # the highest score, assuming its higher than the minimum score threshold
   def get_top_predicted(self, out_entry):
-    threshold = 0.1
+    threshold = self.config.predict_rounding_threshold
     scores = out_entry['scores']
     if not torch.any(scores > threshold):
       return {
@@ -99,6 +93,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
       'scores' : out_entry['scores'][top_index].unsqueeze(0)
     }
 
+  def get_top_scores(self, outs):
+    return [entry['scores'].argmax().item() for entry in outs]
 
   def on_validation_epoch_end(self):
     log("====On validation epoch end ====")
@@ -127,10 +123,11 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     iou, giou = self.calculate_iou_giou(predicted_boxes, target_boxes)
     self.test_step_iou.append(iou)
     self.test_step_giou.append(giou)
-    self.test_step_predicted_boxes.extend(predicted_boxes)
-    self.test_step_target_boxes.extend(target_boxes)
+    self.test_step_predicted_boxes.extend([t.tolist() for t in predicted_boxes])
+    self.test_step_target_boxes.extend([t.tolist() for t in target_boxes])
     for t in targets:
       self.test_step_image_paths.append(t['img_path'])
+    self.test_step_predicted_scores = self.get_top_scores(outs)
     print(f'Test step iou {iou}, giou {giou}')
     return giou
 
@@ -147,6 +144,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.log_dict(results, on_step=False, on_epoch=True, prog_bar=self.config.enable_progress_bar, logger=True)
     self.test_results = results
 
+  # Get loss from the model, and then weight the different types of loss according to config
   def get_model_loss(self, images, targets):
     # Enabling training mode so we get the same model specific metrics as during training for comparison
     self.model.train()
@@ -154,11 +152,14 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     with torch.no_grad():
       loss_dict = self.model(images, targets)
     log(f'Model loss_dict {loss_dict}')
-    self.config.loss_weights
-    loss = sum(self.config.loss_weights[key] * loss for key, loss in loss_dict.items())
+    loss = self.calculate_model_loss(loss_dict)
     self.model.eval()
     return loss, loss_dict
 
+  def calculate_model_loss(self, loss_dict):
+    return sum(self.config.loss_weights[key] * loss for key, loss in loss_dict.items())
+
+  # calculate the intersection of union metric for the best predicted boxes
   def calculate_iou_giou(self, target_boxes, predicted_boxes):
     # log(f'Target boxes:\n{target_boxes}')
     # log(f'Predicted:\n{predicted_boxes}')
@@ -171,17 +172,20 @@ class ColorBarSegmentationSystem(pl.LightningModule):
       log(f'Failed to calculate IOU/GIOU for targets:\n{target_boxes}\nPrediced:\n{predicted_boxes}\nError was:\n{e}')
     return (0, 0)
 
+  # extract predicted and target bounding boxes
   def get_step_boxes(self, outs, targets):
     target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for t in targets]
     top_predicted = [self.get_top_predicted(o) for o in outs]
     predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for o in top_predicted]
     return target_boxes, predicted_boxes
 
+  # return prediction results from the test run
   def get_test_set_predictions(self):
     return {
       'img_paths' : self.test_step_image_paths,
       'predicted_boxes' : self.test_step_predicted_boxes,
-      'target_boxes' : self.test_step_target_boxes
+      'predicted_scores' : self.test_step_predicted_scores,
+      'target_boxes' : self.test_step_target_boxes,
     }
 
   def configure_optimizers(self):
