@@ -28,21 +28,22 @@ class ColorBarSegmentationDataset(ColorBarDataset):
     self.boxes = []
     self.masks = []
     super().__init__(config, image_paths, split)
-  
-  # Must be overriden from parent class
-  def __getitem__(self, index):
-    input_image = Image.open(self.image_paths[index])
+
+  def normalize_image(path, max_dimension):
+    input_image = Image.open(path)
     preprocess = transforms.Compose([
         # Resize image to standard dimensions, no padding
-        transforms.Resize((self.config.max_dimension, self.config.max_dimension)),
+        transforms.Resize((max_dimension, max_dimension)),
         transforms.ToTensor(),
     ])
     image_data = preprocess(input_image)
     # Convert to a pytorchvision image
-    image_data = tv_tensors.Image(image_data)
+    return tv_tensors.Image(image_data)
+
+  # Must be overriden from parent class
+  def __getitem__(self, index):
+    image_data = ColorBarSegmentationDataset.normalize_image(self.image_paths[index], self.config.max_dimension)
     target = {}
-    # label_mask = load_mask_for_resnet(self.masks[index], self.config.max_dimension)
-    # label_mask = label_mask.bool()
     target = {
       'boxes' : tv_tensors.BoundingBoxes(self.boxes[index], format="XYXY", canvas_size=F.get_size(image_data)),
       'area' : box_area(self.boxes[index]),

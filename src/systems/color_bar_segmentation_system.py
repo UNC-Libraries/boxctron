@@ -105,7 +105,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.test_step_target_boxes.extend([t.tolist() for t in target_boxes])
     for t in targets:
       self.test_step_image_paths.append(t['img_path'])
-    self.test_step_predicted_scores = self.get_top_scores(outs)
+    self.test_step_predicted_scores = ColorBarSegmentationSystem.get_top_scores(outs)
     print(f'Test step iou {iou}, giou {giou}')
     return giou
 
@@ -152,8 +152,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
 
   # Takes output from the model for one item, and selects the bounding box with
   # the highest score, assuming its higher than the minimum score threshold
-  def get_top_predicted(self, out_entry):
-    threshold = self.config.predict_rounding_threshold
+  def get_top_predicted(config, out_entry):
+    threshold = config.predict_rounding_threshold
     scores = out_entry['scores']
     if not torch.any(scores > threshold):
       return {
@@ -169,7 +169,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
       'scores' : out_entry['scores'][top_index].unsqueeze(0)
     }
 
-  def get_top_scores(self, outs):
+  def get_top_scores(outs):
     top = []
     for entry in outs:
       scores = entry['scores']
@@ -182,7 +182,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
   # extract predicted and target bounding boxes
   def get_step_boxes(self, outs, targets):
     target_boxes = [next(iter(t['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for t in targets]
-    top_predicted = [self.get_top_predicted(o) for o in outs]
+    top_predicted = [ColorBarSegmentationSystem.get_top_predicted(self.config, o) for o in outs]
     predicted_boxes = [next(iter(o['boxes']), torch.zeros((0, 4), dtype=torch.float32, device=self.device)) for o in top_predicted]
     return target_boxes, predicted_boxes
 
