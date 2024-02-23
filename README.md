@@ -29,25 +29,9 @@ Dependencies are primarily being managed by conda in the longleaf environment, s
 
 
 # Longleaf environment
-We are using conda for managing the environment on ITS computing resources. The environment is captured in environment.yml, and creates an "envs" directory within the project directory.
-
-To recreate the environment:
-
+In the longleaf environment we are now using virtualenv as well, so installation instructions should be the same except that you will need to load the python module first:
 ```
-conda remove --prefix <path_to>/ml-repo-preingest-processing/envs --all
-
-module add anaconda/2023.03
-conda create --prefix ./envs -c pytorch -c nvidia -c conda-forge python=3.10 pillow=9.4 pytorch=2.1 torchvision=0.16 pytorch-lightning=2.1 metaflow=2.8 pytest=7.3 pytorch-cuda=11.8 tensorboard=2.12 pandas=2.0 seaborn=0.12 scikit-learn=1.2
-```
-To activate the environment, run tests, and deactivate it:
-```
-conda activate ./envs
-python -m pytest src/tests/
-conda deactivate
-```
-To sync the dependencies from conda t?o pip requirements (note, there will often be a few dependencies that are platform specific and need to be cleaned out, like mkl-*):
-```
-pip list --format=freeze > requirements.txt
+module add python/3.9.6
 ```
 
 # Normalizing files
@@ -59,13 +43,14 @@ It accepts a single file or a directory containing images. If a directory is pro
 python3 normalize.py -h
 ```
 
-# Model training
+# Classifier
+## Model training
 
 ```
 python train_color_bar_classifier.py
 ```
 
-# Applying classifier to images
+## Applying classifier to images
 
 This script makes use of a pretrained model to normalize and then classify images. The normalized files are stored under the path configured via the `output_base_path` field, recreating the original file path there to avoid collisions.
 
@@ -76,8 +61,21 @@ Example command:
 python classify.py -c /path/to/color_bars/ml-repo-its-config/configs/classify_locos_test.json /path/to/rbc/11500_popayan/11500_0006/ /path/to/color_bars/shared/reports/results.csv
 ```
 
+# Segmentation Model
+## Model training
 
-## Viewing training metrics
+```
+python train_color_bar_segmenter.py
+```
+
+## Applying segmentation model to images
+
+To use a pretrained model over a set of images (directories or individual files):
+```
+python segmenter_predict.py -c /path/to/color_bars/ml-repo-its-config/configs/segmenter_locos_test.json /path/to/rbc/11500_popayan/11500_0006/ /path/to/color_bars/shared/reports/seg_results.csv
+```
+
+# Viewing training metrics
 Training details are logged using tensorboard. They can be viewed by running:
 ```
 tensorboard --logdir logs/lightning_logs/version_1
