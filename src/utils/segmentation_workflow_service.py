@@ -5,6 +5,7 @@ from pathlib import Path
 from src.utils.image_segmenter import ImageSegmenter
 from src.utils.image_normalizer import ImageNormalizer
 from src.utils.progress_tracker import ProgressTracker
+from src.utils.segmentation_utils import round_box_to_edge, pixels_to_norms, norms_to_pixels
 import torch
 from PIL import Image
 
@@ -50,8 +51,12 @@ class SegmentationWorkflowService:
           if box_coords.shape[0] == 1:
             predicted_class = 1
             box_coords = box_coords[0].detach().numpy()
-            orig_box = self.rescale_bounding_box(box_coords, path)
-            norm_box = self.rescale_bounding_box(box_coords, normalized_path)
+            # Round the bounding box to the edges of the image if they are close
+            box_coords = self.round_box_to_image_edges(box_coords)
+            orig_w, orig_h = self.get_width_height(path)
+            norm_w, norm_h = self.get_width_height(normalized_path)
+            orig_box = self.rescale_bounding_box(box_coords, orig_w, orig_h)
+            norm_box = self.rescale_bounding_box(box_coords, norm_w, norm_h)
 
           csv_writer.writerow([path, normalized_path, predicted_class, "{:.4f}".format(top_score), orig_box, norm_box])
           self.progress_tracker.record_completed(path)
@@ -61,13 +66,18 @@ class SegmentationWorkflowService:
           print(f'Failed to process {path}: {e}')
           print(traceback.format_exc())
 
-  def rescale_bounding_box(self, bounding_box, src_image_path):
-    w, h = None, None
+  def round_box_to_image_edges(self, box_coords):
+    box_coords_normalized = pixels_to_norms(box_coords, self.config.max_dimension, self.config.max_dimension)
+    rounded = round_box_to_edge(box_coords_normalized)
+    return norms_to_pixels(rounded, self.config.max_dimension, self.config.max_dimension)
+
+  def get_width_height(self, src_image_path):
     with Image.open(src_image_path) as img:
-      w, h = img.width, img.height
+      return img.width, img.height
+
+  def rescale_bounding_box(self, bounding_box, w, h):
     # Dimension images were scales to in order to process them with the model
     max_dim = self.config.max_dimension
     x1, y1 = bounding_box[0] / max_dim * w, bounding_box[1] / max_dim * h
     x2, y2 = bounding_box[2] / max_dim * w, bounding_box[3] / max_dim * h
     return [x1, y1, x2, y2]
-

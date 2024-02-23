@@ -3,6 +3,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import logging
+from src.utils.segmentation_utils import get_top_predicted, get_top_scores
 from src.systems.color_bar_segmentation_system import ColorBarSegmentationSystem
 from src.datasets.color_bar_segmentation_dataset import ColorBarSegmentationDataset
 
@@ -25,7 +26,7 @@ class ImageSegmenter:
     image_batch = torch.unsqueeze(image_data, 0)
 
     outs = self.model(image_batch)
-    top_predicted = [ColorBarSegmentationSystem.get_top_predicted(self.config, o) for o in outs]
-    top_scores = ColorBarSegmentationSystem.get_top_scores(outs)
+    top_predicted = [get_top_predicted(self.config.predict_rounding_threshold, o) for o in outs]
+    top_scores = get_top_scores(outs)
 
     return top_predicted[0], top_scores[0]
