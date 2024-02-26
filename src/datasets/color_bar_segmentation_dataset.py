@@ -5,6 +5,7 @@ from torchvision.transforms.functional import to_pil_image
 from torchvision.utils import draw_segmentation_masks
 from torchvision import tv_tensors
 from torchvision.transforms.v2 import functional as F
+from src.utils.segmentation_utils import round_box_to_edge, norms_to_pixels
 from torchvision.ops import box_area
 import torch
 from torchvision import transforms
@@ -16,8 +17,6 @@ from PIL import Image
 # A normalized image of (3, h, w) and a mask of (1, h, w)
 # Where h and w are image dimensions after being resized for resnet
 class ColorBarSegmentationDataset(ColorBarDataset):
-  ROUNDING_THRESHOLD = 2.5
-
   def collate_zip_fn(data):
     zipped = zip(*data)
     return tuple(zipped)
@@ -28,21 +27,22 @@ class ColorBarSegmentationDataset(ColorBarDataset):
     self.boxes = []
     self.masks = []
     super().__init__(config, image_paths, split)
-  
-  # Must be overriden from parent class
-  def __getitem__(self, index):
-    input_image = Image.open(self.image_paths[index])
+
+  def normalize_image(path, max_dimension):
+    input_image = Image.open(path)
     preprocess = transforms.Compose([
         # Resize image to standard dimensions, no padding
-        transforms.Resize((self.config.max_dimension, self.config.max_dimension)),
+        transforms.Resize((max_dimension, max_dimension)),
         transforms.ToTensor(),
     ])
     image_data = preprocess(input_image)
     # Convert to a pytorchvision image
-    image_data = tv_tensors.Image(image_data)
+    return tv_tensors.Image(image_data)
+
+  # Must be overriden from parent class
+  def __getitem__(self, index):
+    image_data = ColorBarSegmentationDataset.normalize_image(self.image_paths[index], self.config.max_dimension)
     target = {}
-    # label_mask = load_mask_for_resnet(self.masks[index], self.config.max_dimension)
-    # label_mask = label_mask.bool()
     target = {
       'boxes' : tv_tensors.BoundingBoxes(self.boxes[index], format="XYXY", canvas_size=F.get_size(image_data)),
       'area' : box_area(self.boxes[index]),
@@ -79,13 +79,13 @@ class ColorBarSegmentationDataset(ColorBarDataset):
 
       for label in image_labels:
         if 'color_bar' in label['rectanglelabels']:
-          norm_x, norm_y, norm_x2, norm_y2 = self.round_box_to_edge(label)
-          x1, y1, x2, y2 = self.norms_to_pixels(norm_x, norm_y, norm_x2, norm_y2, w, h)
+          norms = self.round_label_to_edge(label)
+          coords = norms_to_pixels(norms, w, h)
           # bgnx1, bgny1, bgnx2, bgny2 = self.background_box((norm_x, norm_y, norm_x2, norm_y2))
           # bgx1, bgy1, bgx2, bgy2 = self.norms_to_pixels(bgnx1, bgny1, bgnx2, bgny2, w, h)
           # bounding_boxes.append([bgx1, bgy1, bgx2, bgy2])
           # mask[y1:y2, x1:x2] = 1 # Mark all pixels in the masked region with ones
-          bar_box = [x1, y1, x2, y2]
+          bar_box = coords
           # bounding_boxes.append(bar_box)
           labels.append(1)
       self.labels.append(labels)
@@ -98,42 +98,8 @@ class ColorBarSegmentationDataset(ColorBarDataset):
         # bounding_boxes.append([0, 0, w, h])
       # self.boxes.append(torch.tensor(bounding_boxes, dtype=torch.float32))
 
-  def norms_to_pixels(self, norm_x, norm_y, norm_x2, norm_y2, width, height):
-    x1 = int(norm_x * width)
-    y1 = int(norm_y * height)
-    x2 = int(norm_x2 * width) # bar width
-    y2 = int(norm_y2 * height) # bar height
-    return (x1, y1, x2, y2)
-
-  def background_box(self, bar_box):
-    if bar_box == None:
-      return (0, 0, 1, 1)
-    x, y, x2, y2 = 0, 0, 1, 1
-    if bar_box[0] == 0 and bar_box[2] != 1:
-      x = bar_box[2]
-    if bar_box[1] == 0 and bar_box[3] != 1:
-      y = bar_box[3]
-    if bar_box[0] != 0 and bar_box[2] == 1:
-      x2 = bar_box[0]
-    if bar_box[1] != 0 and bar_box[3] == 1:
-      y2 = bar_box[1]
-    return (x, y, x2, y2)
-
-  def round_box_to_edge(self, label):
-    label_w, label_h = label['width'], label['height']
-    x, y = label['x'], label['y']
+  def round_label_to_edge(self, label):
+    label_w, label_h = label['width'] / 100, label['height'] / 100
+    x, y = label['x'] / 100, label['y'] / 100
     x2, y2 = x + label_w, y + label_h
-    norm_x, norm_y = self.round_to_edge(x), self.round_to_edge(y)
-    norm_x2, norm_y2 = self.round_to_edge(x2), self.round_to_edge(y2)
-    if norm_x == norm_x2 or norm_y == norm_y2:
-      return (x / 100, y / 100, x2 / 100, y2 / 100)
-    return (norm_x, norm_y, norm_x2, norm_y2)
-
-  # Rounds a percentage based coordinate to the nearest edge if it is within the
-  # threshold, and converts the percentage to 0-1 form.
-  def round_to_edge(self, percent):
-    if percent > (100.0 - self.ROUNDING_THRESHOLD):
-      return 1.0
-    if percent < (0 + self.ROUNDING_THRESHOLD):
-      return 0.0
-    return percent / 100
+    return round_box_to_edge([x, y, x2, y2])
