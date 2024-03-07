@@ -43,6 +43,7 @@ class SegmentationWorkflowService:
 
         print(f"Processing {idx + 1} of {total}: {path}")
         try:
+          path = path.resolve()
           normalized_path = self.normalizer.process(path)
           top_predicted, top_score = self.segmenter.predict(normalized_path)
           box_coords = top_predicted['boxes']
