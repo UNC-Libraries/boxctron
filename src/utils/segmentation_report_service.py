@@ -61,10 +61,4 @@ class SegmentationReportService:
   def write_output_data(self):
     data_wrapper = { 'data' : self.output_data }
     to_json(data_wrapper, self.output_path / 'data.json')
-
-  # parses csv and creates a list of dictionaries  
-  def parse_csv(self, csv_path):
-    with open(csv_path, 'r', encoding='utf-8-sig') as f:
-      self.original_data = list(DictReader(f))
-    # self.add_review_columns()
     
