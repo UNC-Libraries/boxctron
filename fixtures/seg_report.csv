@@ -2,7 +2,7 @@ original_path,normalized_path,predicted_class,predicted_conf,orig_box,norm_box
 fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg,fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg,0,0.0000,,
 fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg,fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg,0,0.0000,,
 fixtures/normalized_images/gilmer/00276_op0204_0001.jpg,fixtures/normalized_images/gilmer/00276_op0204_0001.jpg,1,0.9990,"[0.0, 0.0, 1333.0, 218.25056264066018]","[0.0, 0.0, 1333.0, 218.25056264066018]"
-fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg,fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg,1,0.9996,"[0.0, 0.0, 163.01575393848464, 1333.0]","[0.0, 0.0, 163.01575393848464, 1333.0]"
+fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg,fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg,1,0.9996,"[0.0, 0.0, 163.01575393848464, 999.0]","[0.0, 0.0, 163.01575393848464, 999.0]"
 fixtures/normalized_images/ncc/P0004_0483_0001_verso.jpg,fixtures/normalized_images/ncc/P0004_0483_0001_verso.jpg,1,0.9905,"[0.0, 957.3105776444112, 1333.0, 1205.0]","[0.0, 957.3105776444112, 1333.0, 1205.0]"
 fixtures/normalized_images/ncc/P0004_0483_17486.jpg,fixtures/normalized_images/ncc/P0004_0483_17486.jpg,1,0.9965,"[0.0, 935.5468867216804, 1333.0, 1076.0]","[0.0, 935.5468867216804, 1333.0, 1076.0]"
 fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg,fixtures/normalized_images/ncc/G3902-F3-1981_U5_front.jpg,0,0.0600,,
