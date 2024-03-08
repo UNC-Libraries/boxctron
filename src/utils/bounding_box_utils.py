@@ -28,15 +28,12 @@ def draw_bounding_boxes(img_path, output_path, resize_dims, boxes, retain_ratio 
     resized_w, resized_h = img.width, img.height
     draw = ImageDraw.Draw(img)
 
-    colors = itertools.cycle(["green", "red", "blue", "yellow"])
+    colors = itertools.cycle(["red", "green", "blue", "yellow"])
     for i, bounding_box in enumerate(boxes):
       color = next(colors)
       if bounding_box:
         norms = pixels_to_norms(bounding_box, start_w, start_h)
         box_coords = norms_to_pixels(norms, resized_w, resized_h)
-        print(f'Start size {start_w} x {start_h}')
-        print(f'Resize size {resized_w} x {resized_h}')
-        print(f'Sart coords\n{bounding_box}\n{box_coords}')
         draw.rectangle(box_coords, outline=color, width=4)
 
     img.save(output_path)

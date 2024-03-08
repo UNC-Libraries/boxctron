@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from src.utils.json_utils import to_json
 from src.utils.bounding_box_utils import draw_bounding_boxes
+from src.utils.common_utils import log
 import json
 import shutil
 
@@ -28,6 +29,7 @@ class SegmentationReportService:
       # skip the headers
       next(datareader, None)
       for row in datareader:
+        log(f'Processing: {row[0]}')
         # generate annotated image, write to images directory
         image_path = self.generate_annotated_image(row)
         # convert csv data to output structure

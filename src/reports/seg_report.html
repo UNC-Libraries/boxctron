@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Segmentation Report</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div id="buttons" class="navbar-item">
+      <a href="data.csv" download="original_data" class="button is-primary">Original CSV</a>
+    </div>
+  </nav>
+  <main class="box">
+    <table id="imagesTable"></table>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js" integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.js"></script>
+
+  <script>
+    $(document).ready( () => {
+      $("#imagesTable").DataTable({
+        ajax: 'data.json',
+        renderer: "jquery",
+        deferRender: true,
+        responsive: true,
+        fixedHeader:{ header: true, footer: true },
+        ordering: true,
+        paging: true,
+        scrollY: true,
+        searching: true,
+        searchPanes: {viewTotal: true, columns: [2],layout: 'columns-4', initCollapsed: true},
+        dom: 'Plfrtip',
+        columns: [
+            { title: 'Image', data: 'image', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'},
+            { title: 'Path', data: 'original'},
+            { title: 'Class', data: 'pred_class'},
+            { title: 'Confidence', data: 'pred_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')}
+        ]
+      });
+
+      $("body").on('keydown', (e) => {
+        if (e.which == 37) {
+          $("table:visible").DataTable().page("previous").draw('page');
+        } else if (e.which == 39) {
+          $("table:visible").DataTable().page("next").draw("page");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
