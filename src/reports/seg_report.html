@@ -27,8 +27,9 @@
   <script>
     $(document).ready( () => {
       let pathSegments = window.location.pathname.split('/')
-      let reportName = pathSegments[pathSegments.length - 1];
+      let reportName = pathSegments[pathSegments.length - 2];
       let reviewPropertyName = "reviewItems_" + reportName;
+      $('#reviewLink').attr('download', reportName + '_review_data');
 
       let reviewItems = null;
       let getReviewItems = () => {
