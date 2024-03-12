@@ -44,38 +44,36 @@ class SegmentationReportService:
     destination_path = self.images_path / (str(norm_rel_path) + '.jpg')
     # Create parent directories for destination
     destination_path.parent.mkdir(parents=True, exist_ok=True)
-    boxes = self.get_norm_box_coords(row)
+    boxes = self.get_box_coords(row)
 
     draw_bounding_boxes(str(normalized_path), str(destination_path), [800, 800], boxes, retain_ratio = True)
     return destination_path
 
   # Box is problematic if 3 of its sides don't touch the edges of the image
-  def is_problematic_box(self, img_path, boxes):
+  def is_problematic_box(self, boxes):
     if len(boxes) == 0:
       return False
-    with Image.open(img_path) as img:
-      w, h = img.width, img.height
     count = 0
     count += boxes[0][0] == 0
     count += boxes[0][1] == 0
-    count += boxes[0][2] == w
-    count += boxes[0][3] == h
+    count += boxes[0][2] == 1
+    count += boxes[0][3] == 1
     return count != 3
 
-  def get_norm_box_coords(self, row):
-    if row[5]:
-      box_coords = json.loads(row[5])
+  def get_box_coords(self, row):
+    if row[4]:
+      box_coords = json.loads(row[4])
       return [box_coords]
     return []
 
   def csv_to_data(self, row, image_path):
     rel_path = image_path.relative_to(self.output_path)
-    boxes = self.get_norm_box_coords(row)
+    boxes = self.get_box_coords(row)
     return {
       'original' : row[0],
       'pred_class' : row[2],
       'pred_conf' : row[3],
-      'problem' : self.is_problematic_box(row[1], boxes),
+      'problem' : self.is_problematic_box(boxes),
       'image' : str(rel_path)
     }
 

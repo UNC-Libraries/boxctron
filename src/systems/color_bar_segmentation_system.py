@@ -13,7 +13,7 @@ import io
 from PIL import Image
 from src.utils.resnet_utils import resnet_foundation_model
 from src.utils.iou_utils import evaluate_iou, evaluate_giou
-from src.utils.segmentation_utils import get_top_predicted, get_top_scores
+from src.utils.segmentation_utils import get_top_predicted, get_top_scores, pixels_to_norms
 from torchvision.models.detection.faster_rcnn import (fasterrcnn_resnet50_fpn, FasterRCNN, FastRCNNPredictor,)
 import pdb
 from src.utils.common_utils import log
@@ -102,8 +102,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     iou, giou = self.calculate_iou_giou(predicted_boxes, target_boxes)
     self.test_step_iou.append(iou)
     self.test_step_giou.append(giou)
-    self.test_step_predicted_boxes.extend([t.tolist() for t in predicted_boxes])
-    self.test_step_target_boxes.extend([t.tolist() for t in target_boxes])
+    self.test_step_predicted_boxes.extend([pixels_to_norms(t.tolist(), self.config.max_dimension, self.config.max_dimension) for t in predicted_boxes])
+    self.test_step_target_boxes.extend([pixels_to_norms(t.tolist(), self.config.max_dimension, self.config.max_dimension) for t in target_boxes])
     for t in targets:
       self.test_step_image_paths.append(t['img_path'])
     self.test_step_predicted_scores = get_top_scores(outs)

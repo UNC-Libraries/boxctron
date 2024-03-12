@@ -13,7 +13,7 @@ def draw_bounding_boxes(img_path, output_path, resize_dims, boxes, retain_ratio 
       img_path (str): Path to the input image file.
       output_path (str): Path to the output image file
       resize_dims (list): dimensions to resize image to, in form [w, h]
-      boxes (list): List of coordinates in the format [[x1, y1, x2, y2]], with shape (N, 4).
+      boxes (list): List of normalized coordinates (range 0-1) in the format [[x1, y1, x2, y2]], with shape (N, 4).
       retain_ratio (boolean): if true, resize dimensions will be treated as max dimensions
           rather than exact dimensions in order to retain original aspect ratio.
   """
@@ -32,8 +32,7 @@ def draw_bounding_boxes(img_path, output_path, resize_dims, boxes, retain_ratio 
     for i, bounding_box in enumerate(boxes):
       color = next(colors)
       if bounding_box:
-        norms = pixels_to_norms(bounding_box, start_w, start_h)
-        box_coords = norms_to_pixels(norms, resized_w, resized_h)
+        box_coords = norms_to_pixels(bounding_box, resized_w, resized_h)
         draw.rectangle(box_coords, outline=color, width=4)
 
     img.save(output_path)
