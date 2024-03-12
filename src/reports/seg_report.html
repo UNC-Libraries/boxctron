@@ -63,7 +63,7 @@
         searchPanes: {viewTotal: true, columns: [2, 4],layout: 'columns-4', initCollapsed: true},
         dom: 'Plfrtip',
         columns: [
-            { title: 'Image', data: 'image', width: "25%", render: (d,t,r,m) => '<img src="'+d+'" style=height:200px; loading="lazy" />'},
+            { title: 'Image', data: 'image', width: "25%", render: (d,t,r,m) => '<a href="' + d + '" target="_blank"><img src="'+d+'" style=height:200px; loading="lazy" /></a>'},
             { title: 'Path', data: 'original'},
             { title: 'Class', data: 'pred_class'},
             { title: 'Confidence', data: 'pred_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')},
