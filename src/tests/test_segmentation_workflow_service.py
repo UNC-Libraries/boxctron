@@ -53,18 +53,16 @@ class TestSegmentationWorkflowService:
     with open(report_path, newline='') as f:
       reader = csv.reader(f)
       data = list(reader)
-      
+
       assert len(data) == 3
-      assert data[1][0] == 'fixtures/normalized_images/gilmer/00276_op0204_0001.jpg'
+      assert data[1][0].endswith('fixtures/normalized_images/gilmer/00276_op0204_0001.jpg')
       assert 'output/00276_op0204_0001.jpg' in data[1][1]
       assert data[1][2] == '1'
       assert data[1][3] == '0.8920'
-      assert data[1][4] == '[0.0, 0.0, 809.693359375, 254.203125]'
-      assert data[1][5] == '[0.0, 0.0, 324.36328125, 102.0]'
+      assert data[1][4] == '[0.0, 0.0, 0.6086533069610596, 0.19922031462192535]'
 
-      assert data[2][0] == 'fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg'
+      assert data[2][0].endswith('fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg')
       assert 'output/00276_op0204_0001_tiny.jpg' in data[2][1]
       assert data[2][2] == '0'
       assert data[2][3] == '0.0000'
       assert data[2][4] == ''
-      assert data[2][5] == ''

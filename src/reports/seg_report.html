@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Segmentation Report</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div id="buttons" class="navbar-item">
+      <a href="data.csv" download="original_data" class="button is-primary">Original CSV</a>
+      <a href="#" id="reviewLink" class="is-hiddens" download="reviewed_data">
+        <button id="reviewExportButton" class="button">Export reviewed items</button>
+      </a>
+    </div>
+  </nav>
+  <main class="box">
+    <table id="imagesTable"></table>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js" integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.6/r-2.5.0/sp-2.2.0/sl-1.7.0/datatables.min.js"></script>
+
+  <script>
+    $(document).ready( () => {
+      let pathSegments = window.location.pathname.split('/')
+      let reportName = pathSegments[pathSegments.length - 2];
+      let reviewPropertyName = "reviewItems_" + reportName;
+      $('#reviewLink').attr('download', reportName + '_review_data');
+
+      let reviewItems = null;
+      let getReviewItems = () => {
+        if (reviewItems === null) {
+          let reviewItemsString = localStorage.getItem(reviewPropertyName);
+          if (reviewItemsString === null) {
+            reviewItems = {};
+            localStorage.setItem(reviewPropertyName, "{}"); 
+          } else {
+            reviewItems = JSON.parse(reviewItemsString);
+          }
+        }
+        return reviewItems;
+      }
+
+      let persistReviewItems = () => {
+        localStorage.setItem(reviewPropertyName, JSON.stringify(reviewItems));
+        updateExportButton();
+      }
+
+      $("#imagesTable").DataTable({
+        ajax: 'data.json',
+        renderer: "jquery",
+        deferRender: true,
+        responsive: true,
+        fixedHeader:{ header: true, footer: true },
+        ordering: true,
+        paging: true,
+        scrollY: true,
+        searching: true,
+        searchPanes: {viewTotal: true, columns: [2, 4],layout: 'columns-4', initCollapsed: true},
+        dom: 'Plfrtip',
+        columns: [
+            { title: 'Image', data: 'image', width: "25%", render: (d,t,r,m) => '<a href="' + d + '" target="_blank"><img src="'+d+'" style=height:200px; loading="lazy" /></a>'},
+            { title: 'Path', data: 'original'},
+            { title: 'Class', data: 'pred_class'},
+            { title: 'Confidence', data: 'pred_conf', render: $.fn.dataTable.render.number(',', '.', 3, '')},
+            { title: 'Problem', data: 'problem', render: function (data, type, row, meta) {
+              if (data) {
+                return 'problem detected';
+              } else {
+                return '';
+              }
+            }},
+            {
+              data: null,
+              render: function (data, type, row, meta) {
+                let activeClass = (row['original'] in getReviewItems()) ? 'is-danger' : 'is-outlined';
+                return `<button class="review_button_incorrect button ${activeClass}" id="incorrect_${meta['row']}" name="review" value="incorrect" data-path="${row['original']}" data-predicted="${row['pred_class']}">Mark incorrect</button>`
+              },
+              targets: -1
+            }
+        ]
+      });
+
+      $("body").on('keydown', (e) => {
+        if (e.which == 37) {
+          $("table:visible").DataTable().page("previous").draw('page');
+        } else if (e.which == 39) {
+          $("table:visible").DataTable().page("next").draw("page");
+        }
+      });
+
+      let setReviewState = function(btn) {
+        let path = btn.data('path');
+        let predicted = btn.data('predicted');
+        let corrected = predicted == '1' ? '0' : '1';
+        reviewItems[path] = { 'predicted' : predicted, 'corrected' : corrected};
+        persistReviewItems();
+      }
+
+      let deleteReviewState = function(btn) {
+        let path = btn.data('path');
+        reviewItems.delete(path);
+        persistReviewItems();
+      }
+
+      let updateExportButton = () => {
+        $('#reviewExportButton').html(`Export ${Object.keys(getReviewItems()).length} reviewed items`)
+      }
+
+      $('#imagesTable').on('click', '.review_button_incorrect', function() {
+        let btn = $(this);
+        if (btn.hasClass('is-outlined')) {
+          btn.removeClass('is-outlined');
+          btn.addClass('is-danger');
+          setReviewState(btn);
+        } else {
+          btn.removeClass('is-danger');
+          btn.addClass('is-outlined');
+          deleteReviewState(btn);
+        }
+      });
+
+      $("#reviewExportButton").click( () => {
+        let csvContent = "data:text/csv;charset=utf-8,"
+        csvContent += "path,predicted_class,corrected_class\n"
+        csvContent += Object.entries(reviewItems).map(e => `${e[0]}, ${e[1]["predicted"]}, ${e[1]["corrected"]}`).join("\n")
+        console.log(csvContent);
+        let encodedUri = encodeURI(csvContent);
+        $("#reviewLink").attr("href", encodedUri)
+        $("#reviewLink").trigger("click");
+      })
+
+      updateExportButton();
+    });
+  </script>
+</body>
+</html>

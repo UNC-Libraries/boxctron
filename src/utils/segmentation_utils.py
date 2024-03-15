@@ -75,6 +75,8 @@ def round_to_edge(coord):
   return coord
 
 def norms_to_pixels(norms, width, height):
+  if len(norms) == 0:
+    return ()
   x1 = int(norms[0] * width)
   y1 = int(norms[1] * height)
   x2 = int(norms[2] * width) # bar width
@@ -82,6 +84,8 @@ def norms_to_pixels(norms, width, height):
   return (x1, y1, x2, y2)
 
 def pixels_to_norms(coords, width, height):
+  if len(coords) == 0:
+    return ()
   norm_x1 = coords[0] / width
   norm_y1 = coords[1] / height
   norm_x2 = coords[2] / width
