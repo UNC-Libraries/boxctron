@@ -63,6 +63,7 @@ class SegmentationWorkflowService:
             if is_problematic_box(box_norms):
               try:
                 extended = extend_bounding_box_to_edges(box_norms)
+                print(f"   Problem detected with bounding box, extending to edges.")
               except InvalidBoundingBoxException as e:
                 print(e.message)
           csv_writer.writerow([path, normalized_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
