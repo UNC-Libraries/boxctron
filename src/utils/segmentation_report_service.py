@@ -2,7 +2,7 @@ import csv
 import os
 from pathlib import Path
 from src.utils.json_utils import to_json
-from src.utils.bounding_box_utils import draw_bounding_boxes
+from src.utils.bounding_box_utils import draw_bounding_boxes, is_problematic_box, get_box_coords
 from src.utils.common_utils import log
 from PIL import Image
 import json
@@ -48,23 +48,6 @@ class SegmentationReportService:
 
     draw_bounding_boxes(str(normalized_path), str(destination_path), [800, 800], boxes, retain_ratio = True)
     return destination_path
-
-  # Box is problematic if 3 of its sides don't touch the edges of the image
-  def is_problematic_box(self, boxes):
-    if len(boxes) == 0:
-      return False
-    count = 0
-    count += boxes[0][0] == 0
-    count += boxes[0][1] == 0
-    count += boxes[0][2] == 1
-    count += boxes[0][3] == 1
-    return count != 3
-
-  def get_box_coords(self, row):
-    if row[4]:
-      box_coords = json.loads(row[4])
-      return [box_coords]
-    return []
 
   def csv_to_data(self, row, image_path):
     rel_path = image_path.relative_to(self.output_path)
