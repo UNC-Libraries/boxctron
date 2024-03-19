@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import os
 from PIL import Image
-from src.utils.bounding_box_utils import draw_bounding_boxes, draw_result_bounding_boxes, extend_bounding_box_to_edges, InvalidBoundingBoxException
+from src.utils.bounding_box_utils import draw_bounding_boxes, draw_result_bounding_boxes, is_problematic_box, extend_bounding_box_to_edges, InvalidBoundingBoxException
 
 @pytest.fixture
 def test_image(tmp_path):
@@ -39,6 +39,22 @@ class TestBoundingBoxUtils:
     # Check if the output image has the expected size
     with Image.open(output_img_path) as img:
       assert img.size == (120, 120)
+
+  def test_is_problematic_box_one_edge(self):
+    coords = [0.0, 0.10288684844970702, 0.0860845947265625, 0.88]
+    assert is_problematic_box(coords)
+
+  def test_is_problematic_box_two_edges(self):
+    coords = [0.0, 0.0, 0.0860845947265625, 0.88]
+    assert is_problematic_box(coords)
+
+  def test_is_problematic_box_three_edges(self):
+    coords = [0.0, 0.0, 0.0860845947265625, 1.0]
+    assert not is_problematic_box(coords)
+
+  def test_is_problematic_box_none(self):
+    coords = None
+    assert not is_problematic_box(coords)
 
   def test_extend_bounding_box_to_edges_one_edge_left(self):
     coords = [0.0, 0.10288684844970702, 0.0860845947265625, 0.88]

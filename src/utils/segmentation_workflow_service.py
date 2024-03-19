@@ -6,6 +6,7 @@ from src.utils.image_segmenter import ImageSegmenter
 from src.utils.image_normalizer import ImageNormalizer
 from src.utils.progress_tracker import ProgressTracker
 from src.utils.segmentation_utils import round_box_to_edge, pixels_to_norms, norms_to_pixels
+from src.utils.bounding_box_utils import is_problematic_box, extend_bounding_box_to_edges
 import torch
 from PIL import Image
 
@@ -13,7 +14,7 @@ from PIL import Image
 # detection/segmentation to make predictions on normalized versions of those images.
 # The outcome is written to a CSV file at the provided report_path.
 class SegmentationWorkflowService:
-  CSV_HEADERS = ['original_path', 'normalized_path', 'predicted_class', 'predicted_conf', 'bounding_box']
+  CSV_HEADERS = ['original_path', 'normalized_path', 'predicted_class', 'predicted_conf', 'bounding_box', 'extended_box']
 
   def __init__(self, config, report_path, restart = False):
     self.config = config
@@ -48,6 +49,7 @@ class SegmentationWorkflowService:
           top_predicted, top_score = self.segmenter.predict(normalized_path)
           box_coords = top_predicted['boxes']
           box_norms = None
+          extended_box = None
           predicted_class = 0
           orig_box, norm_box = None, None
           # If a bounding box was returned, then convert coordinates to percentages and round to edges
@@ -57,7 +59,13 @@ class SegmentationWorkflowService:
             box_norms = self.normalize_coords(box_coords)
             # Round the bounding box to the edges of the image if they are close
             box_norms = list(round_box_to_edge(box_norms))
-          csv_writer.writerow([path, normalized_path, predicted_class, "{:.4f}".format(top_score), box_norms])
+            # If box isn't usable for cropping, try extending to edges
+            if is_problematic_box(box_norms):
+              try:
+                extended = extend_bounding_box_to_edges(box_norms)
+              except InvalidBoundingBoxException as e:
+                print(e.message)
+          csv_writer.writerow([path, normalized_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
           self.progress_tracker.record_completed(path)
         except (KeyboardInterrupt, SystemExit) as e:
           exit(1)

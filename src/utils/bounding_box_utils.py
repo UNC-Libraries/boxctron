@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw
 import itertools
+import json
 from pathlib import Path
 from src.utils.segmentation_utils import pixels_to_norms, norms_to_pixels
 
@@ -43,26 +44,26 @@ def draw_result_bounding_boxes(img_paths, base_output_path, resize_dims, target_
     draw_bounding_boxes(img_path, base_output_path / img_path.name, resize_dims, [entry[1], entry[2]])
 
 # Box is problematic if 3 of its sides don't touch the edges of the image
-def is_problematic_box(boxes):
-  if len(boxes) == 0:
+def is_problematic_box(coords):
+  if coords == None:
     return False
-  count = number_sides_at_image_edge(boxes)
+  count = number_sides_at_image_edge(coords)
   return count != 3
 
-def number_sides_at_image_edge(boxes):
+def number_sides_at_image_edge(coords):
   count = 0
-  count += boxes[0][0] == 0
-  count += boxes[0][1] == 0
-  count += boxes[0][2] == 1
-  count += boxes[0][3] == 1
+  count += coords[0] == 0
+  count += coords[1] == 0
+  count += coords[2] == 1
+  count += coords[3] == 1
   return count
 
 # Load the coordinates of a bounding box from a CSV row
-def get_box_coords(row):
-  if row[4]:
-    box_coords = json.loads(row[4])
-    return [box_coords]
-  return []
+def get_box_coords(row, index = 4):
+  if row[index]:
+    box_coords = json.loads(row[index])
+    return box_coords
+  return None
 
 # Used to extend a bounding box that is only touching 1 or 2 image edges, so that it touches 3
 # edges so that it is usable for cropping
