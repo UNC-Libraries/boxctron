@@ -31,6 +31,7 @@ class CroppingWorkflowService:
       for row in csv_reader:
         original_path = Path(row[0]).resolve()
         if self.is_excluded(original_path) or not self.has_color_bar(row):
+          log(f'Skipping {original_path}')
           continue
         box_coords = get_box_coords(row)
         if is_problematic_box(box_coords):
@@ -80,4 +81,5 @@ class CroppingWorkflowService:
 
   def cropped_image_output_path(self, img_path):
     relative_path = img_path.relative_to(self.originals_base_path)
+    relative_path = relative_path.parent / (relative_path.stem + ".jpg")
     return self.output_path / relative_path

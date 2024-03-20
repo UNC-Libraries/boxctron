@@ -6,7 +6,7 @@ from src.utils.image_segmenter import ImageSegmenter
 from src.utils.image_normalizer import ImageNormalizer
 from src.utils.progress_tracker import ProgressTracker
 from src.utils.segmentation_utils import round_box_to_edge, pixels_to_norms, norms_to_pixels
-from src.utils.bounding_box_utils import is_problematic_box, extend_bounding_box_to_edges
+from src.utils.bounding_box_utils import is_problematic_box, extend_bounding_box_to_edges, InvalidBoundingBoxException
 import torch
 from PIL import Image
 
@@ -62,7 +62,7 @@ class SegmentationWorkflowService:
             # If box isn't usable for cropping, try extending to edges
             if is_problematic_box(box_norms):
               try:
-                extended = extend_bounding_box_to_edges(box_norms)
+                extended_box = extend_bounding_box_to_edges(box_norms)
                 print(f"   Problem detected with bounding box, extending to edges.")
               except InvalidBoundingBoxException as e:
                 print(e.message)
