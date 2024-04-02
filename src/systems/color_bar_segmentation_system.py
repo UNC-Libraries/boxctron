@@ -14,7 +14,7 @@ from PIL import Image
 from src.utils.resnet_utils import resnet_foundation_model
 from src.utils.iou_utils import evaluate_iou, evaluate_giou
 from src.utils.segmentation_utils import get_top_predicted, get_top_scores, pixels_to_norms
-from torchvision.models.detection.faster_rcnn import (fasterrcnn_resnet50_fpn, FasterRCNN, FastRCNNPredictor,)
+from torchvision.models.detection.faster_rcnn import (fasterrcnn_resnet50_fpn_v2, FasterRCNN, FastRCNNPredictor,)
 import pdb
 from src.utils.common_utils import log
 
@@ -37,7 +37,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.test_step_target_boxes = []
     self.test_step_image_paths = []
 
-    self.model = fasterrcnn_resnet50_fpn(pretrained=True, trainable_backbone_layers=3)
+    self.model = fasterrcnn_resnet50_fpn_v2(pretrained=True, trainable_backbone_layers=3)
     in_features = self.model.roi_heads.box_predictor.cls_score.in_features
     num_classes = 2
     self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
