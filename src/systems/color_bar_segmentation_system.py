@@ -55,11 +55,16 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     # fasterrcnn takes both images and targets for training
     loss_dict = self.model(images, targets)
     loss = self.calculate_model_loss(loss_dict)
-    log(f'Training loss {loss} {loss_dict}')
+    log(f'Training loss {loss}')
     self.log_dict({'loss': loss}, on_step=True, on_epoch=False, prog_bar=True, logger=True)
     return loss
 
   def validation_step(self, batch, batch_idx):
+    if batch_idx == 0:
+      self.validation_step_loss.clear()
+      self.validation_step_iou.clear()
+      self.validation_step_giou.clear()
+
     images, targets = batch
     log('====validation_step====')
     loss, loss_dict = self.get_model_loss(images, targets)
