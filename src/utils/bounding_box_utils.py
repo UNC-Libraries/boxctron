@@ -99,4 +99,6 @@ def extend_bounding_box_to_edges(box_coords):
   return coords
 
 class InvalidBoundingBoxException(Exception):
-    pass
+  def __init__(self, message):
+    self.message = message
+    super().__init__(message)
