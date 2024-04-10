@@ -21,7 +21,8 @@ class SegmentationWorkflowService:
     self.report_path = report_path
     self.normalizer = ImageNormalizer(config)
     self.segmenter = ImageSegmenter(config)
-    self.progress_tracker = ProgressTracker(config.progress_log_path)
+    progress_log_path = report_path.parent / (report_path.stem + "_progress.log")
+    self.progress_tracker = ProgressTracker(progress_log_path)
     if restart:
       print(f'Restarting progress tracking and reporting')
       self.progress_tracker.reset_log()
