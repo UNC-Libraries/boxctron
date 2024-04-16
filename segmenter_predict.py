@@ -2,6 +2,7 @@ from src.utils.segmentation_workflow_service import SegmentationWorkflowService
 from src.utils.classifier_config import ClassifierConfig
 import argparse
 from pathlib import Path
+from src.utils.common_utils import add_expanded_dir, recursive_paths_from_file_list
 
 parser = argparse.ArgumentParser(description='Use a trained model to segment images in a directory. Normalized versions of the images will be produced if they are not already present')
 parser.add_argument('src_path', type=Path,
@@ -26,21 +27,8 @@ print(f'For types: {extensions}')
 
 config = ClassifierConfig(path=args.config)
 
-def add_expanded_dir(dir_path, paths):
-  for p in Path(dir_path).glob("**/*"):
-    if p.suffix in extensions:
-      paths.append(p)
-  return paths
-
 if args.file_list:
-  with open(args.src_path) as f:
-    paths = []
-    for line in f.read().splitlines():
-      path = Path(line.strip())
-      if path.is_dir():
-        add_expanded_dir(path, paths)
-      else:
-        paths.append(path)
+  paths = recursive_paths_from_file_list(args.src_path)
 elif args.src_path.is_dir():
   paths = add_expanded_dir(args.src_path, [])
 else:
