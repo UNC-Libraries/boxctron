@@ -42,7 +42,6 @@ class ColorBarSegmentationDataset(ColorBarDataset):
   # Must be overriden from parent class
   def __getitem__(self, index):
     image_data = ColorBarSegmentationDataset.normalize_image(self.image_paths[index], self.config.max_dimension)
-    target = {}
     target = {
       'boxes' : tv_tensors.BoundingBoxes(self.boxes[index], format="XYXY", canvas_size=F.get_size(image_data)),
       'area' : box_area(self.boxes[index]),

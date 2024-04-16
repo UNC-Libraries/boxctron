@@ -28,9 +28,9 @@ print(f'For types: {extensions}')
 config = ClassifierConfig(path=args.config)
 
 if args.file_list:
-  paths = recursive_paths_from_file_list(args.src_path)
+  paths = recursive_paths_from_file_list(args.src_path, extensions)
 elif args.src_path.is_dir():
-  paths = add_expanded_dir(args.src_path, [])
+  paths = add_expanded_dir(args.src_path, [], extensions)
 else:
   paths = [args.src_path]
 
