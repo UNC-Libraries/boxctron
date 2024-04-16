@@ -29,15 +29,15 @@ class ColorBarSegmentationDataset(ColorBarDataset):
     super().__init__(config, image_paths, split)
 
   def normalize_image(path, max_dimension):
-    input_image = Image.open(path)
-    preprocess = transforms.Compose([
-        # Resize image to standard dimensions, no padding
-        transforms.Resize((max_dimension, max_dimension)),
-        transforms.ToTensor(),
-    ])
-    image_data = preprocess(input_image)
-    # Convert to a pytorchvision image
-    return tv_tensors.Image(image_data)
+    with Image.open(path) as input_image:
+      preprocess = transforms.Compose([
+          # Resize image to standard dimensions, no padding
+          transforms.Resize((max_dimension, max_dimension)),
+          transforms.ToTensor(),
+      ])
+      image_data = preprocess(input_image)
+      # Convert to a pytorchvision image
+      return tv_tensors.Image(image_data)
 
   # Must be overriden from parent class
   def __getitem__(self, index):
