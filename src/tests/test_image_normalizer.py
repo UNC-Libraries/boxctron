@@ -3,6 +3,7 @@ from PIL import Image
 from src.utils.image_normalizer import ImageNormalizer
 from src.utils.config import Config
 from pathlib import Path
+import shutil
 
 @pytest.fixture
 def config(tmp_path):
@@ -165,4 +166,15 @@ class TestImageNormalizer:
     result = Image.open(config.output_base_path / 'images/blue.jpg')
     assert result.width == 256
 
+  def test_process_malformed_jp2(self, config):
+    src_path = config.src_base_path / 'malformed.jp2'
+    shutil.copyfile(Path('fixtures/source_images/malformed.jp2'), src_path)
+    subject = ImageNormalizer(config)
+
+    subject.process(src_path)
+    result = Image.open(config.output_base_path / 'malformed.jpg')
+    assert result.width == 565
+    assert result.height == 224
+    assert result.mode == 'RGB'
+    result.show()
   

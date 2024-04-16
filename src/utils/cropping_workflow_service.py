@@ -6,7 +6,7 @@ from src.utils.image_segmenter import ImageSegmenter
 from src.utils.segmentation_utils import round_box_to_edge, pixels_to_norms, norms_to_pixels, background_box
 from src.utils.bounding_box_utils import is_problematic_box, get_box_coords, number_sides_at_image_edge
 import torch
-from PIL import Image
+from PIL import Image, ImageFile
 from src.utils.common_utils import log
 
 # Service which accepts a prediction CSV, and generates cropped versions of listed original
@@ -19,6 +19,8 @@ class CroppingWorkflowService:
     self.exclusions_path = exclusions_path
     self.originals_base_path = originals_base_path.resolve()
     self.cropped_paths = []
+    # Prevent pillow from throwing an exception when reading truncated images
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
   
   def process(self):
     # Load exclusion paths
