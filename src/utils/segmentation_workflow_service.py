@@ -56,6 +56,7 @@ class SegmentationWorkflowService:
         except BaseException as e:
           print(f'Failed to process {path}: {e}')
           print(traceback.format_exc())
+
         # Accumulated a batch worth of images, or this is the final image
         if len(batch_norm_paths) == self.config.batch_size or idx == (len(paths) - 1):
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
