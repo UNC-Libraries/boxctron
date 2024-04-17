@@ -4,7 +4,7 @@ class TestCachedFileList:
   def test_with_directory(self, tmp_path):
     self.setup_test_dir(tmp_path)
 
-    subject = CachedFileList(self.base_path, { "jpg", "tiff" })
+    subject = CachedFileList(self.base_path, { ".jpg", ".tiff" })
     try:
       assert len(subject) == 3
       paths = self.collect_paths(subject)
@@ -17,20 +17,20 @@ class TestCachedFileList:
 
   def test_with_directory_from_cache(self, tmp_path):
     self.setup_test_dir(tmp_path)
-    subject = CachedFileList(self.base_path, { "jpg", "tiff" })
+    subject = CachedFileList(self.base_path, { ".jpg", ".tiff" })
     try:
       assert len(subject) == 3
 
       # Create an extra file that won't be picked up without a refresh
       file_path5 = self.nested_path1 / "file5.jpg"
       self.write_file(file_path5)
-      subject = CachedFileList(self.base_path, { "jpg", "tiff" })
+      subject = CachedFileList(self.base_path, { ".jpg", ".tiff" })
       paths = self.collect_paths(subject)
       assert len(subject) == 3
       assert not file_path5 in paths
 
       # Initialize with refresh so that we pick up the extra item
-      subject = CachedFileList(self.base_path, { "jpg", "tiff" }, True)
+      subject = CachedFileList(self.base_path, { ".jpg", ".tiff" }, True)
       paths = self.collect_paths(subject)
       assert len(subject) == 4
       assert file_path5 in paths
@@ -47,7 +47,7 @@ class TestCachedFileList:
       print(str(self.base_path), file=file)
       print(str(file_path5), file=file)
 
-    subject = CachedFileList(file_list_path, { "jpg", "tiff" })
+    subject = CachedFileList(file_list_path, { ".jpg", ".tiff" })
     try:
       assert len(subject) == 4
       paths = self.collect_paths(subject)
@@ -69,20 +69,20 @@ class TestCachedFileList:
       print(str(self.base_path), file=file)
       print(str(file_path5), file=file)
 
-    subject = CachedFileList(file_list_path, { "jpg", "tiff" })
+    subject = CachedFileList(file_list_path, { ".jpg", ".tiff" })
     try:
       assert len(subject) == 4
 
       # Create an extra file that won't be picked up without a refresh
       file_path6 = self.nested_path1 / "file6.jpg"
       self.write_file(file_path6)
-      subject = CachedFileList(file_list_path, { "jpg", "tiff" })
+      subject = CachedFileList(file_list_path, { ".jpg", ".tiff" })
       paths = self.collect_paths(subject)
       assert len(subject) == 4
       assert not file_path6 in paths
 
       # Initialize with refresh so that we pick up the extra item
-      subject = CachedFileList(file_list_path, { "jpg", "tiff" }, True)
+      subject = CachedFileList(file_list_path, { ".jpg", ".tiff" }, True)
       paths = self.collect_paths(subject)
       assert len(subject) == 5
       assert file_path6 in paths
