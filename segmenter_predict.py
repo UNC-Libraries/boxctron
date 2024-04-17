@@ -2,7 +2,7 @@ from src.utils.segmentation_workflow_service import SegmentationWorkflowService
 from src.utils.classifier_config import ClassifierConfig
 import argparse
 from pathlib import Path
-from src.utils.common_utils import add_expanded_dir, recursive_paths_from_file_list
+from src.utils.cached_file_list import CachedFileList
 
 parser = argparse.ArgumentParser(description='Use a trained model to segment images in a directory. Normalized versions of the images will be produced if they are not already present')
 parser.add_argument('src_path', type=Path,
@@ -12,11 +12,13 @@ parser.add_argument('report_path', type=Path,
 parser.add_argument('-c', '--config', type=Path,
                     help='If provided, config will be loaded from this file instead of commandline options')
 parser.add_argument('-e', '--extensions', default='tif,tiff,jp2,jpg,jpf,jpx,png',
-                    help='List of comma separated file extensions to filter by when operating on a directory. Default: tif,tiff,jp2,jpg,jpf,jpx,png'),
+                    help='List of comma separated file extensions to filter by when operating on a directory. Default: tif,tiff,jp2,jpg,jpf,jpx,png')
 parser.add_argument('-l', '--file-list', action="store_true",
-                    help='If provided, then the src_path will be treated as a text file containing a list of newline separated paths to normalize.'),
+                    help='If provided, then the src_path will be treated as a text file containing a list of newline separated paths to normalize.')
 parser.add_argument('-r', '--restart', action="store_true",
-                    help='If provided, then the progress log and CSV report will be discarded and processing will start from the beginning'),
+                    help='If provided, then the progress log and CSV report will be discarded and processing will start from the beginning')
+parser.add_argument('--refresh', action="store_true",
+                    help='If provided, then the list of files to process will be refreshed from disk')
 
 
 args = parser.parse_args()
@@ -27,10 +29,8 @@ print(f'For types: {extensions}')
 
 config = ClassifierConfig(path=args.config)
 
-if args.file_list:
-  paths = recursive_paths_from_file_list(args.src_path, extensions)
-elif args.src_path.is_dir():
-  paths = add_expanded_dir(args.src_path, [], extensions)
+if args.file_list or args.src_path.is_dir():
+  paths = CachedFileList(args.src_path, extensions, args.refresh)
 else:
   paths = [args.src_path]
 
