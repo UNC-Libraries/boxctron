@@ -39,12 +39,11 @@ class CachedFileList(list):
         print(str(p), file=self.file)
 
   def recursive_paths_from_file_list(self):
-    print("Recursiving")
     with open(self.file_path) as f:
       for line in f.read().splitlines():
         path = Path(line.strip())
-        print(f"With path {path}")
         if path.is_dir():
+          print(f"Expanding path {path}")
           self.add_expanded_dir(path)
         else:
           print(str(path), file=self.file)

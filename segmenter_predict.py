@@ -29,8 +29,10 @@ print(f'For types: {extensions}')
 
 config = ClassifierConfig(path=args.config)
 
+path = None
 if args.file_list or args.src_path.is_dir():
   paths = CachedFileList(args.src_path, extensions, args.refresh)
+  print(f'Found {len(paths)} paths for processing')
 else:
   paths = [args.src_path]
 
