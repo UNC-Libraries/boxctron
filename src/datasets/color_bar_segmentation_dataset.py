@@ -1,6 +1,4 @@
-from numpy import zeros
 from src.datasets.color_bar_dataset import ColorBarDataset
-from src.utils.resnet_utils import load_for_resnet, load_mask_for_resnet
 from torchvision.transforms.functional import to_pil_image
 from torchvision.utils import draw_segmentation_masks
 from torchvision import tv_tensors
@@ -30,12 +28,12 @@ class ColorBarSegmentationDataset(ColorBarDataset):
 
   def normalize_image(path, max_dimension):
     with Image.open(path) as input_image:
-      preprocess = transforms.Compose([
-          # Resize image to standard dimensions, no padding
-          transforms.Resize((max_dimension, max_dimension)),
-          transforms.ToTensor(),
-      ])
-      image_data = preprocess(input_image)
+      w, h = input_image.size
+      # Only resize if the image is not already at the correct size
+      if w != max_dimension or h != max_dimension:
+        # Resizing image with PIL rather than torch for memory efficiency
+        input_image = input_image.resize((max_dimension, max_dimension))
+      image_data = transforms.ToTensor()(input_image)
       # Convert to a pytorchvision image
       return tv_tensors.Image(image_data)
 

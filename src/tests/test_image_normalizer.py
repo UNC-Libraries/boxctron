@@ -176,5 +176,4 @@ class TestImageNormalizer:
     assert result.width == 565
     assert result.height == 224
     assert result.mode == 'RGB'
-    result.show()
   
