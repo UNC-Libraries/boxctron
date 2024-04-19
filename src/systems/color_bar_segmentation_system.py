@@ -53,7 +53,7 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     images, targets = batch
 
     # fasterrcnn takes both images and targets for training
-    print(f"==== Memory1: {torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()}")
+    print(f"==== Memory1: {torch.cuda.memory_allocated()} {torch.cuda.max_memory_allocated()}")
     loss_dict = self.model(images, targets)
     return 1
     loss = self.calculate_model_loss(loss_dict)

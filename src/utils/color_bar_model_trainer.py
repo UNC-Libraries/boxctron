@@ -28,7 +28,7 @@ class ColorBarModelTrainer:
     # a PyTorch Lightning system wraps around model logic
     self.system = self.config.system_class(self.config)
     log(f'Initializing system, saving to {self.config.save_dir}')
-    print(f"==== MemoryI: {torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()}")
+    print(f"==== MemoryI: {torch.cuda.memory_allocated()} {torch.cuda.max_memory_allocated()}")
 
     # a callback to save best model weights
     checkpoint_callback = ModelCheckpoint(
@@ -50,7 +50,7 @@ class ColorBarModelTrainer:
       callbacks = [checkpoint_callback])
 
   def train_model(self):
-    print(f"==== Memory0: {torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated()}")
+    print(f"==== Memory0: {torch.cuda.memory_allocated()} {torch.cuda.max_memory_allocated()}")
     self.trainer.fit(self.system, self.dm)
 
   def validation_evaluation(self):
