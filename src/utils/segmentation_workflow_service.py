@@ -49,9 +49,9 @@ class SegmentationWorkflowService:
 
         print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
         path = path.resolve()
-        batch_orig_paths.append(path)
         try:
           batch_norm_paths.append(self.normalizer.process(path))
+          batch_orig_paths.append(path)
         except (KeyboardInterrupt, SystemExit) as e:
           exit(1)
         except BaseException as e:
