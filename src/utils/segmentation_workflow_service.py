@@ -46,7 +46,7 @@ class SegmentationWorkflowService:
           print(f"Skipping {idx + 1} of {total}: {path}")
           continue
 
-        print(f"Processing {idx + 1} of {total}: {path}")
+        print(f"Processing {idx + 1} of {total}: {path} {len(batch_orig_paths)} / {self.config.batch_size}")
         path = path.resolve()
         batch_orig_paths.append(path)
         try:
