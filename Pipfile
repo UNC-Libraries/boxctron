@@ -11,6 +11,7 @@ pytorch-lightning = ">=2.1.0"
 metaflow = "*"
 scipi = ">= 1.10.0"
 numpy = ">= 1.24.0"
+psutil
 
 [dev-packages]
 pytest = "*"
