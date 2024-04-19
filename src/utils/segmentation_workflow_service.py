@@ -46,6 +46,10 @@ class SegmentationWorkflowService:
         if self.progress_tracker.is_complete(path):
           print(f"Skipping {idx + 1} of {total}: {path}")
           continue
+        if self.unprocessable_filename(path):
+          print(f"Skipping {idx + 1} of {total} due to filename: {path}")
+          self.progress_tracker.record_completed(path)
+          continue
 
         print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
         path = path.resolve()
@@ -97,3 +101,7 @@ class SegmentationWorkflowService:
 
   def normalize_coords(self, box_coords):
     return pixels_to_norms(box_coords, self.config.max_dimension, self.config.max_dimension)
+
+  def unprocessable_filename(self, path):
+    # ignore sidecar files
+    return path.stem.startswith("._")
