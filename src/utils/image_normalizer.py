@@ -1,7 +1,6 @@
 from PIL import Image, ImageFile
 from pathlib import Path
 import logging
-import psutil
 
 # Utility for normalizing images based on a configuration.
 # Currently normalizes all files to JPGs
@@ -22,19 +21,14 @@ class ImageNormalizer:
       logging.info('Derivative already exists, skipping %s', path)
       return output_path
 
-
-    print(f"Memoryn1: {psutil.virtual_memory()}")
     with Image.open(path) as img:
-      print(f"Memoryr2: {psutil.virtual_memory()}")
+      # Resize before converting, so that we are working with a smaller image to keep down memory usage
       img = self.resize(img)
-      print(f"Memoryn3: {psutil.virtual_memory()}")
       if img.mode != "RGB":
         img = img.convert("RGB")
-      print(f"Memoryn4: {psutil.virtual_memory()}")
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
-      print(f"Memoryn5: {psutil.virtual_memory().percent}")
     return output_path
 
   # Constructs an output path based on the input path and configured base paths.

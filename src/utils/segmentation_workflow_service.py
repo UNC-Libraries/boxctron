@@ -9,7 +9,6 @@ from src.utils.segmentation_utils import round_box_to_edge, pixels_to_norms, nor
 from src.utils.bounding_box_utils import is_problematic_box, extend_bounding_box_to_edges, InvalidBoundingBoxException
 import torch
 from PIL import Image
-import psutil
 
 # Service which accepts a list of image original files, then performs object
 # detection/segmentation to make predictions on normalized versions of those images.
@@ -53,18 +52,15 @@ class SegmentationWorkflowService:
           continue
 
         print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
-        print(f"Memory1: {psutil.virtual_memory()}")
         path = path.resolve()
         try:
           batch_norm_paths.append(self.normalizer.process(path))
-          print(f"Memory2: {psutil.virtual_memory()}")
           batch_orig_paths.append(path)
         except (KeyboardInterrupt, SystemExit) as e:
           exit(1)
         except BaseException as e:
           print(f'Failed to process {path}: {e}')
           print(traceback.format_exc())
-        print(f"Memory3: {psutil.virtual_memory()}")
 
         # Accumulated a batch worth of images, or this is the final image
         if len(batch_orig_paths) >= batch_size or idx == (len(paths) - 1):
