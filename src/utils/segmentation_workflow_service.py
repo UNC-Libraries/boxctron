@@ -32,6 +32,7 @@ class SegmentationWorkflowService:
   def process(self, paths):
     total = len(paths)
     is_new_file = not Path.exists(self.report_path) or os.path.getsize(self.report_path) == 0
+    batch_size = int(self.config.batch_size)
 
     with open(self.report_path, "a", newline="") as csv_file:
       csv_writer = csv.writer(csv_file)
@@ -46,7 +47,7 @@ class SegmentationWorkflowService:
           print(f"Skipping {idx + 1} of {total}: {path}")
           continue
 
-        print(f"Processing {idx + 1} of {total}: {path} {len(batch_orig_paths)} / {self.config.batch_size}")
+        print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
         path = path.resolve()
         batch_orig_paths.append(path)
         try:
@@ -58,7 +59,7 @@ class SegmentationWorkflowService:
           print(traceback.format_exc())
 
         # Accumulated a batch worth of images, or this is the final image
-        if len(batch_norm_paths) == self.config.batch_size or idx == (len(paths) - 1):
+        if len(batch_orig_paths) >= batch_size or idx == (len(paths) - 1):
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
           for batch_idx, orig_path in enumerate(batch_orig_paths):
             normalized_path = batch_norm_paths[batch_idx]
