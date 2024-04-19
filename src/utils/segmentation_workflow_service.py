@@ -53,18 +53,18 @@ class SegmentationWorkflowService:
           continue
 
         print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
-        print(f"Memory1: {psutil.virtual_memory().percent}")
+        print(f"Memory1: {psutil.virtual_memory()}")
         path = path.resolve()
         try:
           batch_norm_paths.append(self.normalizer.process(path))
-          print(f"Memory2: {psutil.virtual_memory().percent}")
+          print(f"Memory2: {psutil.virtual_memory()}")
           batch_orig_paths.append(path)
         except (KeyboardInterrupt, SystemExit) as e:
           exit(1)
         except BaseException as e:
           print(f'Failed to process {path}: {e}')
           print(traceback.format_exc())
-        print(f"Memory3: {psutil.virtual_memory().percent}")
+        print(f"Memory3: {psutil.virtual_memory()}")
 
         # Accumulated a batch worth of images, or this is the final image
         if len(batch_orig_paths) >= batch_size or idx == (len(paths) - 1):

@@ -23,17 +23,18 @@ class ImageNormalizer:
       return output_path
 
 
-    print(f"Memoryn1: {psutil.virtual_memory().percent}")
+    print(f"Memoryn1: {psutil.virtual_memory()}")
     with Image.open(path) as img:
+      print(f"Memoryn2: {psutil.virtual_memory()}")
       if img.mode != "RGB":
         img = img.convert("RGB")
-      print(f"Memoryn2: {psutil.virtual_memory().percent}")
+      print(f"Memoryn3: {psutil.virtual_memory()}")
       img = self.resize(img)
-      print(f"Memoryn3: {psutil.virtual_memory().percent}")
+      print(f"Memoryn4: {psutil.virtual_memory()}")
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)
-      print(f"Memoryn4: {psutil.virtual_memory().percent}")
+      print(f"Memoryn5: {psutil.virtual_memory().percent}")
     return output_path
 
   # Constructs an output path based on the input path and configured base paths.
