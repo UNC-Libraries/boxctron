@@ -12,6 +12,7 @@ from src.datasets.color_bar_data_module import ColorBarDataModule
 from src.systems.color_bar_classifying_system import ColorBarClassifyingSystem
 from src.utils.json_utils import to_json
 from src.utils.common_utils import log
+import torch
 
 class ColorBarModelTrainer:
   def init_system(self, config_path):
