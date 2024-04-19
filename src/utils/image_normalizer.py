@@ -25,11 +25,11 @@ class ImageNormalizer:
 
     print(f"Memoryn1: {psutil.virtual_memory()}")
     with Image.open(path) as img:
-      print(f"Memoryn2: {psutil.virtual_memory()}")
+      print(f"Memoryr2: {psutil.virtual_memory()}")
+      img = self.resize(img)
+      print(f"Memoryn3: {psutil.virtual_memory()}")
       if img.mode != "RGB":
         img = img.convert("RGB")
-      print(f"Memoryn3: {psutil.virtual_memory()}")
-      img = self.resize(img)
       print(f"Memoryn4: {psutil.virtual_memory()}")
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
