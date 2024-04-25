@@ -16,6 +16,7 @@ def config(tmp_path):
   conf.predict_rounding_threshold = 0.5
   conf.max_dimension = 512
   conf.min_dimension = 512
+  conf.batch_size = 2
   return conf
 
 @pytest.fixture
@@ -27,8 +28,7 @@ def mock_model():
                               [  0.0000,   6.4033, 512.0000, 119.0521]]),
         'labels': torch.tensor([1, 1, 1]),
         'scores': torch.tensor([0.8920, 0.0657, 0.0568])
-      }]
-    value2 = [{
+      }, {
         'boxes': torch.zeros((0, 4), dtype=torch.float32),
         'labels': torch.tensor([], dtype=torch.int64),
         'scores': torch.tensor([], dtype=torch.float32)}]
@@ -38,7 +38,7 @@ def mock_model():
         'scores': torch.tensor([0.8920])
       }]
     # each call to model(image) will return a different set of outputs
-    model_mock.side_effect = [value1, value2, value3]
+    model_mock.side_effect = [value1, value3]
     return model_mock
 
 @pytest.fixture

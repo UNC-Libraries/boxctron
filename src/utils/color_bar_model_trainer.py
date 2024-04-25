@@ -40,6 +40,7 @@ class ColorBarModelTrainer:
     )
 
     self.trainer = Trainer(
+      profiler="advanced",
       num_sanity_val_steps = 0,
       max_epochs = self.config.max_epochs,
       log_every_n_steps = self.config.log_every_n_steps,

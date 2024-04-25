@@ -18,15 +18,16 @@ class ImageSegmenter:
     self.model = ColorBarSegmentationSystem.load_from_checkpoint(self.config.model_path, map_location = self.device)
     self.model.eval()
 
-  # path - path to image to make predictions on, generally a resized version of the image
-  # returns [predicted class, confidence]
-  def predict(self, path):
-    image_data = ColorBarSegmentationDataset.normalize_image(path, self.config.max_dimension)
-    # Turn the image into a batch of one image
-    image_batch = torch.unsqueeze(image_data, 0)
+  # paths - paths of images to make predictions on, generally a resized version of the image
+  # returns [list of predicted classes, list of confidences]
+  def predict(self, paths):
+    batch_data = torch.empty(len(paths), 3, self.config.max_dimension, self.config.max_dimension)
+    for i, path in enumerate(paths):
+        image_data = ColorBarSegmentationDataset.normalize_image(path, self.config.max_dimension)
+        batch_data[i] = image_data
 
-    outs = self.model(image_batch)
+    outs = self.model(batch_data)
     top_predicted = [get_top_predicted(self.config.predict_rounding_threshold, o) for o in outs]
     top_scores = get_top_scores(outs)
 
-    return top_predicted[0], top_scores[0]
+    return top_predicted, top_scores

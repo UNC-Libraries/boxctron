@@ -136,3 +136,4 @@ logs/*.json
 .metaflow
 lightning_logs
 artifacts
+*-cache.txt

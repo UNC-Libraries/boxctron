@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageFile
 from pathlib import Path
 import logging
 
@@ -8,6 +8,8 @@ class ImageNormalizer:
   def __init__(self, config):
     # Disable DecompressionBombError since many of our images are huge
     Image.MAX_IMAGE_PIXELS = None
+    # Prevent pillow from throwing an exception when reading truncated images
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
     self.config = config
 
   # Normalize an image to the expected configuration, saving the normalized version to an configured output path
@@ -20,9 +22,10 @@ class ImageNormalizer:
       return output_path
 
     with Image.open(path) as img:
+      # Resize before converting, so that we are working with a smaller image to keep down memory usage
+      img = self.resize(img)
       if img.mode != "RGB":
         img = img.convert("RGB")
-      img = self.resize(img)
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
       img.save(output_path, "JPEG", optimize=True, quality=80)

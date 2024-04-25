@@ -11,6 +11,7 @@ class ClassifierConfig:
     self.output_base_path = Path('.')
     self.src_base_path = None
     self.progress_log_path = None
+    self.batch_size = None
     self.force = False
     if path != None:
       self.load_config(path)
@@ -24,8 +25,9 @@ class ClassifierConfig:
       self.model_path = Path(data['model_path']) if 'model_path' in data else None
       # Max dimension size which images will be normalized to
       self.max_dimension = data.get('max_dimension', None)
-      self.min_dimension = data.get('min_dimension', None)
+      self.min_dimension = data.get('min_dimension', self.max_dimension)
       self.output_base_path = Path(data['output_base_path']) if 'output_base_path' in data else None
       self.src_base_path = Path(data['src_base_path']) if 'src_base_path' in data else None
       self.progress_log_path = Path(data['progress_log_path']) if 'progress_log_path' in data else None
+      self.batch_size = data.get('batch_size', 10)
       self.force = bool(data.get('force', False))
