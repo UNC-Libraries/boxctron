@@ -52,10 +52,10 @@ class CachedFileList(list):
   def add_file_path(self, path):
     if path.suffix in self.extensions:
       file_size = path.stat().st_size
-      print(f'File size {file_size} >= {self.minimum_bytes}')
       if file_size >= self.minimum_bytes:
         print(str(path), file=self.file)
-
+      else:
+        print(f"Skipping small file {path}")
 
   def __iter__(self):
     self.file = open(self.cache_path, "r")
