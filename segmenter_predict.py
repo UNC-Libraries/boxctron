@@ -19,6 +19,8 @@ parser.add_argument('-r', '--restart', action="store_true",
                     help='If provided, then the progress log and CSV report will be discarded and processing will start from the beginning')
 parser.add_argument('--refresh', action="store_true",
                     help='If provided, then the list of files to process will be refreshed from disk')
+parser.add_argument('-b', '--minimum-bytes', type=int, default=128000,
+                    help='Minimum size of files to process, in bytes. Default: 128000')
 
 
 args = parser.parse_args()
@@ -31,7 +33,7 @@ config = ClassifierConfig(path=args.config)
 
 path = None
 if args.file_list or args.src_path.is_dir():
-  paths = CachedFileList(args.src_path, extensions, args.refresh)
+  paths = CachedFileList(args.src_path, extensions, args.refresh, minimum_bytes = args.minimum_bytes)
   print(f'Found {len(paths)} paths for processing')
 else:
   paths = [args.src_path]

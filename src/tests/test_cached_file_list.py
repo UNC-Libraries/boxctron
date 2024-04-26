@@ -37,6 +37,23 @@ class TestCachedFileList:
     finally:
       subject.cache_path.unlink()
 
+  def test_with_directory_files_too_small(self, tmp_path):
+    self.setup_test_dir(tmp_path)
+    subject = CachedFileList(self.base_path, { ".jpg", ".tiff" }, minimum_bytes = 20000)
+    try:
+      assert len(subject) == 0
+
+      # Increase size of the first file to above the threshold
+      self.write_file(self.file_path1, num_kb = 32)
+      subject = CachedFileList(self.base_path, { ".jpg", ".tiff" }, True, minimum_bytes = 20000)
+
+      assert len(subject) == 1
+      paths = self.collect_paths(subject)
+      assert len(subject) == 1
+      assert self.file_path1 in paths
+    finally:
+      subject.cache_path.unlink()
+
   def test_with_file_list(self, tmp_path):
     self.setup_test_dir(tmp_path)
     file_path5 = tmp_path / "file5.tiff"
@@ -102,9 +119,12 @@ class TestCachedFileList:
     self.write_file(self.file_path2)
     self.write_file(self.file_path3)
     
-  def write_file(self, file_path):
-    with open(file_path, "w") as text_file:
-      text_file.write(str(file_path))
+  def write_file(self, file_path, num_kb = 8):
+    content = "content!" * 128
+    with open(file_path, "a") as binary_file:
+      for _ in range(num_kb):
+        binary_file.write(content)
+    print(f"Wrote file {file_path.stat()}")
 
   def collect_paths(self, subject):
     paths = []
