@@ -63,7 +63,7 @@ class SegmentationReportService:
       'original' : row[0],
       'pred_class' : row[2],
       'pred_conf' : row[3],
-      'problem' : is_problematic_box(boxes),
+      'problem' : bool(row[5]),
       'image' : str(rel_path)
     }
 

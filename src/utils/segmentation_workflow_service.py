@@ -89,6 +89,8 @@ class SegmentationWorkflowService:
                     print(f"   Problem detected with bounding box, extending to edges.")
                   except InvalidBoundingBoxException as e:
                     print(e.message)
+                    # Set the predicted class to 2, to indicate its an invalid prediction
+                    predicted_class = 2
               csv_writer.writerow([orig_path, normalized_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
               self.progress_tracker.record_completed(orig_path)
             except (KeyboardInterrupt, SystemExit) as e:
