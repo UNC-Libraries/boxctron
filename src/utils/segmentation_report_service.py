@@ -2,7 +2,7 @@ import csv
 import os
 from pathlib import Path
 from src.utils.json_utils import to_json
-from src.utils.bounding_box_utils import draw_bounding_boxes, is_problematic_box, get_box_coords
+from src.utils.bounding_box_utils import draw_bounding_boxes, get_box_coords
 from src.utils.common_utils import log
 from PIL import Image
 import shutil
@@ -63,7 +63,7 @@ class SegmentationReportService:
       'original' : row[0],
       'pred_class' : row[2],
       'pred_conf' : row[3],
-      'problem' : is_problematic_box(boxes),
+      'problem' : bool(row[5]),
       'image' : str(rel_path)
     }
 

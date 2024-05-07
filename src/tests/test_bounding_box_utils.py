@@ -56,6 +56,10 @@ class TestBoundingBoxUtils:
     coords = None
     assert not is_problematic_box(coords)
 
+  def test_is_problematic_box_three_edges_too_big(self):
+    coords = [0.0, 0.0616408920288086, 1.0, 1.0]
+    assert is_problematic_box(coords)
+
   def test_extend_bounding_box_to_edges_one_edge_left(self):
     coords = [0.0, 0.10288684844970702, 0.0860845947265625, 0.88]
     result = extend_bounding_box_to_edges(coords)

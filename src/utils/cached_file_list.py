@@ -10,11 +10,12 @@ class CachedFileList(list):
   a file, then each line in the file will be treated as a path to be added, where any
   directories in the file will be expanded.
   """
-  def __init__(self, file_path, extensions, refresh = False):
+  def __init__(self, file_path, extensions, refresh = False, minimum_bytes = 4000):
     super().__init__()
     self.file_path = file_path
     self.extensions = extensions
     self.cache_path = Path.cwd() / (file_path.stem + "-cache.txt")
+    self.minimum_bytes = minimum_bytes
     if not self.cache_path.exists() or refresh:
       self.populate_cache()
     with open(self.cache_path, "r") as file:
@@ -33,9 +34,9 @@ class CachedFileList(list):
         self.recursive_paths_from_file_list()
 
   def add_expanded_dir(self, dir_path):
-    for p in Path(dir_path).glob("**/*"):
-      if p.suffix in self.extensions:
-        print(str(p), file=self.file)
+    for path in Path(dir_path).glob("**/*"):
+      if path.suffix in self.extensions:
+        self.add_file_path(path)
 
   def recursive_paths_from_file_list(self):
     with open(self.file_path) as f:
@@ -45,7 +46,16 @@ class CachedFileList(list):
           print(f"Expanding path {path}")
           self.add_expanded_dir(path)
         else:
-          print(str(path), file=self.file)
+          self.add_file_path(path)
+
+  # Adds the given file path to the cache file if it has an acceptable extension and is above the min size
+  def add_file_path(self, path):
+    if path.suffix in self.extensions:
+      file_size = path.stat().st_size
+      if file_size >= self.minimum_bytes:
+        print(str(path), file=self.file)
+      else:
+        print(f"Skipping small file {path}")
 
   def __iter__(self):
     self.file = open(self.cache_path, "r")

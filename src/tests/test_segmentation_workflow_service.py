@@ -36,6 +36,11 @@ def mock_model():
         'boxes': torch.tensor([[  0.0000,  100.5813, 150.0, 1333.0]]),
         'labels': torch.tensor([1]),
         'scores': torch.tensor([0.8920])
+      },
+      {
+        'boxes': torch.tensor([[  111.0000,  100.5813, 400.0, 400.0]]),
+        'labels': torch.tensor([1]),
+        'scores': torch.tensor([0.76])
       }]
     # each call to model(image) will return a different set of outputs
     model_mock.side_effect = [value1, value3]
@@ -53,14 +58,15 @@ class TestSegmentationWorkflowService:
     service = SegmentationWorkflowService(config, report_path)
     service.process([Path('./fixtures/normalized_images/gilmer/00276_op0204_0001.jpg'),
       Path('./fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg'),
-      Path('./fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg')])
+      Path('./fixtures/normalized_images/gilmer/00276_op0226a_0001.jpg'),
+      Path('./fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg')])
 
     assert report_path.exists()
     with open(report_path, newline='') as f:
       reader = csv.reader(f)
       data = list(reader)
 
-      assert len(data) == 4
+      assert len(data) == 5
       assert data[1][0].endswith('fixtures/normalized_images/gilmer/00276_op0204_0001.jpg')
       assert 'output/00276_op0204_0001.jpg' in data[1][1]
       assert data[1][2] == '1'
@@ -81,3 +87,10 @@ class TestSegmentationWorkflowService:
       assert data[3][3] == '0.8920'
       assert data[3][4] == '[0.0, 0.19644784927368164, 0.29296875, 1.0]'
       assert data[3][5] == '[0.0, 0.0, 0.29296875, 1.0]'
+
+      assert data[4][0].endswith('fixtures/normalized_images/gilmer/00276_op0217_0001_e.jpg')
+      assert 'output/00276_op0217_0001_e.jpg' in data[4][1]
+      assert data[4][2] == '2'
+      assert data[4][3] == '0.7600'
+      assert data[4][4] == '[0.216796875, 0.19644784927368164, 0.78125, 0.78125]'
+      assert data[4][5] == ''

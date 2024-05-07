@@ -48,7 +48,7 @@ def is_problematic_box(coords):
   if coords == None:
     return False
   count = number_sides_at_image_edge(coords)
-  return count != 3
+  return count != 3 or bounding_box_is_too_large(bounding_box_lengths(coords))
 
 def number_sides_at_image_edge(coords):
   count = 0
@@ -65,16 +65,26 @@ def get_box_coords(row, index = 4):
     return box_coords
   return None
 
+def bounding_box_is_too_large(lengths):
+  return lengths[0] >= 0.5 and lengths[1] >= 0.5
+
+def bounding_box_is_square(lengths):
+  return lengths[0] == lengths[1]
+
+def bounding_box_lengths(coords):
+  horizontal_length = coords[2] - coords[0]
+  vertical_length = coords[3] - coords[1]
+  return (horizontal_length, vertical_length)
+
 # Used to extend a bounding box that is only touching 1 or 2 image edges, so that it touches 3
 # edges so that it is usable for cropping
 def extend_bounding_box_to_edges(box_coords):
   coords = box_coords.copy()
-  horizontal_length = coords[2] - coords[0]
-  vertical_length = coords[3] - coords[1]
+  lengths = bounding_box_lengths(coords)
   # don't extend if it'll produce a bounding box greater than or equal to half the image
-  if vertical_length >= 0.5 and horizontal_length >= 0.5:
+  if bounding_box_is_too_large(lengths):
     raise InvalidBoundingBoxException("Cannot extend bounding box to image edges, total size of bounding box is too large")
-  if vertical_length == horizontal_length:
+  if bounding_box_is_square(lengths):
     raise InvalidBoundingBoxException("Cannot extend bounding box to image edges, sides are equal length")
   left_edge = coords[0] == 0
   right_edge = coords[2] == 1
@@ -82,7 +92,7 @@ def extend_bounding_box_to_edges(box_coords):
   bottom_edge = coords[3] == 1
   if (left_edge or right_edge) and (bottom_edge or top_edge):
     # bounding box touches two edges, so extend longest edge
-    if vertical_length > horizontal_length:
+    if lengths[1] > lengths[0]:
       coords[1] = 0.0
       coords[3] = 1.0
     else:
