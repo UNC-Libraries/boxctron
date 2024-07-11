@@ -35,7 +35,7 @@ class CachedFileList(list):
 
   def add_expanded_dir(self, dir_path):
     for path in Path(dir_path).glob("**/*"):
-      if path.suffix in self.extensions:
+      if path.suffix.lower() in self.extensions:
         self.add_file_path(path)
 
   def recursive_paths_from_file_list(self):
