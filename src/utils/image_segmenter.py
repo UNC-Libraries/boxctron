@@ -21,7 +21,7 @@ class ImageSegmenter:
   # paths - paths of images to make predictions on, generally a resized version of the image
   # returns [list of predicted classes, list of confidences]
   def predict(self, paths):
-    batch_data = torch.empty(len(paths), 3, self.config.max_dimension, self.config.max_dimension)
+    batch_data = torch.empty(len(paths), 3, self.config.max_dimension, self.config.max_dimension).to(self.device)
     for i, path in enumerate(paths):
         image_data = ColorBarSegmentationDataset.normalize_image(path, self.config.max_dimension)
         batch_data[i] = image_data
