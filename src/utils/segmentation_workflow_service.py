@@ -78,7 +78,7 @@ class SegmentationWorkflowService:
               # If a bounding box was returned, then convert coordinates to percentages and round to edges
               if box_coords.shape[0] == 1:
                 predicted_class = 1
-                box_coords = box_coords[0].detach().numpy()
+                box_coords = box_coords[0].detach().cpu().numpy()
                 box_norms = self.normalize_coords(box_coords)
                 # Round the bounding box to the edges of the image if they are close
                 box_norms = list(round_box_to_edge(box_norms))
