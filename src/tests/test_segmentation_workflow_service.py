@@ -94,3 +94,32 @@ class TestSegmentationWorkflowService:
       assert data[4][3] == '0.7600'
       assert data[4][4] == '[0.216796875, 0.19644784927368164, 0.78125, 0.78125]'
       assert data[4][5] == ''
+
+  def test_process_with_remove_src_base_path(self, config, tmp_path, mock_load_from_checkpoint):
+    config.src_base_path = Path('./fixtures/normalized_images').resolve()
+    config.remove_src_path_base = True
+
+    report_path = tmp_path / 'report.csv'
+    service = SegmentationWorkflowService(config, report_path)
+    service.process([Path('./fixtures/normalized_images/gilmer/00276_op0204_0001.jpg'),
+      Path('./fixtures/normalized_images/gilmer/00276_op0204_0001_tiny.jpg')])
+
+    assert report_path.exists()
+    with open(report_path, newline='') as f:
+      reader = csv.reader(f)
+      data = list(reader)
+
+      assert len(data) == 3
+      assert data[1][0] == '/gilmer/00276_op0204_0001.jpg'
+      assert 'output/gilmer/00276_op0204_0001.jpg' in data[1][1]
+      assert data[1][2] == '1'
+      assert data[1][3] == '0.8920'
+      assert data[1][4] == '[0.0, 0.0, 1.0, 0.19922031462192535]'
+      assert data[1][5] == ''
+
+      assert data[2][0] == '/gilmer/00276_op0204_0001_tiny.jpg'
+      assert 'output/gilmer/00276_op0204_0001_tiny.jpg' in data[2][1]
+      assert data[2][2] == '0'
+      assert data[2][3] == '0.0000'
+      assert data[2][4] == ''
+      assert data[2][5] == ''

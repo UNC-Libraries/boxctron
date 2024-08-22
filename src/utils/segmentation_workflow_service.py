@@ -43,6 +43,7 @@ class SegmentationWorkflowService:
       batch_orig_paths = []
       batch_norm_paths = []
       for idx, path in enumerate(paths):
+        path = path.resolve()
         if self.progress_tracker.is_complete(path):
           print(f"Skipping {idx + 1} of {total}: {path}")
           continue
@@ -91,7 +92,12 @@ class SegmentationWorkflowService:
                     print(e.message)
                     # Set the predicted class to 2, to indicate its an invalid prediction
                     predicted_class = 2
-              csv_writer.writerow([orig_path, normalized_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
+              csv_writer.writerow([self.reported_original_path(orig_path),
+                                   normalized_path,
+                                   predicted_class,
+                                   "{:.4f}".format(top_score),
+                                   box_norms,
+                                   extended_box])
               self.progress_tracker.record_completed(orig_path)
             except (KeyboardInterrupt, SystemExit) as e:
               exit(1)
@@ -100,6 +106,13 @@ class SegmentationWorkflowService:
               print(traceback.format_exc())
           batch_orig_paths = []
           batch_norm_paths = []
+
+  # The original path in the form that should be included in the data report
+  def reported_original_path(self, orig_path):
+    if self.config.remove_src_path_base:
+      return Path(str(orig_path).removeprefix(str(self.config.src_base_path)))
+    else:
+      return orig_path
 
   def normalize_coords(self, box_coords):
     return pixels_to_norms(box_coords, self.config.max_dimension, self.config.max_dimension)

@@ -11,6 +11,9 @@ class ImageNormalizer:
     # Prevent pillow from throwing an exception when reading truncated images
     ImageFile.LOAD_TRUNCATED_IMAGES = True
     self.config = config
+    self.src_base_path = self.config.src_base_path
+    if self.src_base_path:
+      self.src_base_path = self.src_base_path.resolve()
 
   # Normalize an image to the expected configuration, saving the normalized version to an configured output path
   # Returns the path of the normalized file
@@ -36,7 +39,7 @@ class ImageNormalizer:
     if self.config.src_base_path == None:
       rel_path = path.name
     else:
-      rel_path = str(path.relative_to(self.config.src_base_path))
+      rel_path = str(path.relative_to(self.src_base_path))
     dest = self.config.output_base_path / rel_path
     # change the extension to jpg
     return dest.with_suffix('.jpg')
