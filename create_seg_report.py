@@ -11,6 +11,8 @@ parser.add_argument('-d', '--output-path', type=Path, default=False, required=Fa
                     help="Path of the directory to write the report out to. Defaults to src/report")
 parser.add_argument('-n', '--norms-relative-path', default='/', required=False,
                     help="File path normalized image paths will be made relative to.")
+parser.add_argument('-s', '--src-base-path', required=False,
+                    help="Base path for source files, will be trimmed from the outputted report.")
 
 # command line arguments
 args = parser.parse_args()
@@ -24,5 +26,5 @@ assert os.path.splitext(args.file_path)[-1].lower() == '.csv'
 # Check that the output directory doesn't already exist
 assert not args.output_path.exists()
 
-service = SegmentationReportService(args.file_path, args.output_path, args.norms_relative_path)
+service = SegmentationReportService(args.file_path, args.output_path, args.norms_relative_path, args.src_base_path)
 service.generate()

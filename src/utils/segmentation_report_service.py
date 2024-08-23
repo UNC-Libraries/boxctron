@@ -8,11 +8,14 @@ from PIL import Image
 import shutil
 
 class SegmentationReportService:
-  def __init__(self, csv_path, output_path, norms_relative_path = '/'):
+  def __init__(self, csv_path, output_path, norms_relative_path = '/', src_base_path = None):
     self.csv_path = csv_path
     self.output_path = output_path
     self.images_path = output_path / 'images'
     self.norms_relative_path = Path(norms_relative_path).resolve()
+    self.src_base_path = None
+    if src_base_path != None:
+      self.src_base_path = str(Path(src_base_path).resolve())
     self.original_data = False
     self.output_data = []
 
@@ -21,10 +24,10 @@ class SegmentationReportService:
     self.images_path.mkdir(parents=True, exist_ok=True)
     # copy html page
     shutil.copyfile('src/reports/seg_report.html', self.output_path / 'report.html')
-    # copy in csv file
-    shutil.copyfile(self.csv_path, self.output_path / 'data.csv')
+    # Copy in the data.csv file and adjust paths if necessary
+    report_csv = self.copy_data_csv()
     # begin processing csv file
-    with open(self.csv_path, 'r', encoding='utf-8-sig') as f:
+    with open(report_csv, 'r', encoding='utf-8-sig') as f:
       datareader = csv.reader(f)
       # skip the headers
       next(datareader, None)
@@ -36,6 +39,20 @@ class SegmentationReportService:
         self.output_data.append(self.csv_to_data(row, image_path))
     # write json data file
     self.write_output_data()
+
+  # Copies the provided data.csv into the report directory and adjusts source paths if needed
+  def copy_data_csv(self):
+    dest_path = self.output_path / 'data.csv'
+    with open(self.csv_path, 'r', encoding='utf-8-sig') as src_f:
+      datareader = csv.reader(src_f)
+      with open(dest_path, "a", newline="") as dest_f:
+        csv_writer = csv.writer(dest_f)
+        headers = next(datareader, None)
+        csv_writer.writerow(headers)
+        for row in datareader:
+          row[0] = self.get_original_path(row[0])
+          csv_writer.writerow(row)
+    return dest_path
 
   def generate_annotated_image(self, row):
     normalized_path = Path(row[1]).resolve()
@@ -59,13 +76,19 @@ class SegmentationReportService:
   def csv_to_data(self, row, image_path):
     rel_path = image_path.relative_to(self.output_path)
     boxes = get_box_coords(row)
+
     return {
-      'original' : row[0],
+      'original' : self.get_original_path(row[0]),
       'pred_class' : row[2],
       'pred_conf' : row[3],
       'problem' : bool(row[5]),
       'image' : str(rel_path)
     }
+
+  def get_original_path(self, orig_path):
+    if self.src_base_path != None:
+      return str(Path(orig_path).resolve()).removeprefix(self.src_base_path)
+    return orig_path
 
   def write_output_data(self):
     data_wrapper = { 'data' : self.output_data }
