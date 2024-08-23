@@ -56,7 +56,10 @@ class SegmentationReportService:
 
   def generate_annotated_image(self, row):
     normalized_path = Path(row[1]).resolve()
-    norm_rel_path = normalized_path.relative_to(self.norms_relative_path)
+    norm_rel_path = str(normalized_path.relative_to(self.norms_relative_path))
+    norm_rel_path = self.get_original_path(norm_rel_path)
+    norm_rel_path = norm_rel_path.removeprefix('/')
+
     destination_path = self.images_path / (str(norm_rel_path) + '.jpg')
     # Create parent directories for destination
     destination_path.parent.mkdir(parents=True, exist_ok=True)
