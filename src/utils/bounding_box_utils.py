@@ -59,7 +59,7 @@ def number_sides_at_image_edge(coords):
   return count
 
 # Load the coordinates of a bounding box from a CSV row
-def get_box_coords(row, index = 4):
+def get_box_coords(row, index = 3):
   if row[index]:
     box_coords = json.loads(row[index])
     return box_coords

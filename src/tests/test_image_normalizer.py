@@ -76,35 +76,38 @@ class TestImageNormalizer:
     config.src_base_path = Path('/path/to/src/base/')
     config.output_base_path = Path('/path/to/output/base/norm/')
     subject = ImageNormalizer(config)
-    src_path = Path('/path/to/src/base/sub/path/image.jpg')
+    src_path = Path('/sub/path/image.jpg')
     result = subject.build_output_path(src_path)
-    assert result == Path('/path/to/output/base/norm/sub/path/image.jpg')
+    assert result == Path('/path/to/output/base/norm/sub/path/image.jpg.jpg')
 
   def test_build_output_path_tiff(self):
     config = Config()
     config.src_base_path = Path('/path/to/src/base/')
     config.output_base_path = Path('/path/to/output/base/norm/')
     subject = ImageNormalizer(config)
-    src_path = Path('/path/to/src/base/sub/path/image.TIFF')
+    src_path = Path('/sub/path/image.TIFF')
     result = subject.build_output_path(src_path)
-    assert result == Path('/path/to/output/base/norm/sub/path/image.jpg')
+    assert result == Path('/path/to/output/base/norm/sub/path/image.TIFF.jpg')
 
-  def test_build_output_path_not_in_src(self):
+  def test_process_not_in_src(self):
     config = Config()
     config.src_base_path = Path('/path/to/src/base/')
     config.output_base_path = Path('/path/to/output/base/')
     subject = ImageNormalizer(config)
     src_path = Path('/path/to/another/path/image.jpg')
     with pytest.raises(ValueError):
-      subject.build_output_path(src_path)
+      subject.process(src_path)
 
-  def test_build_output_path_no_base(self):
-    config = Config()
-    config.output_base_path = Path('/path/to/output/base/norm/')
+  def test_process_no_src_base(self, config):
+    src_base_path = config.src_base_path
+    config.src_base_path = None
     subject = ImageNormalizer(config)
-    src_path = Path('/path/to/src/base/sub/path/image.jpg')
-    result = subject.build_output_path(src_path)
-    assert result == Path('/path/to/output/base/norm/image.jpg')
+    src_path = src_base_path / 'images/blue.jpg'
+    src_path.parent.mkdir()
+    src_img = Image.new('RGB', (500, 500), 'blue')
+    src_img.save(src_path)
+    result = subject.process(src_path)
+    assert result == config.output_base_path / (str(src_base_path)[1:] + '/images/blue.jpg.jpg')
 
   def test_process_unchanged(self, config):
     src_path = config.src_base_path / 'images/blue.jpg'
@@ -114,7 +117,7 @@ class TestImageNormalizer:
     subject = ImageNormalizer(config)
     
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    result = Image.open(config.output_base_path / 'images/blue.jpg.jpg')
     assert result.width == 500
     assert result.height == 500
     assert result.mode == 'RGB'
@@ -127,7 +130,7 @@ class TestImageNormalizer:
     subject = ImageNormalizer(config)
     
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'gray.jpg')
+    result = Image.open(config.output_base_path / 'gray.tif.jpg')
     assert result.width == 500
     assert result.height == 500
     assert result.mode == 'RGB'
@@ -140,7 +143,7 @@ class TestImageNormalizer:
     subject = ImageNormalizer(config)
     
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'bigblue.jpg')
+    result = Image.open(config.output_base_path / 'bigblue.jpg.jpg')
     assert result.width == 512
     assert result.height == 409
     assert result.mode == 'RGB'
@@ -153,17 +156,17 @@ class TestImageNormalizer:
     subject = ImageNormalizer(config)
     
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    result = Image.open(config.output_base_path / 'images/blue.jpg.jpg')
     assert result.width == 500
     # Run process on image again with different dimensions, it should not change sizes since its already been generated
     config.max_dimension = 256
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    result = Image.open(config.output_base_path / 'images/blue.jpg.jpg')
     assert result.width == 500
     # Run again with force flag, it should change this time
     config.force = True
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'images/blue.jpg')
+    result = Image.open(config.output_base_path / 'images/blue.jpg.jpg')
     assert result.width == 256
 
   def test_process_malformed_jp2(self, config):
@@ -172,7 +175,7 @@ class TestImageNormalizer:
     subject = ImageNormalizer(config)
 
     subject.process(src_path)
-    result = Image.open(config.output_base_path / 'malformed.jpg')
+    result = Image.open(config.output_base_path / 'malformed.jp2.jpg')
     assert result.width == 565
     assert result.height == 224
     assert result.mode == 'RGB'
