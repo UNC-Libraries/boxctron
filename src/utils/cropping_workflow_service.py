@@ -36,7 +36,6 @@ class CroppingWorkflowService:
         prefixed_orig_path = original_path
         if self.config.src_base_path != None:
           prefixed_orig_path = rebase_path(self.config.src_base_path, original_path, '')
-        print(f"Orig: {original_path} Prefix: {prefixed_orig_path}")
         if self.is_excluded(original_path) or not self.has_color_bar(row):
           log(f'Skipping {original_path}')
           continue

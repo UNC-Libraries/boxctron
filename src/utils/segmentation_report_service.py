@@ -44,8 +44,6 @@ class SegmentationReportService:
   def generate_annotated_image(self, row):
     normalized_path = self.normalizer.build_output_path(row[0])
     destination_path = rebase_path(self.images_path, Path(row[0]), '.jpg')
-    print(f"Norm: {normalized_path}")
-    print(f"Dest: {destination_path}")
     # Create parent directories for destination
     destination_path.parent.mkdir(parents=True, exist_ok=True)
     boxes = []
