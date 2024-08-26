@@ -20,8 +20,6 @@ args = parser.parse_args()
 log(f'Cropping images from CSV: {args.csv_path}')
 log(f'Writing cropped images to: {args.output_path}')
 
-originals_base = Path("/") if args.originals_base == None else args.originals_base
-
 config = ClassifierConfig(path=args.config)
 
 service = CroppingWorkflowService(args.csv_path, args.output_path, config, exclusions_path = args.exclusions)
