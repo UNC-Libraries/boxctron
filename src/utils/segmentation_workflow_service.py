@@ -14,7 +14,7 @@ from PIL import Image
 # detection/segmentation to make predictions on normalized versions of those images.
 # The outcome is written to a CSV file at the provided report_path.
 class SegmentationWorkflowService:
-  CSV_HEADERS = ['original_path', 'normalized_path', 'predicted_class', 'predicted_conf', 'bounding_box', 'extended_box']
+  CSV_HEADERS = ['original_path', 'predicted_class', 'predicted_conf', 'bounding_box', 'extended_box']
   BATCH_SIZE = 10
 
   def __init__(self, config, report_path, restart = False):
@@ -66,7 +66,6 @@ class SegmentationWorkflowService:
         if len(batch_orig_paths) >= batch_size or idx == (len(paths) - 1):
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
           for batch_idx, orig_path in enumerate(batch_orig_paths):
-            normalized_path = batch_norm_paths[batch_idx]
             top_predicted = top_predictions[batch_idx]
             top_score = top_scores[batch_idx]
             try:
@@ -91,7 +90,8 @@ class SegmentationWorkflowService:
                     print(e.message)
                     # Set the predicted class to 2, to indicate its an invalid prediction
                     predicted_class = 2
-              csv_writer.writerow([orig_path, normalized_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
+              unprefixed_orig_path = self.unprefix_original_path(orig_path)
+              csv_writer.writerow([unprefixed_orig_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
               self.progress_tracker.record_completed(orig_path)
             except (KeyboardInterrupt, SystemExit) as e:
               exit(1)
@@ -100,6 +100,11 @@ class SegmentationWorkflowService:
               print(traceback.format_exc())
           batch_orig_paths = []
           batch_norm_paths = []
+
+  def unprefix_original_path(self, orig_path):
+    if self.config.src_base_path == None:
+      return orig_path
+    return Path('/' + str(orig_path.relative_to(self.config.src_base_path)))
 
   def normalize_coords(self, box_coords):
     return pixels_to_norms(box_coords, self.config.max_dimension, self.config.max_dimension)

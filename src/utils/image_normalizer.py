@@ -1,6 +1,7 @@
 from PIL import Image, ImageFile
 from pathlib import Path
 import logging
+from src.utils.common_utils import rebase_path
 
 # Utility for normalizing images based on a configuration.
 # Currently normalizes all files to JPGs
@@ -15,7 +16,10 @@ class ImageNormalizer:
   # Normalize an image to the expected configuration, saving the normalized version to an configured output path
   # Returns the path of the normalized file
   def process(self, path):
-    output_path = self.build_output_path(path)
+    unprefixed_path = path
+    if self.config.src_base_path != None:
+      unprefixed_path = str(path.relative_to(self.config.src_base_path))
+    output_path = self.build_output_path(unprefixed_path)
     # Skip regenerating 
     if not self.config.force and output_path.exists():
       logging.info('Derivative already exists, skipping %s', path)
@@ -32,14 +36,8 @@ class ImageNormalizer:
     return output_path
 
   # Constructs an output path based on the input path and configured base paths.
-  def build_output_path(self, path):
-    if self.config.src_base_path == None:
-      rel_path = path.name
-    else:
-      rel_path = str(path.relative_to(self.config.src_base_path))
-    dest = self.config.output_base_path / rel_path
-    # change the extension to jpg
-    return dest.with_suffix('.jpg')
+  def build_output_path(self, unprefixed_path):
+    return rebase_path(self.config.output_base_path, unprefixed_path, '.jpg')
 
   # Resizes the provided image based on:
   #   1. the longest dimension, if it exceeds the provided max_dimension.

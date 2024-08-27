@@ -4,25 +4,29 @@ from pathlib import Path
 from src.utils.json_utils import to_json
 from src.utils.bounding_box_utils import draw_bounding_boxes, get_box_coords
 from src.utils.common_utils import log
+from src.utils.image_normalizer import ImageNormalizer
+from src.utils.common_utils import rebase_path
 from PIL import Image
 import shutil
 
 class SegmentationReportService:
-  def __init__(self, csv_path, output_path, norms_relative_path = '/'):
+  def __init__(self, csv_path, report_path, config):
     self.csv_path = csv_path
-    self.output_path = output_path
-    self.images_path = output_path / 'images'
-    self.norms_relative_path = Path(norms_relative_path).resolve()
+    self.report_path = report_path
+    self.images_path = report_path / 'images'
+    self.config = config
+    # self.norms_relative_path = Path(norms_relative_path).resolve()
     self.original_data = False
     self.output_data = []
+    self.normalizer = ImageNormalizer(config)
 
   def generate(self):
     # create output directory and images subdirectory
     self.images_path.mkdir(parents=True, exist_ok=True)
     # copy html page
-    shutil.copyfile('src/reports/seg_report.html', self.output_path / 'report.html')
+    shutil.copyfile('src/reports/seg_report.html', self.report_path / 'report.html')
     # copy in csv file
-    shutil.copyfile(self.csv_path, self.output_path / 'data.csv')
+    shutil.copyfile(self.csv_path, self.report_path / 'data.csv')
     # begin processing csv file
     with open(self.csv_path, 'r', encoding='utf-8-sig') as f:
       datareader = csv.reader(f)
@@ -38,9 +42,8 @@ class SegmentationReportService:
     self.write_output_data()
 
   def generate_annotated_image(self, row):
-    normalized_path = Path(row[1]).resolve()
-    norm_rel_path = normalized_path.relative_to(self.norms_relative_path)
-    destination_path = self.images_path / (str(norm_rel_path) + '.jpg')
+    normalized_path = self.normalizer.build_output_path(row[0])
+    destination_path = rebase_path(self.images_path, Path(row[0]), '.jpg')
     # Create parent directories for destination
     destination_path.parent.mkdir(parents=True, exist_ok=True)
     boxes = []
@@ -48,7 +51,7 @@ class SegmentationReportService:
     if coords != None:
       boxes.append(coords)
     # If the bounding box needed to be extended, then draw in the extended version of the box
-    extended_box = get_box_coords(row, index = 5)
+    extended_box = get_box_coords(row, index = 4)
     if extended_box != None:
       log(f'{row[0]} has an extended bounding box')
       boxes.append(extended_box)
@@ -57,17 +60,17 @@ class SegmentationReportService:
     return destination_path
 
   def csv_to_data(self, row, image_path):
-    rel_path = image_path.relative_to(self.output_path)
+    rel_path = image_path.relative_to(self.report_path)
     boxes = get_box_coords(row)
     return {
       'original' : row[0],
-      'pred_class' : row[2],
-      'pred_conf' : row[3],
-      'problem' : bool(row[5]),
+      'pred_class' : row[1],
+      'pred_conf' : row[2],
+      'problem' : bool(row[4]),
       'image' : str(rel_path)
     }
 
   def write_output_data(self):
     data_wrapper = { 'data' : self.output_data }
-    to_json(data_wrapper, self.output_path / 'data.json')
+    to_json(data_wrapper, self.report_path / 'data.json')
     
