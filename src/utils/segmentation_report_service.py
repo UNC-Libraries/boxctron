@@ -15,7 +15,6 @@ class SegmentationReportService:
     self.report_path = report_path
     self.images_path = report_path / 'images'
     self.config = config
-    # self.norms_relative_path = Path(norms_relative_path).resolve()
     self.original_data = False
     self.output_data = []
     self.normalizer = ImageNormalizer(config)
@@ -23,8 +22,6 @@ class SegmentationReportService:
   def generate(self):
     # create output directory and images subdirectory
     self.images_path.mkdir(parents=True, exist_ok=True)
-    # copy html page
-    shutil.copyfile('src/reports/seg_report.html', self.report_path / 'report.html')
     # copy in csv file
     shutil.copyfile(self.csv_path, self.report_path / 'data.csv')
     # begin processing csv file

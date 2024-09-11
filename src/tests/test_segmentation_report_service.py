@@ -27,7 +27,6 @@ class TestSegmentationReportService:
     service = SegmentationReportService(csv_path, report_path, config)
     service.generate()
 
-    assert (report_path / 'report.html').is_file()
     assert (report_path / 'data.csv').is_file()
     data_wrapper = from_json(report_path / 'data.json')
     data = data_wrapper['data']
