@@ -1,4 +1,4 @@
-# Script which generates an HTML report from a CSV document created by segmenter_predict.py
+# Script which generates a CSV report document and preview images from outcome of segmenter_predict.py
 from src.utils.segmentation_report_service import SegmentationReportService
 from src.utils.classifier_config import ClassifierConfig
 from pathlib import Path
@@ -7,7 +7,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file-path', type=Path, required=True, 
-                    help="Path to csv file that will be used to generate html page.")
+                    help="Path to csv file that will be used to generate report.")
 parser.add_argument('-d', '--output-path', type=Path, default=False, required=False, 
                     help="Path of the directory to write the report out to. Defaults to src/report")
 parser.add_argument('-c', '--config', type=Path,
