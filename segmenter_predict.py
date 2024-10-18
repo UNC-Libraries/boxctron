@@ -33,7 +33,7 @@ config = ClassifierConfig(path=args.config)
 
 path = None
 if args.file_list or args.src_path.is_dir():
-  paths = CachedFileList(args.src_path, extensions, args.refresh, minimum_bytes = args.minimum_bytes, cache_path = config.cache_path)
+  paths = CachedFileList(args.src_path, extensions, args.refresh, minimum_bytes = args.minimum_bytes, cache_path = config.file_list_cache_path)
   print(f'Found {len(paths)} paths for processing')
 else:
   paths = [args.src_path]
