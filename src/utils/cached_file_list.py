@@ -10,11 +10,14 @@ class CachedFileList(list):
   a file, then each line in the file will be treated as a path to be added, where any
   directories in the file will be expanded.
   """
-  def __init__(self, file_path, extensions, refresh = False, minimum_bytes = 4000):
+  def __init__(self, file_path, extensions, refresh = False, minimum_bytes = 4000, cache_path = None):
     super().__init__()
     self.file_path = file_path
     self.extensions = extensions
-    self.cache_path = Path.cwd() / (file_path.stem + "-cache.txt")
+    if cache_path == None:
+      self.cache_path = Path.cwd() / (file_path.stem + "-cache.txt")
+    else:
+      self.cache_path = cache_path
     self.minimum_bytes = minimum_bytes
     if not self.cache_path.exists() or refresh:
       self.populate_cache()

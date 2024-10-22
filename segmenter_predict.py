@@ -10,7 +10,7 @@ parser.add_argument('src_path', type=Path,
 parser.add_argument('report_path', type=Path,
                     help='Path where the CSV report of results should be written')
 parser.add_argument('-c', '--config', type=Path,
-                    help='If provided, config will be loaded from this file instead of commandline options')
+                    help='JSON config file for prediction options')
 parser.add_argument('-e', '--extensions', default='tif,tiff,jp2,jpg,jpf,jpx,png',
                     help='List of comma separated file extensions to filter by when operating on a directory. Default: tif,tiff,jp2,jpg,jpf,jpx,png')
 parser.add_argument('-l', '--file-list', action="store_true",
@@ -33,7 +33,7 @@ config = ClassifierConfig(path=args.config)
 
 path = None
 if args.file_list or args.src_path.is_dir():
-  paths = CachedFileList(args.src_path, extensions, args.refresh, minimum_bytes = args.minimum_bytes)
+  paths = CachedFileList(args.src_path, extensions, args.refresh, minimum_bytes = args.minimum_bytes, cache_path = config.file_list_cache_path)
   print(f'Found {len(paths)} paths for processing')
 else:
   paths = [args.src_path]
