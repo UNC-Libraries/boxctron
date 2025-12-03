@@ -71,7 +71,7 @@ scikit-learn==1.6.0
 scipy==1.14.1
 seaborn==0.13.2
 six==1.17.0
-sympy==1.13.3
+sympy>=1.13.1
 tensorboard==2.18.0
 tensorboard-data-server==0.7.2
 threadpoolctl==3.5.0
