@@ -1,6 +1,7 @@
 import csv
 import os
 import traceback
+import time
 from pathlib import Path
 from src.utils.image_segmenter import ImageSegmenter
 from src.utils.image_normalizer import ImageNormalizer
@@ -51,10 +52,16 @@ class SegmentationWorkflowService:
           self.progress_tracker.record_completed(path)
           continue
 
+        iteration_start_time = time.time()
+
         print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
         path = path.resolve()
         try:
+          normalize_start_time = time.time()
           batch_norm_paths.append(self.normalizer.process(path))
+          normalize_elapsed = time.time() - normalize_start_time
+          print(f"  Normalization time: {normalize_elapsed:.3f}s")
+
           batch_orig_paths.append(path)
         except (KeyboardInterrupt, SystemExit) as e:
           exit(1)
@@ -64,7 +71,11 @@ class SegmentationWorkflowService:
 
         # Accumulated a batch worth of images, or this is the final image
         if len(batch_orig_paths) >= batch_size or idx == (len(paths) - 1):
+          segmentation_start_time = time.time()
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
+          segmentation_elapsed = time.time() - segmentation_start_time
+          print(f"  Segmentation time for batch of {len(batch_norm_paths)}: {segmentation_elapsed:.3f}s")
+
           for batch_idx, orig_path in enumerate(batch_orig_paths):
             top_predicted = top_predictions[batch_idx]
             top_score = top_scores[batch_idx]
@@ -104,6 +115,9 @@ class SegmentationWorkflowService:
               print(traceback.format_exc())
           batch_orig_paths = []
           batch_norm_paths = []
+
+        iteration_elapsed = time.time() - iteration_start_time
+        print(f"  Total iteration time: {iteration_elapsed:.3f}s")
 
   def unprefix_original_path(self, orig_path):
     if self.config.src_base_path == None:
