@@ -22,6 +22,8 @@ class CroppingWorkflowService:
     self.cropped_paths = []
     # Prevent pillow from throwing an exception when reading truncated images
     ImageFile.LOAD_TRUNCATED_IMAGES = True
+    # Disable DecompressionBombError since many of our images are huge
+    Image.MAX_IMAGE_PIXELS = None
   
   def process(self):
     # Load exclusion paths
