@@ -91,7 +91,11 @@ class SegmentationWorkflowService:
                     # Set the predicted class to 2, to indicate its an invalid prediction
                     predicted_class = 2
               unprefixed_orig_path = self.unprefix_original_path(orig_path)
-              csv_writer.writerow([unprefixed_orig_path, predicted_class, "{:.4f}".format(top_score), box_norms, extended_box])
+              # Convert numpy types to native Python types for proper CSV serialization
+              box_norms_py = [float(x) for x in box_norms] if box_norms is not None else None
+              extended_box_py = [float(x) for x in extended_box] if extended_box is not None else None
+
+              csv_writer.writerow([unprefixed_orig_path, predicted_class, "{:.4f}".format(top_score), box_norms_py, extended_box_py])
               self.progress_tracker.record_completed(orig_path)
             except (KeyboardInterrupt, SystemExit) as e:
               exit(1)
