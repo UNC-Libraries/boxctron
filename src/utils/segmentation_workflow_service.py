@@ -90,6 +90,7 @@ class SegmentationWorkflowService:
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
           segmentation_elapsed = time.time() - segmentation_start_time
           segmentation_total += segmentation_elapsed
+          print(f"  Batch Segmentation time: {segmentation_elapsed:.3f}s")
 
           for batch_idx, orig_path in enumerate(batch_orig_paths):
             top_predicted = top_predictions[batch_idx]
