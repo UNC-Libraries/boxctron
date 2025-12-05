@@ -26,8 +26,7 @@ class ImageSegmenter:
         image_data = ColorBarSegmentationDataset.normalize_image(path, self.config.max_dimension)
         batch_data[i] = image_data
 
-    with torch.no_grad():
-      outs = self.model(batch_data)
+    outs = self.model(batch_data)
     top_predicted = [get_top_predicted(self.config.predict_rounding_threshold, o) for o in outs]
     top_scores = get_top_scores(outs)
 
