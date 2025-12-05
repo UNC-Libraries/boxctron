@@ -60,4 +60,4 @@ class ImageNormalizer:
       if width < min_dimension:
         width = min_dimension
         height = int(img.height * (min_dimension / img.width))
-    return img.resize((width, height), resample=Image.NEAREST)
+    return img.resize((width, height), resample=Image.BILINEAR)
