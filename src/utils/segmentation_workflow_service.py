@@ -35,6 +35,20 @@ class SegmentationWorkflowService:
     is_new_file = not Path.exists(self.report_path) or os.path.getsize(self.report_path) == 0
     batch_size = int(self.config.batch_size)
 
+    # Warm-up GPU to get consistent performance
+    if torch.cuda.is_available() and total > 0:
+      print("Warming up GPU...")
+      warmup_start = time.time()
+      # Use first image for warmup
+      first_path = paths[0].resolve()
+      try:
+        dummy_norm = self.normalizer.process(first_path)
+        self.segmenter.predict([dummy_norm])
+        warmup_elapsed = time.time() - warmup_start
+        print(f"GPU warm-up completed in {warmup_elapsed:.3f}s")
+      except Exception as e:
+        print(f"Warm-up failed (non-fatal): {e}")
+
     with open(self.report_path, "a", newline="") as csv_file:
       csv_writer = csv.writer(csv_file)
       # Add headers to file if it is empty
