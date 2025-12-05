@@ -34,6 +34,7 @@ class SegmentationWorkflowService:
     total = len(paths)
     is_new_file = not Path.exists(self.report_path) or os.path.getsize(self.report_path) == 0
     batch_size = int(self.config.batch_size)
+    segmentation_total = 0
 
     # Warm-up GPU to get consistent performance
     if torch.cuda.is_available():
@@ -88,7 +89,7 @@ class SegmentationWorkflowService:
           segmentation_start_time = time.time()
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
           segmentation_elapsed = time.time() - segmentation_start_time
-          print(f"  Segmentation time for batch of {len(batch_norm_paths)}: {segmentation_elapsed:.3f}s")
+          segmentation_total += segmentation_elapsed
 
           for batch_idx, orig_path in enumerate(batch_orig_paths):
             top_predicted = top_predictions[batch_idx]
@@ -132,6 +133,7 @@ class SegmentationWorkflowService:
 
         iteration_elapsed = time.time() - iteration_start_time
         print(f"  Total iteration time: {iteration_elapsed:.3f}s")
+      print(f"  Total Segmentation time: {segmentation_total:.3f}s")
 
   def unprefix_original_path(self, orig_path):
     if self.config.src_base_path == None:
