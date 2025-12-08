@@ -84,7 +84,7 @@ class CroppingWorkflowService:
         cropped = cropped.convert("RGB")
       dest_path = self.cropped_image_output_path(orig_path)
       dest_path.parent.mkdir(parents=True, exist_ok=True)
-      cropped.save(dest_path, "JPEG", optimize=True, quality=80)
+      cropped.save(dest_path, "JPEG", quality=80)
       return dest_path
 
   def cropped_image_output_path(self, img_path):

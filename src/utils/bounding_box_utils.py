@@ -23,9 +23,9 @@ def draw_bounding_boxes(img_path, output_path, resize_dims, boxes, retain_ratio 
     
     if retain_ratio:
       img = img.copy()
-      img.thumbnail(resize_dims)
+      img.thumbnail(resize_dims, resample=Image.BILINEAR)
     else:
-      img = img.resize(resize_dims)
+      img = img.resize(resize_dims, resample=Image.BILINEAR)
     resized_w, resized_h = img.width, img.height
     draw = ImageDraw.Draw(img)
 
