@@ -22,7 +22,10 @@ class SegmentationWorkflowService:
     self.config = config
     self.report_path = report_path
     self.normalizer = ImageNormalizer(config)
+    warmup_start = time.time()
     self.segmenter = ImageSegmenter(config)
+    warmup_elapsed = time.time() - warmup_start
+    print(f"Model loaded in {warmup_elapsed:.3f}s")
     progress_log_path = report_path.parent / (report_path.stem + "_progress.log")
     self.progress_tracker = ProgressTracker(progress_log_path)
     if restart:
