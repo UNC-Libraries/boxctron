@@ -24,10 +24,10 @@ class SegmentationWorkflowService:
     self.config = config
     self.report_path = report_path
     self.normalizer = ImageNormalizer(config)
-    warmup_start = time.time()
+    model_start = time.time()
     self.segmenter = ImageSegmenter(config)
-    warmup_elapsed = time.time() - warmup_start
-    log(f"Model loaded in {warmup_elapsed:.3f}s")
+    model_elapsed = time.time() - model_start
+    log(f"Model loaded in {model_elapsed:.3f}s")
     progress_log_path = report_path.parent / (report_path.stem + "_progress.log")
     self.progress_tracker = ProgressTracker(progress_log_path)
     if restart:
@@ -42,19 +42,19 @@ class SegmentationWorkflowService:
     batch_size = int(self.config.batch_size)
     segmentation_total = 0
 
-    # Warm-up GPU to get consistent performance
-    if torch.cuda.is_available():
-      print("Warming up GPU...")
-      warmup_start = time.time()
-      # Use separate warmup image
-      first_path = Path('/work/users/b/b/bbpennel/test_boxctron/test/boxctron/chompb/ncmaps_fileQA/velocicroptor/01122025142020024/source_files/C551-57_S72_c4.tif')
-      try:
-        dummy_norm = self.normalizer.process(first_path)
-        self.segmenter.predict([dummy_norm])
-        warmup_elapsed = time.time() - warmup_start
-        print(f"GPU warm-up completed in {warmup_elapsed:.3f}s")
-      except Exception as e:
-        print(f"Warm-up failed (non-fatal): {e}")
+    # Warm-up GPU to get consistent performance, if doing perof
+    # if torch.cuda.is_available():
+    #   log("Warming up GPU...")
+    #   warmup_start = time.time()
+    #   # Use separate warmup image
+    #   first_path = Path('/work/users/b/b/bbpennel/test_boxctron/test/boxctron/chompb/ncmaps_fileQA/velocicroptor/01122025142020024/source_files/C551-57_S72_c4.tif')
+    #   try:
+    #     dummy_norm = self.normalizer.process(first_path)
+    #     self.segmenter.predict([dummy_norm])
+    #     warmup_elapsed = time.time() - warmup_start
+    #     log(f"GPU warm-up completed in {warmup_elapsed:.3f}s")
+    #   except Exception as e:
+    #     print(f"Warm-up failed (non-fatal): {e}")
 
     log('Starting processing loop')
     with open(self.report_path, "a", newline="") as csv_file:
@@ -67,10 +67,10 @@ class SegmentationWorkflowService:
       batch_norm_paths = []
       for idx, path in enumerate(paths):
         if self.progress_tracker.is_complete(path):
-          print(f"Skipping {idx + 1} of {total}: {path}")
+          log(f"Skipping {idx + 1} of {total}: {path}")
           continue
         if self.unprocessable_filename(path):
-          print(f"Skipping {idx + 1} of {total} due to filename: {path}")
+          log(f"Skipping {idx + 1} of {total} due to filename: {path}")
           self.progress_tracker.record_completed(path)
           continue
 
@@ -82,7 +82,7 @@ class SegmentationWorkflowService:
           normalize_start_time = time.time()
           batch_norm_paths.append(self.normalizer.process(path))
           normalize_elapsed = time.time() - normalize_start_time
-          print(f"  Normalization time: {normalize_elapsed:.3f}s")
+          log(f"  Normalization time: {normalize_elapsed:.3f}s")
 
           batch_orig_paths.append(path)
         except (KeyboardInterrupt, SystemExit) as e:
@@ -97,7 +97,7 @@ class SegmentationWorkflowService:
           top_predictions, top_scores = self.segmenter.predict(batch_norm_paths)
           segmentation_elapsed = time.time() - segmentation_start_time
           segmentation_total += segmentation_elapsed
-          print(f"  Batch Segmentation time: {segmentation_elapsed:.3f}s")
+          log(f"  Batch Segmentation time: {segmentation_elapsed:.3f}s")
 
           for batch_idx, orig_path in enumerate(batch_orig_paths):
             top_predicted = top_predictions[batch_idx]
@@ -119,7 +119,7 @@ class SegmentationWorkflowService:
                 if is_problematic_box(box_norms):
                   try:
                     extended_box = extend_bounding_box_to_edges(box_norms)
-                    print(f"   Problem detected with bounding box, extending to edges.")
+                    log(f"   Problem detected with bounding box, extending to edges.")
                   except InvalidBoundingBoxException as e:
                     print(e.message)
                     # Set the predicted class to 2, to indicate its an invalid prediction
@@ -140,8 +140,8 @@ class SegmentationWorkflowService:
           batch_norm_paths = []
 
         iteration_elapsed = time.time() - iteration_start_time
-        print(f"  Total iteration time: {iteration_elapsed:.3f}s")
-      print(f"  Total Segmentation time: {segmentation_total:.3f}s")
+        log(f"  Total iteration time: {iteration_elapsed:.3f}s")
+      log(f"  Total Segmentation time: {segmentation_total:.3f}s")
 
   def unprefix_original_path(self, orig_path):
     if self.config.src_base_path == None:
