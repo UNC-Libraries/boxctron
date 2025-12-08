@@ -42,12 +42,12 @@ class SegmentationWorkflowService:
     batch_size = int(self.config.batch_size)
     segmentation_total = 0
 
-    # Warm-up GPU to get consistent performance, if doing perof
+    # Warm-up GPU to get consistent timings, uncomment if doing performance testing and point to a real file within the dataset being processed
     # if torch.cuda.is_available():
     #   log("Warming up GPU...")
     #   warmup_start = time.time()
     #   # Use separate warmup image
-    #   first_path = Path('/work/users/b/b/bbpennel/test_boxctron/test/boxctron/chompb/ncmaps_fileQA/velocicroptor/01122025142020024/source_files/C551-57_S72_c4.tif')
+    #   first_path = Path('/path/to/test_file.tif')
     #   try:
     #     dummy_norm = self.normalizer.process(first_path)
     #     self.segmenter.predict([dummy_norm])
