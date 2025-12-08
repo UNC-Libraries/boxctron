@@ -3,6 +3,7 @@ import os
 import traceback
 import time
 from pathlib import Path
+from src.utils.common_utils import log
 from src.utils.image_segmenter import ImageSegmenter
 from src.utils.image_normalizer import ImageNormalizer
 from src.utils.progress_tracker import ProgressTracker
@@ -19,21 +20,23 @@ class SegmentationWorkflowService:
   BATCH_SIZE = 10
 
   def __init__(self, config, report_path, restart = False):
+    log('Initializing workflow service')
     self.config = config
     self.report_path = report_path
     self.normalizer = ImageNormalizer(config)
     warmup_start = time.time()
     self.segmenter = ImageSegmenter(config)
     warmup_elapsed = time.time() - warmup_start
-    print(f"Model loaded in {warmup_elapsed:.3f}s")
+    log(f"Model loaded in {warmup_elapsed:.3f}s")
     progress_log_path = report_path.parent / (report_path.stem + "_progress.log")
     self.progress_tracker = ProgressTracker(progress_log_path)
     if restart:
-      print(f'Restarting progress tracking and reporting')
+      log(f'Restarting progress tracking and reporting')
       self.progress_tracker.reset_log()
       self.report_path.unlink()
 
   def process(self, paths):
+    log('Starting processing for segmentation workflow')
     total = len(paths)
     is_new_file = not Path.exists(self.report_path) or os.path.getsize(self.report_path) == 0
     batch_size = int(self.config.batch_size)
@@ -53,6 +56,7 @@ class SegmentationWorkflowService:
       except Exception as e:
         print(f"Warm-up failed (non-fatal): {e}")
 
+    log('Starting processing loop')
     with open(self.report_path, "a", newline="") as csv_file:
       csv_writer = csv.writer(csv_file)
       # Add headers to file if it is empty
@@ -72,7 +76,7 @@ class SegmentationWorkflowService:
 
         iteration_start_time = time.time()
 
-        print(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
+        log(f"Processing {idx + 1} of {total}: {path} {len(batch_norm_paths)} {len(batch_orig_paths)} / {batch_size}")
         path = path.resolve()
         try:
           normalize_start_time = time.time()
