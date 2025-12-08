@@ -32,7 +32,7 @@ class ImageNormalizer:
         img = img.convert("RGB")
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
-      img.save(output_path, "JPEG", optimize=True, quality=80)
+      img.save(output_path, "JPEG", quality=80)
     return output_path
 
   # Constructs an output path based on the input path and configured base paths.
@@ -60,4 +60,4 @@ class ImageNormalizer:
       if width < min_dimension:
         width = min_dimension
         height = int(img.height * (min_dimension / img.width))
-    return img.resize((width, height))
+    return img.resize((width, height), resample=Image.BILINEAR)

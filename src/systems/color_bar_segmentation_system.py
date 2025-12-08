@@ -46,7 +46,8 @@ class ColorBarSegmentationSystem(pl.LightningModule):
     self.test_results = {}
 
   def forward(self, x):
-    self.model.eval()
+    # Maybe this should be turned off
+    # self.model.eval()
     return self.model(x)
 
   def training_step(self, batch, batch_idx):

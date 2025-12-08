@@ -3,6 +3,7 @@ from src.utils.classifier_config import ClassifierConfig
 import argparse
 from pathlib import Path
 from src.utils.cached_file_list import CachedFileList
+from src.utils.common_utils import log
 
 parser = argparse.ArgumentParser(description='Use a trained model to segment images in a directory. Normalized versions of the images will be produced if they are not already present')
 parser.add_argument('src_path', type=Path,
@@ -26,17 +27,18 @@ parser.add_argument('-b', '--minimum-bytes', type=int, default=128000,
 args = parser.parse_args()
 extensions = { f".{item.strip(' .')}" for item in args.extensions.split(',') }
 
-print(f'Segmenting images at path: {args.src_path}')
-print(f'For types: {extensions}')
+log(f'Segmenting images at path: {args.src_path}')
+log(f'For types: {extensions}')
 
 config = ClassifierConfig(path=args.config)
 
 path = None
 if args.file_list or args.src_path.is_dir():
   paths = CachedFileList(args.src_path, extensions, args.refresh, minimum_bytes = args.minimum_bytes, cache_path = config.file_list_cache_path)
-  print(f'Found {len(paths)} paths for processing')
+  log(f'Found {len(paths)} paths for processing')
 else:
   paths = [args.src_path]
 
 service = SegmentationWorkflowService(config, Path(args.report_path), args.restart)
 service.process(paths)
+log('Finished running segmentation workflow')
