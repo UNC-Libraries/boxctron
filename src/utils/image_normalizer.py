@@ -32,7 +32,14 @@ class ImageNormalizer:
         img = img.convert("RGB")
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
-      img.save(output_path, "JPEG", quality=80)
+      try:
+        img.save(output_path, "JPEG", quality=80)
+      except TypeError:
+        # Some TIFF files have metadata that PIL can't handle, so we will retry without the metadata
+        logging.info(f'Stripping metadata from {path} and retrying')
+        img.info.pop('xmp', None)
+        img.info.pop('icc_profile', None)
+        img.save(output_path, "JPEG", quality=80, exif=b"")
     return output_path
 
   # Constructs an output path based on the input path and configured base paths.
