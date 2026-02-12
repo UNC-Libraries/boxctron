@@ -33,6 +33,7 @@ print(f'For types: {extensions}')
 
 config = Config()
 config.max_dimension = args.max_dimension
+config.min_dimension = args.min_dimension
 config.output_base_path = args.output_path
 config.src_base_path = args.base_src_path
 config.force = args.force

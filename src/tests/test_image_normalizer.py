@@ -3,6 +3,7 @@ from PIL import Image
 from src.utils.image_normalizer import ImageNormalizer
 from src.utils.config import Config
 from pathlib import Path
+from unittest.mock import patch
 import shutil
 
 @pytest.fixture
@@ -115,7 +116,7 @@ class TestImageNormalizer:
     src_img = Image.new('RGB', (500, 500), 'blue')
     src_img.save(src_path)
     subject = ImageNormalizer(config)
-    
+
     subject.process(src_path)
     result = Image.open(config.output_base_path / 'images/blue.jpg.jpg')
     assert result.width == 500
@@ -128,7 +129,7 @@ class TestImageNormalizer:
     src_img = Image.new('L', (500, 500), 100)
     src_img.save(src_path, 'TIFF')
     subject = ImageNormalizer(config)
-    
+
     subject.process(src_path)
     result = Image.open(config.output_base_path / 'gray.tif.jpg')
     assert result.width == 500
@@ -141,7 +142,7 @@ class TestImageNormalizer:
     src_img = Image.new('RGB', (5000, 4000), 'blue')
     src_img.save(src_path)
     subject = ImageNormalizer(config)
-    
+
     subject.process(src_path)
     result = Image.open(config.output_base_path / 'bigblue.jpg.jpg')
     assert result.width == 512
@@ -154,7 +155,7 @@ class TestImageNormalizer:
     src_img = Image.new('RGB', (500, 500), 'blue')
     src_img.save(src_path)
     subject = ImageNormalizer(config)
-    
+
     subject.process(src_path)
     result = Image.open(config.output_base_path / 'images/blue.jpg.jpg')
     assert result.width == 500
@@ -179,4 +180,81 @@ class TestImageNormalizer:
     assert result.width == 565
     assert result.height == 224
     assert result.mode == 'RGB'
-  
+
+  # Test that files with problematic XMP metadata that cause TypeError
+  # are handled by stripping metadata and retrying
+  def test_process_with_xmp_metadata_error(self, config):
+    src_path = config.src_base_path / 'tiff_with_xmp.tif'
+    src_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Create a test image with XMP metadata
+    src_img = Image.new('RGB', (500, 500), 'red')
+    src_img.info['xmp'] = b'<test>xmp data</test>'
+    src_img.info['icc_profile'] = b'fake_icc_profile'
+    src_img.save(src_path, 'TIFF')
+
+    subject = ImageNormalizer(config)
+
+    # Mock the save method to raise TypeError on first call (simulating XMP bug),
+    # then call the real save method on subsequent calls
+    original_save = Image.Image.save
+    call_count = 0
+
+    def mock_save(self, *args, **kwargs):
+      nonlocal call_count
+      call_count += 1
+      if call_count == 1:
+        # Simulate the PIL XMP concatenation bug
+        raise TypeError("can't concat tuple to bytes")
+      # On retry, call the real save method
+      return original_save(self, *args, **kwargs)
+
+    with patch.object(Image.Image, 'save', mock_save):
+      result_path = subject.process(src_path)
+
+    # Verify the file was created successfully after retry
+    assert result_path.exists()
+    result = Image.open(result_path)
+    assert result.width == 500
+    assert result.height == 500
+    assert result.mode == 'RGB'
+    assert call_count == 2  # First call failed, second succeeded
+
+  # Test that files with problematic EXIF/XMP metadata that cause TypeError during resize
+  # are handled by stripping metadata and retrying
+  def test_process_with_metadata_error_during_resize(self, config):
+    src_path = config.src_base_path / 'tiff_with_bad_exif.tif'
+    src_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Create a test image that needs resizing
+    src_img = Image.new('RGB', (1024, 768), 'blue')
+    src_img.info['exif'] = b'fake_exif_data'
+    src_img.save(src_path, 'TIFF')
+
+    subject = ImageNormalizer(config)
+
+    # Mock resize to raise TypeError on first call (simulating EXIF transpose bug),
+    # then call the real resize method on subsequent calls
+    original_resize = subject.resize
+    call_count = 0
+
+    def mock_resize(img):
+      nonlocal call_count
+      call_count += 1
+      if call_count == 1:
+        # Simulate the PIL EXIF transpose bug that occurs during image load
+        raise TypeError("expected string or bytes-like object, got 'tuple'")
+      # On retry, call the real resize method
+      return original_resize(img)
+
+    with patch.object(subject, 'resize', mock_resize):
+      result_path = subject.process(src_path)
+
+    # Verify the file was created successfully after retry
+    assert result_path.exists()
+    result = Image.open(result_path)
+    # Image should be resized to max dimension
+    assert result.width == 512
+    assert result.height == 384
+    assert result.mode == 'RGB'
+    assert call_count == 2  # First call failed, second succeeded
