@@ -219,3 +219,42 @@ class TestImageNormalizer:
     assert result.height == 500
     assert result.mode == 'RGB'
     assert call_count == 2  # First call failed, second succeeded
+
+  # Test that files with problematic EXIF/XMP metadata that cause TypeError during resize
+  # are handled by stripping metadata and retrying
+  def test_process_with_metadata_error_during_resize(self, config):
+    src_path = config.src_base_path / 'tiff_with_bad_exif.tif'
+    src_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Create a test image that needs resizing
+    src_img = Image.new('RGB', (1024, 768), 'blue')
+    src_img.info['exif'] = b'fake_exif_data'
+    src_img.save(src_path, 'TIFF')
+
+    subject = ImageNormalizer(config)
+
+    # Mock resize to raise TypeError on first call (simulating EXIF transpose bug),
+    # then call the real resize method on subsequent calls
+    original_resize = subject.resize
+    call_count = 0
+
+    def mock_resize(img):
+      nonlocal call_count
+      call_count += 1
+      if call_count == 1:
+        # Simulate the PIL EXIF transpose bug that occurs during image load
+        raise TypeError("expected string or bytes-like object, got 'tuple'")
+      # On retry, call the real resize method
+      return original_resize(img)
+
+    with patch.object(subject, 'resize', mock_resize):
+      result_path = subject.process(src_path)
+
+    # Verify the file was created successfully after retry
+    assert result_path.exists()
+    result = Image.open(result_path)
+    # Image should be resized to max dimension
+    assert result.width == 512
+    assert result.height == 384
+    assert result.mode == 'RGB'
+    assert call_count == 2  # First call failed, second succeeded
