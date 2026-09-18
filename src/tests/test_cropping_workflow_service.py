@@ -2,6 +2,8 @@ from pathlib import Path
 from src.utils.cropping_workflow_service import CroppingWorkflowService
 from src.utils.classifier_config import ClassifierConfig
 import pytest
+from PIL import Image
+from unittest.mock import patch
 
 @pytest.fixture
 def config(tmp_path):
@@ -48,3 +50,27 @@ class TestCroppingWorkflowService:
     assert not expected_path1.exists()
     expected_path2 = output_path / "gilmer/00276_op0226a_0001.jpg.jpg"
     assert expected_path2 in cropped_paths
+
+  def test_crop_image_retries_after_metadata_save_error(self, tmp_path, config):
+    source_path = tmp_path / 'source.tif'
+    Image.new('RGB', (100, 100), 'red').save(source_path, 'TIFF')
+    service = CroppingWorkflowService(tmp_path / 'report.csv', tmp_path / 'cropped', config)
+
+    original_save = Image.Image.save
+    call_count = 0
+
+    def mock_save(self, *args, **kwargs):
+      nonlocal call_count
+      call_count += 1
+      if call_count == 1:
+        raise TypeError("can't concat tuple to bytes")
+      return original_save(self, *args, **kwargs)
+
+    with patch.object(Image.Image, 'save', mock_save):
+      result_path = service.crop_image(source_path, source_path, [0, 0, 0.5, 0.5])
+
+    assert result_path.exists()
+    with Image.open(result_path) as result:
+      assert result.size == (50, 50)
+      assert result.mode == 'RGB'
+    assert call_count == 2

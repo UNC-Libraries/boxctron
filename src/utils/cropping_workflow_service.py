@@ -84,7 +84,13 @@ class CroppingWorkflowService:
         cropped = cropped.convert("RGB")
       dest_path = self.cropped_image_output_path(orig_path)
       dest_path.parent.mkdir(parents=True, exist_ok=True)
-      cropped.save(dest_path, "JPEG", quality=80)
+      try:
+        cropped.save(dest_path, "JPEG", quality=80)
+      except TypeError:
+        # TIFF metadata can be malformed and inherited by the cropped image.
+        for metadata_key in ('xmp', 'icc_profile', 'exif'):
+          cropped.info.pop(metadata_key, None)
+        cropped.save(dest_path, "JPEG", quality=80)
       return dest_path
 
   def cropped_image_output_path(self, img_path):
