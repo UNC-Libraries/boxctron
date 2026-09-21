@@ -2,6 +2,7 @@ from PIL import Image, ImageFile
 from pathlib import Path
 import logging
 from src.utils.common_utils import rebase_path
+from src.utils.image_metadata_utils import retry_after_stripping_metadata
 
 # Utility for normalizing images based on a configuration.
 # Currently normalizes all files to JPGs
@@ -26,32 +27,15 @@ class ImageNormalizer:
       return output_path
 
     with Image.open(path) as img:
-      try:
-        # Resize before converting, so that we are working with a smaller image to keep down memory usage
-        img = self.resize(img)
-      except TypeError:
-        # Some TIFF files have malformed EXIF/XMP metadata that causes PIL to fail during load/resize
-        # Strip the problematic metadata and retry
-        logging.info(f'Stripping metadata from {path} due to resizing error, retrying')
-        img.info.pop('xmp', None)
-        img.info.pop('icc_profile', None)
-        img.info.pop('exif', None)
-        img = self.resize(img)
+      # Resize before converting, so that we are working with a smaller image to keep down memory usage
+      img = retry_after_stripping_metadata(img, lambda: self.resize(img))
 
       if img.mode != "RGB":
-        img = img.convert("RGB")
+        img = retry_after_stripping_metadata(img, lambda: img.convert("RGB"))
 
       # construct path to write to, then save the file
       output_path.parent.mkdir(parents=True, exist_ok=True)
-      try:
-        img.save(output_path, "JPEG", quality=80)
-      except TypeError:
-        # Some TIFF files have metadata that PIL can't handle during JPEG encoding
-        logging.info(f'Stripping remaining metadata from {path} for JPEG save')
-        img.info.pop('xmp', None)
-        img.info.pop('icc_profile', None)
-        img.info.pop('exif', None)
-        img.save(output_path, "JPEG", quality=80)
+      retry_after_stripping_metadata(img, lambda: img.save(output_path, "JPEG", quality=80))
     return output_path
 
   # Constructs an output path based on the input path and configured base paths.

@@ -8,6 +8,7 @@ from src.utils.bounding_box_utils import is_problematic_box, get_box_coords, num
 import torch
 from PIL import Image, ImageFile
 from src.utils.common_utils import log, rebase_path
+from src.utils.image_metadata_utils import retry_after_stripping_metadata
 
 # Service which accepts a prediction CSV, and generates cropped versions of listed original
 # images if they were predicted to contain color bars.
@@ -77,25 +78,13 @@ class CroppingWorkflowService:
       crop_coords = background_box(box_coords)
       # convert crop coords from percentages to pixels
       crop_pixels = norms_to_pixels(crop_coords, start_w, start_h)
-      try:
-        cropped = img.crop(tuple(crop_pixels))
-      except TypeError:
-        # TIFF loading can apply malformed EXIF/XMP metadata before cropping.
-        for metadata_key in ('xmp', 'icc_profile', 'exif'):
-          img.info.pop(metadata_key, None)
-        cropped = img.crop(tuple(crop_pixels))
+      cropped = retry_after_stripping_metadata(img, lambda: img.crop(tuple(crop_pixels)))
       # write image out to destination path
       if cropped.mode != "RGB":
         cropped = cropped.convert("RGB")
       dest_path = self.cropped_image_output_path(orig_path)
       dest_path.parent.mkdir(parents=True, exist_ok=True)
-      try:
-        cropped.save(dest_path, "JPEG", quality=80)
-      except TypeError:
-        # TIFF metadata can be malformed and inherited by the cropped image.
-        for metadata_key in ('xmp', 'icc_profile', 'exif'):
-          cropped.info.pop(metadata_key, None)
-        cropped.save(dest_path, "JPEG", quality=80)
+      retry_after_stripping_metadata(cropped, lambda: cropped.save(dest_path, "JPEG", quality=80))
       return dest_path
 
   def cropped_image_output_path(self, img_path):

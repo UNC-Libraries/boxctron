@@ -220,6 +220,30 @@ class TestImageNormalizer:
     assert result.mode == 'RGB'
     assert call_count == 2  # First call failed, second succeeded
 
+  def test_process_retries_rgb_conversion_after_metadata_error(self, config):
+    src_path = config.src_base_path / 'grayscale.tif'
+    Image.new('L', (100, 100)).save(src_path, 'TIFF')
+    subject = ImageNormalizer(config)
+
+    original_convert = Image.Image.convert
+    call_count = 0
+
+    def mock_convert(self, *args, **kwargs):
+      nonlocal call_count
+      call_count += 1
+      if call_count == 1:
+        self.info['xmp'] = ('malformed',)
+        raise TypeError("expected string or bytes-like object, got 'tuple'")
+      assert 'xmp' not in self.info
+      return original_convert(self, *args, **kwargs)
+
+    with patch.object(Image.Image, 'convert', mock_convert):
+      result_path = subject.process(src_path)
+
+    with Image.open(result_path) as result:
+      assert result.mode == 'RGB'
+    assert call_count == 2
+
   # Test that files with problematic EXIF/XMP metadata that cause TypeError during resize
   # are handled by stripping metadata and retrying
   def test_process_with_metadata_error_during_resize(self, config):
