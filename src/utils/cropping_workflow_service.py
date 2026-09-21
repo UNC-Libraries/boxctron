@@ -77,8 +77,13 @@ class CroppingWorkflowService:
       crop_coords = background_box(box_coords)
       # convert crop coords from percentages to pixels
       crop_pixels = norms_to_pixels(crop_coords, start_w, start_h)
-      # crop image
-      cropped = img.crop(tuple(crop_pixels))
+      try:
+        cropped = img.crop(tuple(crop_pixels))
+      except TypeError:
+        # TIFF loading can apply malformed EXIF/XMP metadata before cropping.
+        for metadata_key in ('xmp', 'icc_profile', 'exif'):
+          img.info.pop(metadata_key, None)
+        cropped = img.crop(tuple(crop_pixels))
       # write image out to destination path
       if cropped.mode != "RGB":
         cropped = cropped.convert("RGB")
